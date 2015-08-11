@@ -6,7 +6,8 @@ SOURCES += main.cpp \
     accountmodel.cpp \
     types.cpp \
     etheripc.cpp \
-    settings.cpp
+    settings.cpp \
+    bigint.cpp
 
 RESOURCES += qml.qrc
 
@@ -20,4 +21,5 @@ HEADERS += \
     accountmodel.h \
     types.h \
     etheripc.h \
-    settings.h
+    settings.h \
+    bigint.h

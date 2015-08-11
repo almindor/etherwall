@@ -1,37 +1,59 @@
+/*
+    This file is part of etherwall.
+    etherwall is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+    etherwall is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+    You should have received a copy of the GNU General Public License
+    along with etherwall. If not, see <http://www.gnu.org/licenses/>.
+*/
+/** @file types.h
+ * @author Ales Katona <almindor@gmail.com>
+ * @date 2015
+ *
+ * Types header
+ */
+
 #ifndef TYPES_H
 #define TYPES_H
 
 #include <QString>
 #include <QList>
 #include <QVariant>
+#include <QStandardPaths>
 
 namespace Etherwall {
 
-    class IPCException : public std::exception
-    {
-     public:
-        IPCException(const QString msg);
-        ~IPCException() throw();
-        const char* what() const throw();
-
-     private:
-        const QString fMessage;
-    };
+#ifdef Q_OS_WIN32
+    static const QString DefaultIPCPath = "//.pipe/geth.ipc";
+#else
+    #ifdef Q_OS_MACX
+    static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum/geth.ipc";
+    #else
+    static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/geth.ipc";
+    #endif
+#endif
 
     enum AccountRoles {
         HashRole = Qt::UserRole + 1,
-        BalanceRole
+        BalanceRole,
+        TransCountRole
     };
 
     class AccountInfo
     {
     public:
-        AccountInfo(const QString& hash, const qulonglong balance);
+        AccountInfo(const QString& hash, const QString& balance, quint64 transCount);
 
         const QVariant value(const int role) const;
     private:
         QString fHash;
-        double fBalance; // in ether
+        QString fBalance; // in ether
+        quint64 fTransCount;
     };
 
     typedef QList<AccountInfo> AccountList;

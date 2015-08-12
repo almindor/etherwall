@@ -26,11 +26,7 @@
 namespace Etherwall {
 
     EtherIPC::EtherIPC() :
-        fSocket(), fCallNum(0), fLocale(), fError() {
-    }
-
-    const QString& EtherIPC::getError() const {
-        return fError;
+        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0) {
     }
 
     void EtherIPC::setWorker(QThread* worker) {
@@ -48,7 +44,7 @@ namespace Etherwall {
 
         if ( !fSocket.waitForConnected(2000) ) {
             fError = "Socket connection timeout";
-            emit error(fError);
+            emit error(fError, fCode);
         }
 
         emit connectToServerDone();
@@ -57,7 +53,7 @@ namespace Etherwall {
     void EtherIPC::getAccounts() {
         QJsonArray refs;
         if ( !getAccountRefs(refs) ) {
-            emit error(fError);
+            emit error(fError, fCode);
             return;
         }
 
@@ -66,13 +62,13 @@ namespace Etherwall {
             const QString hash = r.toString("INVALID");
             QString balance;
             if ( !getBalance(r, balance) ) {
-                emit error(fError);
+                emit error(fError, fCode);
                 return;
             }
 
             quint64 transCount;
             if ( !getTransactionCount(r, transCount) ) {
-                emit error(fError);
+                emit error(fError, fCode);
                 return;
             }
 
@@ -88,7 +84,7 @@ namespace Etherwall {
 
         QJsonValue jv;
         if ( !callIPC("personal_newAccount", params, jv) ) {
-            emit error(fError);
+            emit error(fError, fCode);
             return;
         }
 
@@ -103,7 +99,7 @@ namespace Etherwall {
 
         QJsonValue jv;
         if ( !callIPC("personal_deleteAccount", params, jv) ) {
-            emit error(fError);
+            emit error(fError, fCode);
             return;
         }
 
@@ -180,6 +176,7 @@ namespace Etherwall {
 
         if ( !fSocket.waitForConnected(1000) ) {
             fError = "Timeout on socket connect: " + fSocket.errorString();
+            fCode = 0;
             return false;
         }
 
@@ -188,11 +185,13 @@ namespace Etherwall {
 
         if ( sent <= 0 ) {
             fError = "Error on socket write: " + fSocket.errorString();
+            fCode = 0;
             return false;
         }
 
         if ( !fSocket.waitForBytesWritten(1000) ) {
             fError = "Timeout on socket write";
+            fCode = 0;
             return false;
         }
 
@@ -200,12 +199,14 @@ namespace Etherwall {
 
         if ( !fSocket.waitForReadyRead(10000) ) {
             fError = "Timeout on socket read";
+            fCode = 0;
             return false;
         }
 
         QByteArray recvBuf = fSocket.read(4096);
         if ( recvBuf.isNull() || recvBuf.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();
+            fCode = 0;
             return false;
         }
 
@@ -216,6 +217,7 @@ namespace Etherwall {
 
         if ( parseError.error != QJsonParseError::NoError ) {
             fError = "Response parse error: " + parseError.errorString();
+            fCode = 0;
             return false;
         }
 
@@ -224,14 +226,21 @@ namespace Etherwall {
 
         if ( objID.toInt(-1) != fCallNum++ ) {
             fError = "Call number mismatch";
+            fCode = 0;
             return false;
         }
 
         result = obj["result"];
 
         if ( result.isUndefined() || result.isNull() ) {
-            if ( obj.contains("error") && obj["error"].toObject().contains("message") ) {
-                fError = obj["error"].toObject()["message"].toString();
+            if ( obj.contains("error") ) {
+                if ( obj["error"].toObject().contains("message") ) {
+                    fError = obj["error"].toObject()["message"].toString();
+                }
+
+                if ( obj["error"].toObject().contains("code") ) {
+                    fCode = obj["error"].toObject()["code"].toInt();
+                }
                 return false;
             }
 

@@ -3,5 +3,6 @@
         <file>main.qml</file>
         <file>components/AccountsTab.qml</file>
         <file>components/AccountDialog.qml</file>
+        <file>components/ErrorDialog.qml</file>
     </qresource>
 </RCC>

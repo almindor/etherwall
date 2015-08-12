@@ -28,7 +28,7 @@
 namespace Etherwall {
 
     AccountModel::AccountModel(const EtherIPC& ipc) :
-        QAbstractListModel(0)
+        QAbstractListModel(0), fError()
     {
         connect(this, &AccountModel::connectToServerIPC, &ipc, &EtherIPC::connectToServer);
         connect(this, &AccountModel::getAccountsIPC, &ipc, &EtherIPC::getAccounts);
@@ -101,7 +101,7 @@ namespace Etherwall {
     }
 
     void AccountModel::deleteAccountDone(bool result, int index) {
-        qDebug() << "account at index " << index << " deletion complete result: " + result << "\n";
+        qDebug() << "account at index " << index << " deletion complete result: " << result << "\n";
         if ( result ) {
             beginRemoveRows(QModelIndex(), index, index);
             fAccountList.removeAt(index);
@@ -111,8 +111,13 @@ namespace Etherwall {
         }
     }
 
-    void AccountModel::error(const QString& error) {
-        qDebug() << error << "\n";
+    void AccountModel::error(const QString& error, int code) {
+        fError = error;
+        if ( code == -32603 ) { // wrong password
+            fError = "Wrong password [" + error + "]";
+        }
+        emit errorChanged(fError, code);
+        //qDebug() << error << " code: " << code << "\n";
     }
 
 }

@@ -52,6 +52,12 @@ Tab {
             }
         }
 
+        ErrorDialog {
+            id: errorDialog
+            standardButtons: StandardButton.Ok
+            error: accountModel.error
+        }
+
         AccountDialog {
             id: accountNewDialog
             standardButtons: StandardButton.Save | StandardButton.Cancel

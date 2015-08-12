@@ -36,7 +36,6 @@ namespace Etherwall {
     public:
         EtherIPC();
         void setWorker(QThread* worker);
-        const QString& getError() const;
     public slots:
         void connectToServer(const QString& path);
         void getAccounts();
@@ -48,12 +47,13 @@ namespace Etherwall {
         void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
-        void error(const QString& error);
+        void error(const QString& error, int code);
     private:
         QLocalSocket fSocket;
         int fCallNum;
         QLocale fLocale;
         QString fError;
+        int fCode;
 
         bool getAccountRefs(QJsonArray& result);
         bool getBalance(const QJsonValue& accountRef, QString& result, const QString& block = "latest");

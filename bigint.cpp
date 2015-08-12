@@ -53,7 +53,7 @@
 // ##############################################################
 
 // include section
-#include "bigInt.h"
+#include "bigint.h"
 
 
 // =================
@@ -2910,7 +2910,7 @@ std::string BigInt::Rossi::toStr0xHex () const
 
 
 // ------------------
-std::string BigInt::Rossi::toStrDec (const std::string& i_prefix) const
+std::string BigInt::Rossi::toStrDec () const
 {
     std::ostringstream oss;
 
@@ -3403,9 +3403,7 @@ void BigInt::assertCheck()
     ASSERTION (BigInt::OVER_BASE2 > BigInt::SUB_BASE2);
 
     ASSERTION(
-            (sizeof(BigInt::Ulong) == 4) && ((BigInt::ULONG_MSB == static_cast<BigInt::Ulong>(0x80000000)))
-            ||
-            (sizeof(BigInt::Ulong) == 8) && ((BigInt::ULONG_MSB == ((static_cast<BigInt::Ulong>(0x80000000) << 31) << 1)))
+            (sizeof(BigInt::Ulong) == 4) && (((BigInt::ULONG_MSB == static_cast<BigInt::Ulong>(0x80000000))) || (sizeof(BigInt::Ulong) == 8)) && ((BigInt::ULONG_MSB == ((static_cast<BigInt::Ulong>(0x80000000) << 31) << 1)))
           );
 }  
 	

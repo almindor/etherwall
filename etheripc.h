@@ -21,33 +21,46 @@
 #ifndef ETHERIPC_H
 #define ETHERIPC_H
 
+#include <QObject>
 #include <QLocalSocket>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QThread>
 #include "types.h"
 
 namespace Etherwall {
 
-    class EtherIPC
+    class EtherIPC: public QObject
     {
+        Q_OBJECT
     public:
         EtherIPC();
-        void connect(const QString& path);
+        void setWorker(QThread* worker);
         const QString& getError() const;
-
-        const QJsonArray getAccountRefs();
-        const QString getBalance(const QJsonValue& accountRef, const QString& block = "latest");
-        quint64 getTransactionCount(const QJsonValue& accountRef, const QString& block = "latest");
-        const QString newAccount(const QString& password);
-        bool deleteAccount(const QString& hash, const QString& password);
+    public slots:
+        void connectToServer(const QString& path);
+        void getAccounts();
+        void newAccount(const QString& password, int index);
+        void deleteAccount(const QString& hash, const QString& password, int index);
+        void closeApp();
+    signals:
+        void connectToServerDone();
+        void getAccountsDone(const AccountList& list);
+        void newAccountDone(const QString& result, int index);
+        void deleteAccountDone(bool result, int index);
+        void error(const QString& error);
     private:
         QLocalSocket fSocket;
         int fCallNum;
         QLocale fLocale;
         QString fError;
 
+        bool getAccountRefs(QJsonArray& result);
+        bool getBalance(const QJsonValue& accountRef, QString& result, const QString& block = "latest");
+        bool getTransactionCount(const QJsonValue& accountRef, quint64& result, const QString& block = "latest");
+
         QJsonObject methodToJSON(const QString& method, const QJsonArray& params);
-        const QJsonValue callIPC(const QString& method, const QJsonArray& params);
+        bool callIPC(const QString& method, const QJsonArray& params, QJsonValue& result);
     };
 
 }

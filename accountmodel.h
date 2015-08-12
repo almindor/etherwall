@@ -31,7 +31,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        explicit AccountModel(QObject *parent = 0);
+        AccountModel(const EtherIPC& ipc);
 
         QHash<int, QByteArray> roleNames() const;
 
@@ -39,17 +39,23 @@ namespace Etherwall {
 
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
-        Q_INVOKABLE const QString newAccount(const QString& pw);
-        Q_INVOKABLE bool deleteAccount(int index, const QString& pw);
+        Q_INVOKABLE void newAccount(const QString& pw);
+        Q_INVOKABLE void deleteAccount(const QString& pw, int index);
+    public slots:
+        void connectToServerDone();
+        void getAccountsDone(const AccountList& list);
+        void newAccountDone(const QString& hash, int index);
+        void deleteAccountDone(bool result, int index);
+        void error(const QString& error);
+    signals:
+        void connectToServerIPC(const QString& path);
+        void getAccountsIPC();
+        void newAccountIPC(const QString& password, int index);
+        void deleteAccountIPC(const QString& hash, const QString& password, int index);
     private:
         AccountList fAccountList;
-        EtherIPC fIpc;
 
         void refresh();
-    signals:
-
-    public slots:
-
     };
 
 }

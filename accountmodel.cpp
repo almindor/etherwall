@@ -27,17 +27,24 @@
 
 namespace Etherwall {
 
-    AccountModel::AccountModel(QObject *parent) :
-        QAbstractListModel(parent), fAccountList(), fIpc()
+    AccountModel::AccountModel(const EtherIPC& ipc) :
+        QAbstractListModel(0)
     {
-        try {
-            const QSettings settings;
-            const QString path = settings.value("ipc/path", DefaultIPCPath).toString();
-            fIpc.connect(path);
-            refresh();
-        } catch ( std::exception ) {
-            qDebug() << fIpc.getError() << "\n";
-        }
+        connect(this, &AccountModel::connectToServerIPC, &ipc, &EtherIPC::connectToServer);
+        connect(this, &AccountModel::getAccountsIPC, &ipc, &EtherIPC::getAccounts);
+        connect(this, &AccountModel::newAccountIPC, &ipc, &EtherIPC::newAccount);
+        connect(this, &AccountModel::deleteAccountIPC, &ipc, &EtherIPC::deleteAccount);
+
+        connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
+        connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
+        connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
+        connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
+        connect(&ipc, &EtherIPC::error, this, &AccountModel::error);
+
+        const QSettings settings;
+        const QString path = settings.value("ipc/path", DefaultIPCPath).toString();
+
+        emit connectToServerIPC(path);
     }
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
@@ -58,58 +65,54 @@ namespace Etherwall {
         return fAccountList.at(row).value(role);
     }
 
-    const QString AccountModel::newAccount(const QString& pw) {
-        try {
-            const int index = fAccountList.size();
-            const QString acct = fIpc.newAccount(pw);
-            if ( !acct.isEmpty() ) {
-                beginInsertRows(QModelIndex(), index, index);
-                refresh();
-                endInsertRows();
-                return acct;
-            }
-            return "Account creation failed: " + fIpc.getError();
-        } catch ( std::exception ) {
-            qDebug() << fIpc.getError() << "\n";
-            return fIpc.getError();
-        }
+    void AccountModel::newAccount(const QString& pw) {
+        const int index = fAccountList.size();
+        emit newAccountIPC(pw, index);
     }
 
-    bool AccountModel::deleteAccount(int index, const QString& pw) {
-        if ( index >= 0 && index < fAccountList.size() ) try {
+    void AccountModel::deleteAccount(const QString& pw, int index) {
+        if ( index >= 0 && index < fAccountList.size() ) {
             const QString hash = fAccountList.at(index).value(HashRole).toString();
-            if ( fIpc.deleteAccount(hash, pw) ) {
-                beginRemoveRows(QModelIndex(), index, index);
-                refresh();
-                endRemoveRows();
-                return true;
-            }
-
-            return false;
-        } catch ( std::exception ) {
-            qDebug() << fIpc.getError() << "\n";
-            return false;
+            emit deleteAccountIPC(hash, pw, index);
+        } else {
+            qDebug() << "Invalid account selection for delete";
         }
-
-        return false;
     }
 
-    void AccountModel::refresh() {
-        try {
-            QJsonArray accRefs = fIpc.getAccountRefs();
-            fAccountList.clear(); // after the call if we exceptioned out!
+    void AccountModel::connectToServerDone() {
+        emit getAccountsIPC();
+    }
 
-            foreach( QJsonValue r, accRefs ) {
-                const QString hash = r.toString("INVALID");
-                const QString balance = fIpc.getBalance(r);
-                const quint64 transCount = fIpc.getTransactionCount(r);
+    void AccountModel::getAccountsDone(const AccountList &list) {
+        beginResetModel();
+        fAccountList = list;
+        endResetModel();
+    }
 
-                fAccountList.append(AccountInfo(hash, balance, transCount));
-            }
-        } catch ( std::exception ) {
-            qDebug() << fIpc.getError() << "\n";
-            return;
+    void AccountModel::newAccountDone(const QString& hash, int index) {
+        qDebug() << "account at index " << index << " creation complete result: " + hash << "\n";
+        if ( !hash.isEmpty() ) {
+            beginInsertRows(QModelIndex(), index, index);
+            fAccountList.append(AccountInfo(hash, (QString("0") + QLocale().decimalPoint() + "00000000000000000"), 0));
+            endInsertRows();
+        } else {
+            qDebug() << "Account create failure";
         }
+    }
+
+    void AccountModel::deleteAccountDone(bool result, int index) {
+        qDebug() << "account at index " << index << " deletion complete result: " + result << "\n";
+        if ( result ) {
+            beginRemoveRows(QModelIndex(), index, index);
+            fAccountList.removeAt(index);
+            endRemoveRows();
+        } else {
+            qDebug() << "Account delete failure";
+        }
+    }
+
+    void AccountModel::error(const QString& error) {
+        qDebug() << error << "\n";
     }
 
 }

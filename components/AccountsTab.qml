@@ -57,7 +57,7 @@ Tab {
             standardButtons: StandardButton.Save | StandardButton.Cancel
 
             onAccepted: {
-                console.log("NEW: " + accountModel.newAccount(accountNewDialog.password))
+                accountModel.newAccount(accountNewDialog.password)
             }
         }
 
@@ -66,7 +66,7 @@ Tab {
             standardButtons: StandardButton.Ok | StandardButton.Cancel
 
             onAccepted: {
-                console.log("DELETE: " + accountModel.deleteAccount(accountView.currentRow, accountDeleteDialog.password))
+                accountModel.deleteAccount(accountDeleteDialog.password, accountView.currentRow);
             }
         }
 

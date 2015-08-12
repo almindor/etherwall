@@ -35,15 +35,23 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
 
+    QThread worker;
     Settings settings;
-    AccountModel accountModel;
+    EtherIPC ipc;
+    AccountModel accountModel(ipc);
+
+    ipc.setWorker(&worker);
 
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("settings", &settings);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
 
+    QObject::connect(&app, &QApplication::lastWindowClosed, &ipc, &EtherIPC::closeApp);
+
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
+
+    worker.start();
 
     return app.exec();
 }

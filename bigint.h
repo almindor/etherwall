@@ -495,7 +495,7 @@ public :
     // --- Show functions ---
     std::string toStrHex (const std::string& i_prefix = "") const;
     std::string toStr0xHex () const;
-    std::string toStrDec (const std::string& i_prefix = "") const;
+    std::string toStrDec () const;
 
     // ---- Service methods ---
     void showUnits(std::ostream& o_stream) const;

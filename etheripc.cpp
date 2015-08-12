@@ -33,25 +33,107 @@ namespace Etherwall {
         return fError;
     }
 
-    void EtherIPC::connect(const QString& path) {
+    void EtherIPC::setWorker(QThread* worker) {
+        moveToThread(worker);
+        fSocket.moveToThread(worker);
+    }
+
+    void EtherIPC::closeApp() {
+        fSocket.abort();
+        thread()->quit();
+    }
+
+    void EtherIPC::connectToServer(const QString& path) {
         fSocket.connectToServer(path);
+
+        if ( !fSocket.waitForConnected(2000) ) {
+            fError = "Socket connection timeout";
+            emit error(fError);
+        }
+
+        emit connectToServerDone();
     }
 
-    const QJsonArray EtherIPC::getAccountRefs() {
-        QJsonValue ja = callIPC("personal_listAccounts", QJsonArray());
-        return ja.toArray();
+    void EtherIPC::getAccounts() {
+        QJsonArray refs;
+        if ( !getAccountRefs(refs) ) {
+            emit error(fError);
+            return;
+        }
+
+        AccountList list;
+        foreach( QJsonValue r, refs ) {
+            const QString hash = r.toString("INVALID");
+            QString balance;
+            if ( !getBalance(r, balance) ) {
+                emit error(fError);
+                return;
+            }
+
+            quint64 transCount;
+            if ( !getTransactionCount(r, transCount) ) {
+                emit error(fError);
+                return;
+            }
+
+            list.append(AccountInfo(hash, balance, transCount));
+        }
+
+        emit getAccountsDone(list);
     }
 
-    const QString EtherIPC::getBalance(const QJsonValue& accountRef, const QString& block) {
+    void EtherIPC::newAccount(const QString& password, int index) {
+        QJsonArray params;
+        params.append(password);
+
+        QJsonValue jv;
+        if ( !callIPC("personal_newAccount", params, jv) ) {
+            emit error(fError);
+            return;
+        }
+
+        const QString result = jv.toString();
+        emit newAccountDone(result, index);
+    }
+
+    void EtherIPC::deleteAccount(const QString& hash, const QString& password, int index) {
+        QJsonArray params;
+        params.append(hash);
+        params.append(password);        
+
+        QJsonValue jv;
+        if ( !callIPC("personal_deleteAccount", params, jv) ) {
+            emit error(fError);
+            return;
+        }
+
+        const bool result = jv.toBool(false);
+        emit deleteAccountDone(result, index);
+    }
+
+    bool EtherIPC::getAccountRefs(QJsonArray& result) {
+        QJsonValue ja;
+        if ( !callIPC("personal_listAccounts", QJsonArray(), ja ) ) {
+            return false;
+        }
+
+        result = ja.toArray();
+        return true;
+    }
+
+    bool EtherIPC::getBalance(const QJsonValue& accountRef, QString& result, const QString& block) {
         QJsonArray params;
         params.append(accountRef.toString());
         params.append(block);
 
-        QJsonValue jv = callIPC("eth_getBalance", params);
+        QJsonValue jv;
+        if ( !callIPC("eth_getBalance", params, jv) ) {
+             return false;
+        }
 
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin result(hexStr, 16);
-        QString decStr = QString(result.toStrDec().data());
+        const BigInt::Vin bv(hexStr, 16);
+        QString decStr = QString(bv.toStrDec().data());
 
         const int dsl = decStr.length();
         if ( dsl <= 18 ) {
@@ -59,41 +141,27 @@ namespace Etherwall {
         }
         decStr.insert(dsl - 18, fLocale.decimalPoint());
 
-        return decStr;
+        result = decStr;
+        return true;
     }
 
-    quint64 EtherIPC::getTransactionCount(const QJsonValue& accountRef, const QString& block) {
+    bool EtherIPC::getTransactionCount(const QJsonValue& accountRef, quint64& result, const QString& block) {
         QJsonArray params;
         params.append(accountRef.toString());
         params.append(block);
 
-        QJsonValue jv = callIPC("eth_getTransactionCount", params);
+        QJsonValue jv;
+        if ( !callIPC("eth_getTransactionCount", params, jv) ) {
+            return false;
+        }
 
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin result(hexStr, 16);
-        return result.toUlong();
+        const BigInt::Vin bv(hexStr, 16);
+
+        result = bv.toUlong();
+        return true;
     }
 
-    const QString EtherIPC::newAccount(const QString& password) {
-        QJsonArray params;
-        params.append(password);
-
-        QJsonValue jv = callIPC("personal_newAccount", params);
-        const QString result = jv.toString();
-
-        return result;
-    }
-
-    bool EtherIPC::deleteAccount(const QString& hash, const QString& password) {
-        QJsonArray params;
-        params.append(hash);
-        params.append(password);
-
-        QJsonValue jv = callIPC("personal_deleteAccount", params);
-        const bool result = jv.toBool(false);
-
-        return result;
-    }
 
     QJsonObject EtherIPC::methodToJSON(const QString& method, const QJsonArray& params) {
         QJsonObject result;
@@ -106,13 +174,13 @@ namespace Etherwall {
         return result;
     }
 
-    const QJsonValue EtherIPC::callIPC(const QString& method, const QJsonArray& params) {
+    bool EtherIPC::callIPC(const QString& method, const QJsonArray& params, QJsonValue& result) {
         QJsonDocument doc(methodToJSON(method, params));
         const QString msg(doc.toJson());
 
         if ( !fSocket.waitForConnected(1000) ) {
             fError = "Timeout on socket connect: " + fSocket.errorString();
-            throw std::exception();
+            return false;
         }
 
         const QByteArray sendBuf = msg.toUtf8();
@@ -120,25 +188,25 @@ namespace Etherwall {
 
         if ( sent <= 0 ) {
             fError = "Error on socket write: " + fSocket.errorString();
-            throw std::exception();
+            return false;
         }
 
         if ( !fSocket.waitForBytesWritten(1000) ) {
             fError = "Timeout on socket write";
-            throw std::exception();
+            return false;
         }
 
         //qDebug() << "sent: " << msg << "\n";
 
         if ( !fSocket.waitForReadyRead(10000) ) {
             fError = "Timeout on socket read";
-            throw std::exception();
+            return false;
         }
 
         QByteArray recvBuf = fSocket.read(4096);
         if ( recvBuf.isNull() || recvBuf.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();
-            throw std::exception();
+            return false;
         }
 
         //qDebug() << "received: " << recvBuf << "\n";
@@ -148,7 +216,7 @@ namespace Etherwall {
 
         if ( parseError.error != QJsonParseError::NoError ) {
             fError = "Response parse error: " + parseError.errorString();
-            throw std::exception();
+            return false;
         }
 
         const QJsonObject obj = resDoc.object();
@@ -156,17 +224,22 @@ namespace Etherwall {
 
         if ( objID.toInt(-1) != fCallNum++ ) {
             fError = "Call number mismatch";
-            throw std::exception();
+            return false;
         }
 
-        QJsonValue result = obj["result"];
+        result = obj["result"];
 
         if ( result.isUndefined() || result.isNull() ) {
+            if ( obj.contains("error") && obj["error"].toObject().contains("message") ) {
+                fError = obj["error"].toObject()["message"].toString();
+                return false;
+            }
+
             fError = "Result object undefined in IPC response";
-            throw std::exception();
+            return false;
         }
 
-        return result;
+        return true;
     }
 
 }

@@ -30,10 +30,10 @@ namespace Etherwall {
     class AccountModel : public QAbstractListModel
     {
         Q_OBJECT
-        Q_PROPERTY(QString error MEMBER fError NOTIFY errorChanged)
+        Q_PROPERTY(QString errorIPC MEMBER fError NOTIFY errorChangedIPC STORED false FINAL)
     public:
         AccountModel(const EtherIPC& ipc);
-
+        QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -51,7 +51,7 @@ namespace Etherwall {
         void getAccountsIPC();
         void newAccountIPC(const QString& password, int index);
         void deleteAccountIPC(const QString& hash, const QString& password, int index);
-        void errorChanged(const QString& error, int code);
+        void errorChangedIPC(const QString& error);
     private:
         AccountList fAccountList;
         QString fError;

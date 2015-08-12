@@ -47,6 +47,10 @@ namespace Etherwall {
         emit connectToServerIPC(path);
     }
 
+    QString AccountModel::getError() const {
+        return fError;
+    }
+
     QHash<int, QByteArray> AccountModel::roleNames() const {
         QHash<int, QByteArray> roles;
         roles[HashRole] = "hash";
@@ -116,8 +120,8 @@ namespace Etherwall {
         if ( code == -32603 ) { // wrong password
             fError = "Wrong password [" + error + "]";
         }
-        emit errorChanged(fError, code);
-        //qDebug() << error << " code: " << code << "\n";
+        emit errorChangedIPC(fError);
+        qDebug() << error << " code: " << code << "\n";
     }
 
 }

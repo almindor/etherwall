@@ -9,7 +9,7 @@ Dialog {
 
     Row {
         Keys.onEscapePressed: {
-            accountNewDialog.close()
+            close()
         }
 
         Label {

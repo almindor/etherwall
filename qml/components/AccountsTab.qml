@@ -30,7 +30,16 @@ Tab {
         id: col
         anchors.fill: parent
 
+        Label {
+            text: accountModel.errorIPC
+
+            onTextChanged: {
+                console.log("TEXT CHANGED")
+            }
+        }
+
         Row {
+            id: row
             width: parent.width
 
             Button {
@@ -55,7 +64,7 @@ Tab {
         ErrorDialog {
             id: errorDialog
             standardButtons: StandardButton.Ok
-            error: accountModel.error
+            errorIPC: accountModel.errorIPC
         }
 
         AccountDialog {
@@ -63,7 +72,7 @@ Tab {
             standardButtons: StandardButton.Save | StandardButton.Cancel
 
             onAccepted: {
-                accountModel.newAccount(accountNewDialog.password)
+                accountModel.newAccount(password)
             }
         }
 
@@ -72,7 +81,7 @@ Tab {
             standardButtons: StandardButton.Ok | StandardButton.Cancel
 
             onAccepted: {
-                accountModel.deleteAccount(accountDeleteDialog.password, accountView.currentRow);
+                accountModel.deleteAccount(password, accountView.currentRow);
             }
         }
 

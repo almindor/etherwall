@@ -22,18 +22,6 @@
 
 namespace Etherwall {
 
-    IPCError::IPCError(const QString& error, int code) :
-        fError(error), fCode(code) {
-    }
-
-    const QString& IPCError::getError() const {
-        return fError;
-    }
-
-    int IPCError::getCode() const {
-        return fCode;
-    }
-
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount):
         fHash(hash), fBalance(balance), fTransCount(transCount) {
     }

@@ -38,17 +38,6 @@ namespace Etherwall {
     #endif
 #endif
 
-    class IPCError
-    {
-    public:
-        IPCError(const QString& error, int code);
-        const QString& getError() const;
-        int getCode() const;
-    private:
-        const QString fError;
-        const int fCode;
-    };
-
     enum AccountRoles {
         HashRole = Qt::UserRole + 1,
         BalanceRole,

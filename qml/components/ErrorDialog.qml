@@ -5,15 +5,19 @@ import QtQuick.Dialogs 1.2
 Dialog {
     title: qsTr("Error")
     width: Math.max(parent.width * 0.6, 500)
-    property string errorIPC
+    property string error
 
-    onErrorIPCChanged: {
-        open()
+    onErrorChanged: {
+        if ( error != "") {
+            open()
+        }
     }
 
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: errorIPC
+        text: error
+        wrapMode: Text.Wrap
+        width: parent.width
 
         Keys.onEscapePressed: {
             close()

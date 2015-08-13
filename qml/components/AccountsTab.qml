@@ -64,7 +64,7 @@ Tab {
         ErrorDialog {
             id: errorDialog
             standardButtons: StandardButton.Ok
-            errorIPC: accountModel.errorIPC
+            error: accountModel.errorIPC
         }
 
         AccountDialog {

@@ -116,12 +116,14 @@ namespace Etherwall {
     }
 
     void AccountModel::error(const QString& error, int code) {
-        fError = error;
         if ( code == -32603 ) { // wrong password
             fError = "Wrong password [" + error + "]";
+        } else {
+            fError = error;
         }
-        emit errorChangedIPC(fError);
+
         qDebug() << error << " code: " << code << "\n";
+        emit errorChanged(fError);
     }
 
 }

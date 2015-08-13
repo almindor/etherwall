@@ -38,6 +38,7 @@ Tab {
             Button {
                 id: newAccountButton
                 text: qsTr("New account")
+                enabled: !ipc.busy
                 onClicked: {
                     accountNewDialog.openFocused()
                 }
@@ -46,7 +47,7 @@ Tab {
             Button {
                 id: deleteAccountButton
                 text: qsTr("Delete account")
-                enabled: (accountView.currentRow >= 0)
+                enabled: (accountView.currentRow >= 0 && accountView.currentRow < accountView.rowCount && !ipc.busy)
 
                 onClicked: {
                     accountDeleteDialog.openFocused()

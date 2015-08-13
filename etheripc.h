@@ -35,9 +35,11 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
+        Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
     public:
         EtherIPC();
         void setWorker(QThread* worker);
+        bool getBusy() const;
         const QString& getError() const;
         int getCode() const;
         void start(const QString& ipcPath);
@@ -59,6 +61,7 @@ namespace Etherwall {
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
+        void busyChanged(bool busy);
         void error(const QString& error, int code);
     private:
         QLocalSocket fSocket;
@@ -68,6 +71,7 @@ namespace Etherwall {
         int fCode;
         RequestTypes fRequestType;
         int fIndex;
+        bool fBusy;
 
         bool getAccountRefs(QJsonArray& result);
         bool getBalance(const QJsonValue& accountRef, QString& result, const QString& block = "latest");

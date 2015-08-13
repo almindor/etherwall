@@ -26,7 +26,7 @@
 namespace Etherwall {
 
     EtherIPC::EtherIPC() :
-        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0), fRequestType(NoRequest), fIndex(0) {
+        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0), fRequestType(NoRequest), fIndex(0), fBusy(false) {
 
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -35,6 +35,10 @@ namespace Etherwall {
 
     void EtherIPC::start(const QString& ipcPath) {
         connectToServer(ipcPath);
+    }
+
+    bool EtherIPC::getBusy() const {
+        return fBusy;
     }
 
     const QString& EtherIPC::getError() const {
@@ -83,6 +87,8 @@ namespace Etherwall {
     }
 
     void EtherIPC::newAccount(const QString& password, int index) {
+        fBusy = true;
+        emit busyChanged(fBusy);
         QJsonArray params;
         params.append(password);
         fIndex = index;
@@ -94,14 +100,21 @@ namespace Etherwall {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             emit error(fError, fCode);
+            fBusy = false;
+            emit busyChanged(fBusy);
             return;
         }
 
         const QString result = jv.toString();
         emit newAccountDone(result, fIndex);
+        fBusy = false;
+        emit busyChanged(fBusy);
+
     }
 
     void EtherIPC::deleteAccount(const QString& hash, const QString& password, int index) {
+        fBusy = true;
+        emit busyChanged(fBusy);
         QJsonArray params;
         params.append(hash);
         params.append(password);        
@@ -114,14 +127,20 @@ namespace Etherwall {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             emit error(fError, fCode);
+            fBusy = false;
+            emit busyChanged(fBusy);
             return;
         }
 
         const bool result = jv.toBool(false);
         emit deleteAccountDone(result, fIndex);
+        fBusy = false;
+        emit busyChanged(fBusy);
     }
 
     void EtherIPC::getBlockNumber() {
+        fBusy = true;
+        emit busyChanged(fBusy);
         QJsonArray params;
 
         fRequestType = GetBlockNumber;
@@ -132,6 +151,8 @@ namespace Etherwall {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             emit error(fError, fCode);
+            fBusy = false;
+            emit busyChanged(fBusy);
             return;
         }
 
@@ -139,6 +160,8 @@ namespace Etherwall {
         const BigInt::Vin bv(hexStr, 16);
 
         emit getBlockNumberDone(bv.toUlong());
+        fBusy = false;
+        emit busyChanged(fBusy);
     }
 
     bool EtherIPC::getAccountRefs(QJsonArray& result) {
@@ -317,6 +340,8 @@ namespace Etherwall {
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
         emit error(fSocket.errorString(), err);
+        fBusy = false;
+        emit busyChanged(fBusy);
     }
 
     void EtherIPC::onSocketReadyRead() {

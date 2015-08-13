@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.0
+import QtQuick.Controls 1.4
 import QtQuick.Dialogs 1.2
 import "components"
 
@@ -44,6 +44,12 @@ ApplicationWindow {
                 errorDialog.open()
             }
         }
+    }
+
+    BusyIndicator {
+        anchors.centerIn: parent
+        z: 10
+        running: ipc.busy
     }
 
     TabView {

@@ -84,7 +84,6 @@ namespace Etherwall {
     }
 
     void AccountModel::newAccountDone(const QString& hash, int index) {
-        qDebug() << "account at index " << index << " creation complete result: " + hash << "\n";
         if ( !hash.isEmpty() ) {
             beginInsertRows(QModelIndex(), index, index);
             fAccountList.append(AccountInfo(hash, (QString("0") + QLocale().decimalPoint() + "00000000000000000"), 0));
@@ -95,7 +94,6 @@ namespace Etherwall {
     }
 
     void AccountModel::deleteAccountDone(bool result, int index) {
-        qDebug() << "account at index " << index << " deletion complete result: " << result << "\n";
         if ( result ) {
             beginRemoveRows(QModelIndex(), index, index);
             fAccountList.removeAt(index);

@@ -57,7 +57,14 @@ Tab {
         ErrorDialog {
             id: errorDialog
             standardButtons: StandardButton.Ok
-            error: accountModel.error // TODO: figure out why subsequent changes are not propagated here
+
+            Connections {
+                target: accountModel
+                onErrorChanged: {
+                    errorDialog.error = accountModel.error
+                    errorDialog.open()
+                }
+            }
         }
 
         AccountDialog {

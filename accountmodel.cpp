@@ -122,7 +122,7 @@ namespace Etherwall {
             fError = error;
         }
 
-        qDebug() << error << " code: " << code << "\n";
+        //qDebug() << error << " code: " << code << "\n";
         emit errorChanged(fError);
     }
 

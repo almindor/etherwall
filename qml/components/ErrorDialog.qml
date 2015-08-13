@@ -7,12 +7,6 @@ Dialog {
     width: Math.max(parent.width * 0.6, 500)
     property string error
 
-    onErrorChanged: {
-        if ( error != "") {
-            open()
-        }
-    }
-
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
         text: error

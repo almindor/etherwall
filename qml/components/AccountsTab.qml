@@ -39,7 +39,7 @@ Tab {
                 id: newAccountButton
                 text: qsTr("New account")
                 onClicked: {
-                    accountNewDialog.open()
+                    accountNewDialog.openFocused()
                 }
             }
 
@@ -49,7 +49,7 @@ Tab {
                 enabled: (accountView.currentRow >= 0)
 
                 onClicked: {
-                    accountDeleteDialog.open()
+                    accountDeleteDialog.openFocused()
                 }
             }
         }
@@ -67,7 +67,7 @@ Tab {
             }
         }
 
-        AccountDialog {
+        PasswordDialog {
             id: accountNewDialog
             standardButtons: StandardButton.Save | StandardButton.Cancel
 
@@ -76,7 +76,7 @@ Tab {
             }
         }
 
-        AccountDialog {
+        PasswordDialog {
             id: accountDeleteDialog
             standardButtons: StandardButton.Ok | StandardButton.Cancel
 

@@ -2,8 +2,9 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>components/AccountsTab.qml</file>
-        <file>components/AccountDialog.qml</file>
+        <file>components/PasswordDialog.qml</file>
         <file>components/ErrorDialog.qml</file>
         <file>components/SettingsTab.qml</file>
+        <file>components/TransactionsTab.qml</file>
     </qresource>
 </RCC>

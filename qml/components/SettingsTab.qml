@@ -42,16 +42,36 @@ Tab {
 
             TextField {
                 id: ipcPathField
-                width: parent.width - ipcPathButton.width - ipcPathLabel.width
+                width: parent.width - ipcSaveButton.width - ipcPathLabel.width - ipcPathButton.width
                 text: settings.value("ipc/path", "")
             }
 
             Button {
                 id: ipcPathButton
+                text: qsTr("Choose")
+
+                onClicked: {
+                    fileDialog.folder = settings.value("/ipc/path")
+                    fileDialog.open()
+                }
+            }
+
+            Button {
+                id: ipcSaveButton
                 text: qsTr("Set")
 
                 onClicked: {
                     settings.setValue("/ipc/path", ipcPathField.text)
+                }
+            }
+
+            FileDialog {
+                id: fileDialog
+                title: qsTr("IPC")
+                nameFilters: ["Unix Socket IPC (*.ipc)"]
+
+                onAccepted: {
+                    ipcPathField.text = fileDialog.fileUrl
                 }
             }
         }

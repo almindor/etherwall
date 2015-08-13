@@ -38,6 +38,13 @@ namespace Etherwall {
     #endif
 #endif
 
+    enum RequestTypes {
+        NoRequest,
+        NewAccount,
+        DeleteAccount,
+        GetBlockNumber
+    };
+
     enum AccountRoles {
         HashRole = Qt::UserRole + 1,
         BalanceRole,
@@ -57,6 +64,30 @@ namespace Etherwall {
     };
 
     typedef QList<AccountInfo> AccountList;
+
+    enum TransactionRoles {
+        SenderRole = Qt::UserRole + 1,
+        ReceiverRole,
+        ValueRole,
+        BlockNumberRole,
+        BlockHashRole
+    };
+
+    class TransactionInfo
+    {
+    public:
+        TransactionInfo(const QString& sender, const QString& receiver, const QString& value, quint64 blockNumber, const QString& blockHash);
+
+        const QVariant value(const int role) const;
+    private:
+        QString fSender;
+        QString fReceiver;
+        QString fValue; // in ether
+        quint64 fBlockNumber;
+        QString fBlockHash;
+    };
+
+    typedef QList<TransactionInfo> TransactionList;
 
 }
 

@@ -4,7 +4,6 @@ import QtQuick.Dialogs 1.2
 
 Dialog {
     title: qsTr("Error")
-    width: Math.max(parent.width * 0.6, 500)
     property string error
 
     Label {

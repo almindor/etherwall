@@ -37,14 +37,14 @@ Tab {
 
             Label {
                 id: blockLabel
-                text: "Latest block #: "
+                text: qsTr("Last block #: ")
             }
 
             TextField {
                 id: ipcPathField
                 width: 100
                 readOnly: true
-                text: "21309745"
+                text: transactionModel.blockNumber
             }
         }
     }

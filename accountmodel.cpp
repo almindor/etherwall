@@ -28,7 +28,7 @@
 namespace Etherwall {
 
     AccountModel::AccountModel(const EtherIPC& ipc) :
-        QAbstractListModel(0), fError()
+        QAbstractListModel(0)
     {
         connect(this, &AccountModel::connectToServerIPC, &ipc, &EtherIPC::connectToServer);
         connect(this, &AccountModel::getAccountsIPC, &ipc, &EtherIPC::getAccounts);
@@ -39,16 +39,6 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
-        connect(&ipc, &EtherIPC::error, this, &AccountModel::error);
-
-        const QSettings settings;
-        const QString path = settings.value("ipc/path", DefaultIPCPath).toString();
-
-        emit connectToServerIPC(path);
-    }
-
-    QString AccountModel::getError() const {
-        return fError;
     }
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
@@ -113,17 +103,6 @@ namespace Etherwall {
         } else {
             qDebug() << "Account delete failure";
         }
-    }
-
-    void AccountModel::error(const QString& error, int code) {
-        if ( code == -32603 ) { // wrong password
-            fError = "Wrong password [" + error + "]";
-        } else {
-            fError = error;
-        }
-
-        //qDebug() << error << " code: " << code << "\n";
-        emit errorChanged(fError);
     }
 
 }

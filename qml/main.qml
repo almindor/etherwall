@@ -20,15 +20,31 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.0
+import QtQuick.Dialogs 1.2
 import "components"
 
 ApplicationWindow {
+    id: appWindow
     visible: true
     width: 800
     height: 600
     minimumHeight: 300
     minimumWidth: 500
     title: qsTr("Etherwall Ethereum Wallet")
+
+    ErrorDialog {
+        id: errorDialog
+        width: Math.max(appWindow.width * 0.6, 500)
+        standardButtons: StandardButton.Ok
+
+        Connections {
+            target: ipc
+            onError: {
+                errorDialog.error = ipc.error
+                errorDialog.open()
+            }
+        }
+    }
 
     TabView {
         anchors.fill: parent

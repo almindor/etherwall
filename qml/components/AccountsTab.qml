@@ -54,19 +54,6 @@ Tab {
             }
         }
 
-        ErrorDialog {
-            id: errorDialog
-            standardButtons: StandardButton.Ok
-
-            Connections {
-                target: accountModel
-                onErrorChanged: {
-                    errorDialog.error = accountModel.error
-                    errorDialog.open()
-                }
-            }
-        }
-
         PasswordDialog {
             id: accountNewDialog
             standardButtons: StandardButton.Save | StandardButton.Cancel

@@ -11,15 +11,17 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file accountmodel.h
+/** @file transactionmodel.h
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Account model header
+ * Transaction model header
  */
 
-#ifndef ACCOUNTMODEL_H
-#define ACCOUNTMODEL_H
+
+#ifndef TRANSACTIONMODEL_H
+#define TRANSACTIONMODEL_H
+
 
 #include <QAbstractListModel>
 #include "types.h"
@@ -27,34 +29,35 @@
 
 namespace Etherwall {
 
-    class AccountModel : public QAbstractListModel
+    class TransactionModel : public QAbstractListModel
     {
         Q_OBJECT
+        Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
     public:
-        AccountModel(const EtherIPC& ipc);
-        QString getError() const;
+        TransactionModel(const EtherIPC& ipc);
+        quint64 getBlockNumber() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
-        Q_INVOKABLE void newAccount(const QString& pw);
-        Q_INVOKABLE void deleteAccount(const QString& pw, int index);
     public slots:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list);
-        void newAccountDone(const QString& hash, int index);
-        void deleteAccountDone(bool result, int index);
+        void getTransactionsDone(const TransactionList& list);
+        void getBlockNumberDone(quint64 num);
     signals:
         void connectToServerIPC(const QString& path);
-        void getAccountsIPC();
-        void newAccountIPC(const QString& password, int index);
-        void deleteAccountIPC(const QString& hash, const QString& password, int index);
+        void getTransactionsIPC();
+        void getBlockNumberIPC();
+
+        void blockNumberChanged(quint64 num);
     private:
-        AccountList fAccountList;
+        TransactionList fTransactionList;
+        quint64 fBlockNumber;
 
         void refresh();
     };
 
 }
 
-#endif // ACCOUNTMODEL_H
+
+#endif // TRANSACTIONMODEL_H

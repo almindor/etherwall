@@ -24,6 +24,7 @@
 #include <QDebug>
 #include "settings.h"
 #include "accountmodel.h"
+#include "transactionmodel.h"
 
 using namespace Etherwall;
 
@@ -35,30 +36,30 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
 
-    QThread worker;
     Settings settings;
     EtherIPC ipc;
 
-    const QString path = settings.value("ipc/path", DefaultIPCPath).toString();
+    const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
 
     if ( !settings.contains("ipc/path") ) {
-        settings.setValue("ipc/path", path);
+        settings.setValue("ipc/path", ipcPath);
     }
 
     AccountModel accountModel(ipc);
-
-    ipc.setWorker(&worker);
+    TransactionModel transactionModel(ipc);
 
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("settings", &settings);
+    engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
+    engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
 
     QObject::connect(&app, &QApplication::lastWindowClosed, &ipc, &EtherIPC::closeApp);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    worker.start();
+    ipc.start(ipcPath);
 
     return app.exec();
 }

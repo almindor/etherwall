@@ -7,7 +7,8 @@ SOURCES += main.cpp \
     types.cpp \
     etheripc.cpp \
     settings.cpp \
-    bigint.cpp
+    bigint.cpp \
+    transactionmodel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -22,4 +23,5 @@ HEADERS += \
     types.h \
     etheripc.h \
     settings.h \
-    bigint.h
+    bigint.h \
+    transactionmodel.h

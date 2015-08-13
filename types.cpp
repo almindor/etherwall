@@ -22,8 +22,9 @@
 
 namespace Etherwall {
 
-    AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount):
-        fHash(hash), fBalance(balance), fTransCount(transCount) {
+    AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
+        fHash(hash), fBalance(balance), fTransCount(transCount)
+    {
     }
 
     const QVariant AccountInfo::value(const int role) const {
@@ -31,6 +32,23 @@ namespace Etherwall {
             case HashRole: return QVariant(fHash);
             case BalanceRole: return QVariant(fBalance);
             case TransCountRole: return QVariant(fTransCount);
+        }
+
+        return QVariant();
+    }
+
+    TransactionInfo::TransactionInfo(const QString& sender, const QString& receiver, const QString& value, quint64 blockNumber, const QString& blockHash) :
+        fSender(sender), fReceiver(receiver), fValue(value), fBlockNumber(blockNumber), fBlockHash(blockHash)
+    {
+    }
+
+    const QVariant TransactionInfo::value(const int role) const {
+        switch ( role ) {
+            case SenderRole: return QVariant(fSender);
+            case ReceiverRole: return QVariant(fReceiver);
+            case ValueRole: return QVariant(fValue);
+            case BlockNumberRole: return QVariant(fBlockNumber);
+            case BlockHashRole: return QVariant(fBlockHash);
         }
 
         return QVariant();

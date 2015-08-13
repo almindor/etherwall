@@ -11,51 +11,49 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file main.qml
+/** @file SettingsTab.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Main app window
+ * Settings tab
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.0
-import "components"
+import QtQuick.Dialogs 1.2
 
-ApplicationWindow {
-    visible: true
-    width: 800
-    height: 600
-    minimumHeight: 300
-    minimumWidth: 500
-    title: qsTr("Etherwall Ethereum Wallet")
+Tab {
+    id: accountsTab
+    title: qsTr("Settings")
 
-    TabView {
+    Column {
+        id: col
+        anchors.margins: 20
         anchors.fill: parent
 
-        AccountsTab {}
+        Row {
+            id: rowIPCPath
+            width: parent.width
 
-        Tab {
-            id: transactionsTab
-            title: "Transactions"
+            Label {
+                id: ipcPathLabel
+                text: "IPC path: "
+            }
 
-            Row {
-                anchors.left: parent.left
-                anchors.right: parent.right
+            TextField {
+                id: ipcPathField
+                width: parent.width - ipcPathButton.width - ipcPathLabel.width
+                text: settings.value("ipc/path", "")
+            }
 
-                TextField {
-                    id: sendEdit
-                    width: parent.width - sendButton.width
-                    text: "send addr"
-                }
+            Button {
+                id: ipcPathButton
+                text: qsTr("Set")
 
-                Button {
-                    id: sendButton
-                    text: "send"
+                onClicked: {
+                    settings.setValue("/ipc/path", ipcPathField.text)
                 }
             }
         }
-
-        SettingsTab {}
     }
 }

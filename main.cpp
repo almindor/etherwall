@@ -38,6 +38,13 @@ int main(int argc, char *argv[])
     QThread worker;
     Settings settings;
     EtherIPC ipc;
+
+    const QString path = settings.value("ipc/path", DefaultIPCPath).toString();
+
+    if ( !settings.contains("ipc/path") ) {
+        settings.setValue("ipc/path", path);
+    }
+
     AccountModel accountModel(ipc);
 
     ipc.setWorker(&worker);

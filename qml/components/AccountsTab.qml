@@ -28,15 +28,8 @@ Tab {
 
     Column {
         id: col
+        anchors.margins: 20
         anchors.fill: parent
-
-        Label {
-            text: accountModel.errorIPC
-
-            onTextChanged: {
-                console.log("TEXT CHANGED")
-            }
-        }
 
         Row {
             id: row
@@ -64,7 +57,7 @@ Tab {
         ErrorDialog {
             id: errorDialog
             standardButtons: StandardButton.Ok
-            error: accountModel.errorIPC
+            error: accountModel.error // TODO: figure out why subsequent changes are not propagated here
         }
 
         AccountDialog {

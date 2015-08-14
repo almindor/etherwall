@@ -60,6 +60,8 @@ namespace Etherwall {
         AccountInfo(const QString& hash, const QString& balance, quint64 transCount);
 
         const QVariant value(const int role) const;
+        void setBalance(const QString& balance);
+        void setTransactionCount(quint64 count);
     private:
         QString fHash;
         QString fBalance; // in ether

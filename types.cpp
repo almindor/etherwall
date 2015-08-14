@@ -22,6 +22,8 @@
 
 namespace Etherwall {
 
+// ***************************** TransactionInfo ***************************** //
+
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
         fHash(hash), fBalance(balance), fTransCount(transCount)
     {
@@ -36,6 +38,16 @@ namespace Etherwall {
 
         return QVariant();
     }
+
+    void AccountInfo::setBalance(const QString& balance) {
+        fBalance = balance;
+    }
+
+    void AccountInfo::setTransactionCount(quint64 count) {
+        fTransCount = count;
+    }
+
+// ***************************** TransactionInfo ***************************** //
 
     TransactionInfo::TransactionInfo(const QString& sender, const QString& receiver, const QString& value, quint64 blockNumber, const QString& blockHash) :
         fSender(sender), fReceiver(receiver), fValue(value), fBlockNumber(blockNumber), fBlockHash(blockHash)

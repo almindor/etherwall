@@ -91,17 +91,17 @@ namespace Etherwall {
         void handleNewAccount();
         void handleDeleteAccount();
         void handleGetBlockNumber();
-        void handleGetTransactions();
+        void handleAccountDetails();
+        void handleAccountBalance();
+        void handleAccountTransactionCount();
 
         void bail();
         void done();
         int index() const;
         RequestTypes requestType() const;
-        bool getBalance(const QJsonValue& accountRef, QString& result, const QString& block = "latest");
-        bool getTransactionCount(const QJsonValue& accountRef, quint64& result, const QString& block = "latest");
 
         QJsonObject methodToJSON(const RequestIPC& request);
-        bool writeRequest(const RequestIPC& request);
+        bool writeRequest(const RequestIPC& request, bool fromQueue = false);
         bool readReply(QJsonValue& result);
     };
 

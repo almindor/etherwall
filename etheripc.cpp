@@ -1,4 +1,4 @@
-/*
+    /*
     This file is part of etherwall.
     etherwall is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,8 +25,33 @@
 
 namespace Etherwall {
 
+// *************************** RequestIPC **************************** //
+
+    RequestIPC::RequestIPC(RequestTypes type, const QString method, const QJsonArray params, int index) :
+        fType(type), fMethod(method), fParams(params), fIndex(index)
+    {
+    }
+
+    RequestTypes RequestIPC::getType() const {
+        return fType;
+    }
+
+    const QString& RequestIPC::getMethod() const {
+        return fMethod;
+    }
+
+    const QJsonArray& RequestIPC::getParams() const {
+        return fParams;
+    }
+
+    int RequestIPC::getIndex() const {
+        return fIndex;
+    }
+
+// *************************** EtherIPC **************************** //
+
     EtherIPC::EtherIPC() :
-        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0), fRequestType(NoRequest), fIndex(0), fBusy(false) {
+        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0), fBusy(false), fAccountList(), fRequestQueue() {
 
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -59,100 +84,82 @@ namespace Etherwall {
     }
 
     void EtherIPC::getAccounts() {
-        QJsonArray refs;
-        if ( !getAccountRefs(refs) ) {
-            emit error(fError, fCode);
-            return;
+        if ( !writeRequest(RequestIPC(GetAccountRefs, "personal_listAccounts", QJsonArray())) ) {
+            bail();
         }
+    }
 
-        AccountList list;
-        foreach( QJsonValue r, refs ) {
-            const QString hash = r.toString("INVALID");
-            QString balance;
-            if ( !getBalance(r, balance) ) {
-                emit error(fError, fCode);
+    void EtherIPC::handleGetTransactions() {
+        if ( requestType() == GetAccountRefs && fAccountList.isEmpty() ) {
+            QJsonValue jv;
+            if ( !readReply(jv) ) {
+                bail();
                 return;
             }
 
-            quint64 transCount;
-            if ( !getTransactionCount(r, transCount) ) {
-                emit error(fError, fCode);
-                return;
-            }
+            QJsonArray refs = jv.toArray();
 
-            list.append(AccountInfo(hash, balance, transCount));
+            foreach( QJsonValue r, refs ) {
+                const QString hash = r.toString("INVALID");
+                fAccountList.append(AccountInfo(hash, QString(), -1));
+            }
         }
 
-        emit getAccountsDone(list);
+        emit getAccountsDone(fAccountList);
+        done();
     }
 
     void EtherIPC::newAccount(const QString& password, int index) {
-        fBusy = true;
-        emit busyChanged(fBusy);
         QJsonArray params;
         params.append(password);
-        fIndex = index;
-        fRequestType = NewAccount;
-        writeRequest("personal_newAccount", params);
+        if ( !writeRequest(RequestIPC(NewAccount, "personal_newAccount", params, index)) ) {
+            bail();
+        }
     }
 
     void EtherIPC::handleNewAccount() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            emit error(fError, fCode);
-            fBusy = false;
-            emit busyChanged(fBusy);
+            bail();
             return;
         }
 
         const QString result = jv.toString();
-        emit newAccountDone(result, fIndex);
-        fBusy = false;
-        emit busyChanged(fBusy);
-
+        emit newAccountDone(result, index());
+        done();
     }
 
     void EtherIPC::deleteAccount(const QString& hash, const QString& password, int index) {
-        fBusy = true;
-        emit busyChanged(fBusy);
         QJsonArray params;
         params.append(hash);
         params.append(password);        
-        fIndex = index;
-        fRequestType = DeleteAccount;
-        writeRequest("personal_deleteAccount", params);
+        if ( !writeRequest(RequestIPC(DeleteAccount, "personal_deleteAccount", params, index)) ) {
+            bail();
+        }
     }
 
     void EtherIPC::handleDeleteAccount() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            emit error(fError, fCode);
-            fBusy = false;
-            emit busyChanged(fBusy);
+            bail();
             return;
         }
 
         const bool result = jv.toBool(false);
-        emit deleteAccountDone(result, fIndex);
-        fBusy = false;
-        emit busyChanged(fBusy);
+        emit deleteAccountDone(result, index());
+        done();
     }
 
     void EtherIPC::getBlockNumber() {
-        fBusy = true;
-        emit busyChanged(fBusy);
-        QJsonArray params;
-
-        fRequestType = GetBlockNumber;
-        writeRequest("eth_blockNumber", params);
+        if ( !writeRequest(RequestIPC(GetBlockNumber, "eth_blockNumber")) ) {
+            bail();
+        }
     }
 
     void EtherIPC::handleGetBlockNumber() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            emit error(fError, fCode);
-            fBusy = false;
-            emit busyChanged(fBusy);
+            bail();
             return;
         }
 
@@ -160,22 +167,11 @@ namespace Etherwall {
         const BigInt::Vin bv(hexStr, 16);
 
         emit getBlockNumberDone(bv.toUlong());
-        fBusy = false;
-        emit busyChanged(fBusy);
-    }
-
-    bool EtherIPC::getAccountRefs(QJsonArray& result) {
-        QJsonValue ja;
-        if ( !callIPC("personal_listAccounts", QJsonArray(), ja ) ) {
-            return false;
-        }
-
-        result = ja.toArray();
-        return true;
+        done();
     }
 
     bool EtherIPC::getBalance(const QJsonValue& accountRef, QString& result, const QString& block) {
-        QJsonArray params;
+        /*QJsonArray params;
         params.append(accountRef.toString());
         params.append(block);
 
@@ -194,12 +190,12 @@ namespace Etherwall {
         }
         decStr.insert(dsl - 18, fLocale.decimalPoint());
 
-        result = decStr;
+        result = decStr;*/
         return true;
     }
 
     bool EtherIPC::getTransactionCount(const QJsonValue& accountRef, quint64& result, const QString& block) {
-        QJsonArray params;
+        /*QJsonArray params;
         params.append(accountRef.toString());
         params.append(block);
 
@@ -211,59 +207,61 @@ namespace Etherwall {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         const BigInt::Vin bv(hexStr, 16);
 
-        result = bv.toUlong();
+        result = bv.toUlong();*/
         return true;
     }
 
-    QJsonObject EtherIPC::methodToJSON(const QString& method, const QJsonArray& params) {
+    int EtherIPC::index() const {
+        return fRequestQueue.length() > 0 ? fRequestQueue.first().getIndex() : -1;
+    }
+
+    RequestTypes EtherIPC::requestType() const {
+        return fRequestQueue.length() > 0 ? fRequestQueue.first().getType() : NoRequest;
+    }
+
+    void EtherIPC::bail() {
+        fRequestQueue.clear();
+        emit error(fError, fCode);
+        done();
+    }
+
+    void EtherIPC::done() {
+        fBusy = false;
+
+        fRequestQueue.removeFirst();
+
+        if ( fRequestQueue.length() > 0 ) {
+            //qDebug() << "Queue not empty, calling: " << fRequestQueue.first().getMethod() << "\n";
+
+            writeRequest(fRequestQueue.first()); // makes it busy again!
+            fRequestQueue.removeFirst();
+            return;
+        }
+
+        emit busyChanged(fBusy);
+    }
+
+    QJsonObject EtherIPC::methodToJSON(const RequestIPC& request) {
         QJsonObject result;
 
         result.insert("jsonrpc", QJsonValue("2.0"));
-        result.insert("method", QJsonValue(method));
+        result.insert("method", QJsonValue(request.getMethod()));
         result.insert("id", QJsonValue(fCallNum));
-        result.insert("params", QJsonValue(params));
+        result.insert("params", QJsonValue(request.getParams()));
 
         return result;
     }
 
-    bool EtherIPC::callIPC(const QString& method, const QJsonArray& params, QJsonValue& result) {
-        QJsonDocument doc(methodToJSON(method, params));
-        const QString msg(doc.toJson());
-
-        if ( !fSocket.waitForConnected(1000) ) {
-            fError = "Timeout on socket connect: " + fSocket.errorString();
-            fCode = 0;
-            return false;
+    bool EtherIPC::writeRequest(const RequestIPC& request) {
+        fRequestQueue.append(request);
+        if ( fBusy ) { // queued, it'll be handled
+            return true;
         }
 
-        const QByteArray sendBuf = msg.toUtf8();
-        const int sent = fSocket.write(sendBuf);
+        fBusy = true;
+        emit busyChanged(fBusy);
 
-        if ( sent <= 0 ) {
-            fError = "Error on socket write: " + fSocket.errorString();
-            fCode = 0;
-            return false;
-        }
-
-        if ( !fSocket.waitForBytesWritten(1000) ) {
-            fError = "Timeout on socket write";
-            fCode = 0;
-            return false;
-        }
-
-        //qDebug() << "sent: " << msg << "\n";
-
-        if ( !fSocket.waitForReadyRead(10000) ) {
-            fError = "Timeout on socket read";
-            fCode = 0;
-            return false;
-        }
-
-        return readReply(result);
-    }
-
-    bool EtherIPC::writeRequest(const QString& method, const QJsonArray& params) {
-        QJsonDocument doc(methodToJSON(method, params));
+        QJsonDocument doc(methodToJSON(request));
         const QString msg(doc.toJson());
 
         if ( !fSocket.isWritable() ) {
@@ -280,6 +278,8 @@ namespace Etherwall {
             fCode = 0;
             return false;
         }
+
+        //qDebug() << "sent: " << msg << "\n";
 
         return true;
     }
@@ -347,7 +347,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketReadyRead() {
-        switch ( fRequestType ) {
+        switch ( requestType() ) {
         case NewAccount: {
                 handleNewAccount();
                 break;
@@ -358,6 +358,18 @@ namespace Etherwall {
             }
         case GetBlockNumber: {
                 handleGetBlockNumber();
+                break;
+            }
+        case GetAccountRefs: {
+                handleGetTransactions();
+                break;
+            }
+        case GetBalance: {
+                handleGetTransactions();
+                break;
+            }
+        case GetTransactionCount: {
+                //handleGetAccounts();
                 break;
             }
         default: break;

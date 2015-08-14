@@ -42,7 +42,10 @@ namespace Etherwall {
         NoRequest,
         NewAccount,
         DeleteAccount,
-        GetBlockNumber
+        GetBlockNumber,
+        GetAccountRefs,
+        GetBalance,
+        GetTransactionCount
     };
 
     enum AccountRoles {

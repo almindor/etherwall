@@ -22,6 +22,7 @@
 #define ETHERIPC_H
 
 #include <QObject>
+#include <QList>
 #include <QLocalSocket>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -29,6 +30,23 @@
 #include "types.h"
 
 namespace Etherwall {
+
+    class RequestIPC {
+    public:
+        RequestIPC(RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
+
+        RequestTypes getType() const;
+        const QString& getMethod() const;
+        const QJsonArray& getParams() const;
+        int getIndex() const;
+    private:
+        RequestTypes fType;
+        QString fMethod;
+        QJsonArray fParams;
+        int fIndex;
+    };
+
+    typedef QList<RequestIPC> RequestList;
 
     class EtherIPC: public QObject
     {
@@ -47,11 +65,8 @@ namespace Etherwall {
         void connectToServer(const QString& path);
         void getAccounts();
         void newAccount(const QString& password, int index);
-        void handleNewAccount();
         void deleteAccount(const QString& hash, const QString& password, int index);
-        void handleDeleteAccount();
         void getBlockNumber();
-        void handleGetBlockNumber();
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         void closeApp();
@@ -69,18 +84,24 @@ namespace Etherwall {
         QLocale fLocale;
         QString fError;
         int fCode;
-        RequestTypes fRequestType;
-        int fIndex;
         bool fBusy;
+        AccountList fAccountList;
+        RequestList fRequestQueue;
 
-        bool getAccountRefs(QJsonArray& result);
+        void handleNewAccount();
+        void handleDeleteAccount();
+        void handleGetBlockNumber();
+        void handleGetTransactions();
+
+        void bail();
+        void done();
+        int index() const;
+        RequestTypes requestType() const;
         bool getBalance(const QJsonValue& accountRef, QString& result, const QString& block = "latest");
         bool getTransactionCount(const QJsonValue& accountRef, quint64& result, const QString& block = "latest");
 
-        QJsonObject methodToJSON(const QString& method, const QJsonArray& params);
-        bool callIPC(const QString& method, const QJsonArray& params, QJsonValue& result);
-
-        bool writeRequest(const QString& method, const QJsonArray& params);
+        QJsonObject methodToJSON(const RequestIPC& request);
+        bool writeRequest(const RequestIPC& request);
         bool readReply(QJsonValue& result);
     };
 

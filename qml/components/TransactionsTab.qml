@@ -11,11 +11,11 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file SettingsTab.qml
+/** @file TransactionsTab.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Settings tab
+ * Transactions tab
  */
 
 import QtQuick 2.0

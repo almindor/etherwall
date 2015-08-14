@@ -34,7 +34,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
     public:
-        TransactionModel(const EtherIPC& ipc);
+        TransactionModel(EtherIPC& ipc);
         quint64 getBlockNumber() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -45,12 +45,9 @@ namespace Etherwall {
         void getTransactionsDone(const TransactionList& list);
         void getBlockNumberDone(quint64 num);
     signals:
-        void connectToServerIPC(const QString& path);
-        void getTransactionsIPC();
-        void getBlockNumberIPC();
-
         void blockNumberChanged(quint64 num);
     private:
+        EtherIPC& fIpc;
         TransactionList fTransactionList;
         quint64 fBlockNumber;
 

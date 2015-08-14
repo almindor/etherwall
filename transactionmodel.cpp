@@ -26,12 +26,9 @@
 
 namespace Etherwall {
 
-    TransactionModel::TransactionModel(const EtherIPC& ipc) :
-        QAbstractListModel(0)
+    TransactionModel::TransactionModel(EtherIPC& ipc) :
+        QAbstractListModel(0), fIpc(ipc), fTransactionList()
     {
-        connect(this, &TransactionModel::connectToServerIPC, &ipc, &EtherIPC::connectToServer);
-        connect(this, &TransactionModel::getBlockNumberIPC, &ipc, &EtherIPC::getBlockNumber);
-
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
     }
@@ -62,7 +59,7 @@ namespace Etherwall {
     }
 
     void TransactionModel::connectToServerDone() {
-        emit getBlockNumberIPC();
+        fIpc.getBlockNumber();
     }
 
     void TransactionModel::getTransactionsDone(const TransactionList &list) {

@@ -31,7 +31,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        AccountModel(const EtherIPC& ipc);
+        AccountModel(EtherIPC& ipc);
         QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -44,12 +44,8 @@ namespace Etherwall {
         void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
-    signals:
-        void connectToServerIPC(const QString& path);
-        void getAccountsIPC();
-        void newAccountIPC(const QString& password, int index);
-        void deleteAccountIPC(const QString& hash, const QString& password, int index);
     private:
+        EtherIPC& fIpc;
         AccountList fAccountList;
 
         void refresh();

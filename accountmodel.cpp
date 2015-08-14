@@ -27,14 +27,9 @@
 
 namespace Etherwall {
 
-    AccountModel::AccountModel(const EtherIPC& ipc) :
-        QAbstractListModel(0)
+    AccountModel::AccountModel(EtherIPC& ipc) :
+        QAbstractListModel(0), fIpc(ipc), fAccountList()
     {
-        connect(this, &AccountModel::connectToServerIPC, &ipc, &EtherIPC::connectToServer);
-        connect(this, &AccountModel::getAccountsIPC, &ipc, &EtherIPC::getAccounts);
-        connect(this, &AccountModel::newAccountIPC, &ipc, &EtherIPC::newAccount);
-        connect(this, &AccountModel::deleteAccountIPC, &ipc, &EtherIPC::deleteAccount);
-
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
@@ -61,20 +56,20 @@ namespace Etherwall {
 
     void AccountModel::newAccount(const QString& pw) {
         const int index = fAccountList.size();
-        emit newAccountIPC(pw, index);
+        fIpc.newAccount(pw, index);
     }
 
     void AccountModel::deleteAccount(const QString& pw, int index) {
         if ( index >= 0 && index < fAccountList.size() ) {
             const QString hash = fAccountList.at(index).value(HashRole).toString();
-            emit deleteAccountIPC(hash, pw, index);
+            fIpc.deleteAccount(hash, pw, index);
         } else {
             qDebug() << "Invalid account selection for delete";
         }
     }
 
     void AccountModel::connectToServerDone() {
-        emit getAccountsIPC();
+        fIpc.getAccounts();
     }
 
     void AccountModel::getAccountsDone(const AccountList &list) {

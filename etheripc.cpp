@@ -339,6 +339,8 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
+        fError = fSocket.errorString();
+        fCode = err;
         emit error(fSocket.errorString(), err);
         fBusy = false;
         emit busyChanged(fBusy);

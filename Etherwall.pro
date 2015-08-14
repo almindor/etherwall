@@ -2,13 +2,16 @@ TEMPLATE = app
 
 QT += qml quick widgets
 
-SOURCES += main.cpp \
-    accountmodel.cpp \
-    types.cpp \
-    etheripc.cpp \
-    settings.cpp \
-    bigint.cpp \
-    transactionmodel.cpp
+INCLUDEPATH += src
+DEPENDPATH += src
+
+SOURCES += src/main.cpp \
+    src/accountmodel.cpp \
+    src/types.cpp \
+    src/etheripc.cpp \
+    src/settings.cpp \
+    src/bigint.cpp \
+    src/transactionmodel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -19,9 +22,9 @@ QML_IMPORT_PATH = qml
 include(deployment.pri)
 
 HEADERS += \
-    accountmodel.h \
-    types.h \
-    etheripc.h \
-    settings.h \
-    bigint.h \
-    transactionmodel.h
+    src/accountmodel.h \
+    src/types.h \
+    src/etheripc.h \
+    src/settings.h \
+    src/bigint.h \
+    src/transactionmodel.h

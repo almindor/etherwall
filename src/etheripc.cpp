@@ -54,10 +54,7 @@ namespace Etherwall {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
-    }
-
-    void EtherIPC::start(const QString& ipcPath) {
-        connectToServer(ipcPath);
+        connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
     }
 
     bool EtherIPC::getBusy() const {
@@ -78,12 +75,31 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectToServer(const QString& path) {
+        fBusy = true;
+        emit busyChanged(fBusy);
+        fPath = path;
+        if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
+            fReconnect = true;
+            return fSocket.disconnectFromServer();
+        }
+
         fSocket.connectToServer(path);
     }
 
     void EtherIPC::connectedToServer() {
+        done();
         emit connectToServerDone();
         emit connectionStateChanged();
+    }
+
+    void EtherIPC::disconnectedFromServer() {
+        emit connectionStateChanged();
+        done();
+
+        if ( fReconnect ) {
+            fReconnect = false;
+            return fSocket.connectToServer(fPath);
+        }
     }
 
     void EtherIPC::getAccounts() {
@@ -201,15 +217,19 @@ namespace Etherwall {
     }
 
     void EtherIPC::handleGetBlockNumber() {
-        QJsonValue jv;
-        if ( !readReply(jv) ) {
+        emit getBlockNumberDone(readNumber());
+        done();
+    }
+
+    void EtherIPC::getPeerCount() {
+        if ( !writeRequest(RequestIPC(GetPeerCount, "net_peerCount")) ) {
             return bail();
         }
+    }
 
-        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin bv(hexStr, 16);
-
-        emit getBlockNumberDone(bv.toUlong());
+    void EtherIPC::handleGetPeerCount() {
+        fPeerCount = readNumber();
+        emit peerCountChanged(fPeerCount);
         done();
     }
 
@@ -259,16 +279,23 @@ namespace Etherwall {
         }
     }
 
+    quint64 EtherIPC::peerCount() const {
+        return fPeerCount;
+    }
+
     void EtherIPC::bail() {
         fRequestQueue.clear();
         emit error(fError, fCode);
+        emit connectionStateChanged();
         done();
     }
 
     void EtherIPC::done() {
         fBusy = false;
 
-        fRequestQueue.removeFirst();
+        if ( !fRequestQueue.isEmpty() ) {
+            fRequestQueue.removeFirst();
+        }
 
         if ( !fRequestQueue.isEmpty() ) {
             //qDebug() << "Queue not empty, calling: " << fRequestQueue.first().getMethod() << "\n";
@@ -380,12 +407,22 @@ namespace Etherwall {
         return true;
     }
 
+    quint64 EtherIPC::readNumber() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            bail();
+            return 0;
+        }
+
+        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
+        const BigInt::Vin bv(hexStr, 16);
+
+        return bv.toUlong();
+    }
+
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
         fError = fSocket.errorString();
         fCode = err;
-        emit error(fSocket.errorString(), err);
-        fBusy = false;
-        emit busyChanged(fBusy);
     }
 
     void EtherIPC::onSocketReadyRead() {

@@ -28,14 +28,13 @@ ApplicationWindow {
     visible: true
     width: 800
     height: 600
-    minimumHeight: 300
-    minimumWidth: 500
+    minimumHeight: 400
+    minimumWidth: 650
     title: qsTr("Etherwall Ethereum Wallet")
 
     ErrorDialog {
         id: errorDialog
-        width: Math.max(appWindow.width * 0.6, 500)
-        standardButtons: StandardButton.Ok
+        width: 500
 
         Connections {
             target: ipc
@@ -55,6 +54,7 @@ ApplicationWindow {
     TabView {
         id: tabView
         anchors.fill: parent
+        enabled: !ipc.busy
 
         AccountsTab {}
 
@@ -63,8 +63,20 @@ ApplicationWindow {
         SettingsTab {}
     }
 
+    ConfirmDialog {
+        id: connectDialog
+        width: 500
+        msg: "IPC already connected. Are you sure you want to reconnect?"
+
+        onYes: {
+            ipc.connectToServer(settings.value("ipc/path", "bogus"))
+        }
+    }
+
     statusBar: StatusBar {
         height: 38
+        enabled: !ipc.busy
+
         Row {
             ToolButton {
                 id: blockButton
@@ -95,7 +107,11 @@ ApplicationWindow {
                 iconSource: "/images/connected" + ipc.connectionState
                 tooltip: "Connection state: " + ipc.connectionStateStr
                 onClicked: {
-                    console.log("todo: allow reconnect")
+                    if ( ipc.connectionState > 0 ) {
+                        connectDialog.open()
+                    } else {
+                        ipc.connectToServer(settings.value("ipc/path", "bogus"))
+                    }
                 }
             }
         }

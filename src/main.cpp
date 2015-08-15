@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    ipc.start(ipcPath);
+    ipc.connectToServer(ipcPath);
 
     return app.exec();
 }

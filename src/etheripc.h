@@ -55,6 +55,7 @@ namespace Etherwall {
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
+        Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(const QString connectionStateStr READ getConnectionStateStr NOTIFY connectionStateChanged)
     public:
         EtherIPC();
@@ -62,14 +63,15 @@ namespace Etherwall {
         bool getBusy() const;
         const QString& getError() const;
         int getCode() const;
-        void start(const QString& ipcPath);
     public slots:
         void connectToServer(const QString& path);
         void connectedToServer();
+        void disconnectedFromServer();
         void getAccounts();
         void newAccount(const QString& password, int index);
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
+        void getPeerCount();
         void sendTransaction(const QString& from, const QString& to, long double value);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
@@ -80,6 +82,8 @@ namespace Etherwall {
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
+
+        void peerCountChanged(quint64 num);
         void busyChanged(bool busy);
         void connectionStateChanged();
         void error(const QString& error, int code);
@@ -89,19 +93,24 @@ namespace Etherwall {
         QLocale fLocale;
         QString fError;
         int fCode;
+        quint64 fPeerCount;
         bool fBusy;
+        bool fReconnect;
+        QString fPath;
         AccountList fAccountList;
         RequestList fRequestQueue;
 
         void handleNewAccount();
         void handleDeleteAccount();
-        void handleGetBlockNumber();
         void handleAccountDetails();
         void handleAccountBalance();
         void handleAccountTransactionCount();
+        void handleGetBlockNumber();
+        void handleGetPeerCount();
 
         int getConnectionState() const;
         const QString getConnectionStateStr() const;
+        quint64 peerCount() const;
         void bail();
         void done();
         int index() const;
@@ -110,6 +119,7 @@ namespace Etherwall {
         QJsonObject methodToJSON(const RequestIPC& request);
         bool writeRequest(const RequestIPC& request, bool fromQueue = false);
         bool readReply(QJsonValue& result);
+        quint64 readNumber();
     };
 
 }

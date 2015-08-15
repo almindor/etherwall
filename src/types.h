@@ -45,13 +45,15 @@ namespace Etherwall {
         GetBlockNumber,
         GetAccountRefs,
         GetBalance,
-        GetTransactionCount
+        GetTransactionCount,
+        GetPeerCount
     };
 
     enum AccountRoles {
         HashRole = Qt::UserRole + 1,
         BalanceRole,
-        TransCountRole
+        TransCountRole,
+        SummaryRole
     };
 
     class AccountInfo

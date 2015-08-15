@@ -21,9 +21,49 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 import QtQuick.Dialogs 1.2
+import QtQuick.Layouts 1.0
 
 Tab {
     id: transactionsTab
     title: qsTr("Transactions")
+
+    Column {
+        anchors.fill: parent
+        anchors.margins: 20
+        spacing: 15
+
+        GridLayout {
+            columns: 3
+            width: parent.width
+
+            Label {
+                id: fromLabel
+                text: qsTr("From: ")
+            }
+
+            ComboBox {
+                id: fromField
+                Layout.minimumWidth: 600
+                Layout.columnSpan: 2
+                model: accountModel
+                textRole: "summary"
+            }
+
+            Label {
+                id: toLabel
+                text: qsTr("To: ")
+            }
+
+            TextField {
+                id: toField
+                Layout.minimumWidth: 350
+            }
+
+            Button {
+                id: sendButon
+                text: "Send"
+            }
+        }
+    }
 
 }

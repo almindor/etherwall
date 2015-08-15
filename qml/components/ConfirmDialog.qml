@@ -11,11 +11,11 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file ErrorDialog.qml
+/** @file ConfirmDialog.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Error dialog
+ * Confirm dialog
  */
 
 import QtQuick 2.0
@@ -23,13 +23,13 @@ import QtQuick.Controls 1.1
 import QtQuick.Dialogs 1.2
 
 Dialog {
-    title: qsTr("Error")
-    standardButtons: StandardButton.Ok
-    property string error
+    title: qsTr("Confirm")
+    property string msg
+    standardButtons: StandardButton.Yes | StandardButton.No
 
     Label {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: error
+        text: msg
         wrapMode: Text.Wrap
         width: parent.width
 

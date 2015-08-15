@@ -6,6 +6,7 @@
         <file>components/AccountsTab.qml</file>
         <file>components/TransactionsTab.qml</file>
         <file>components/SettingsTab.qml</file>
+        <file>components/ConfirmDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="block">images/block.png</file>

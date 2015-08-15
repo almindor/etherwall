@@ -41,6 +41,7 @@ namespace Etherwall {
         roles[HashRole] = "hash";
         roles[BalanceRole] = "balance";
         roles[TransCountRole] = "transactions";
+        roles[SummaryRole] = "summary";
         return roles;
     }
 

@@ -31,9 +31,10 @@ namespace Etherwall {
 
     const QVariant AccountInfo::value(const int role) const {
         switch ( role ) {
-            case HashRole: return QVariant(fHash);
-            case BalanceRole: return QVariant(fBalance);
-            case TransCountRole: return QVariant(fTransCount);
+        case HashRole: return QVariant(fHash);
+        case BalanceRole: return QVariant(fBalance.toDouble());
+        case TransCountRole: return QVariant(fTransCount);
+        case SummaryRole: return QVariant(fHash + (fBalance.toDouble() > 0 ? " [> 0 Ether]" : " [empty]") );
         }
 
         return QVariant();

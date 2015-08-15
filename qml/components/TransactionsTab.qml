@@ -26,26 +26,4 @@ Tab {
     id: transactionsTab
     title: qsTr("Transactions")
 
-    Column {
-        id: col
-        anchors.margins: 20
-        anchors.fill: parent
-
-        Row {
-            id: row
-            width: parent.width
-
-            Label {
-                id: blockLabel
-                text: qsTr("Last block #: ")
-            }
-
-            TextField {
-                id: ipcPathField
-                width: 100
-                readOnly: true
-                text: transactionModel.blockNumber
-            }
-        }
-    }
 }

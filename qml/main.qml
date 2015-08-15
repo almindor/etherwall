@@ -53,6 +53,7 @@ ApplicationWindow {
     }
 
     TabView {
+        id: tabView
         anchors.fill: parent
 
         AccountsTab {}
@@ -61,4 +62,43 @@ ApplicationWindow {
 
         SettingsTab {}
     }
+
+    statusBar: StatusBar {
+        height: 38
+        Row {
+            ToolButton {
+                id: blockButton
+                iconSource: "/images/block"
+                tooltip: "Block number: " + transactionModel.blockNumber
+                onClicked: {
+                    blockField.visible = !blockField.visible
+
+                    if ( blockField.visible ) {
+                        blockField.selectAll()
+                        blockField.copy()
+                    }
+                }
+            }
+
+            TextField {
+                id: blockField
+                visible: false
+                width: 100
+                readOnly: true
+                text: transactionModel.blockNumber
+            }
+        }
+
+        Row {
+            anchors.right: parent.right
+            ToolButton {
+                iconSource: "/images/connected" + ipc.connectionState
+                tooltip: "Connection state: " + ipc.connectionStateStr
+                onClicked: {
+                    console.log("todo: allow reconnect")
+                }
+            }
+        }
+    }
+
 }

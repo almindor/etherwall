@@ -54,6 +54,8 @@ namespace Etherwall {
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
+        Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
+        Q_PROPERTY(const QString connectionStateStr READ getConnectionStateStr NOTIFY connectionStateChanged)
     public:
         EtherIPC();
         void setWorker(QThread* worker);
@@ -63,10 +65,12 @@ namespace Etherwall {
         void start(const QString& ipcPath);
     public slots:
         void connectToServer(const QString& path);
+        void connectedToServer();
         void getAccounts();
         void newAccount(const QString& password, int index);
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
+        void sendTransaction(const QString& from, const QString& to, long double value);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         void closeApp();
@@ -77,6 +81,7 @@ namespace Etherwall {
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
         void busyChanged(bool busy);
+        void connectionStateChanged();
         void error(const QString& error, int code);
     private:
         QLocalSocket fSocket;
@@ -95,6 +100,8 @@ namespace Etherwall {
         void handleAccountBalance();
         void handleAccountTransactionCount();
 
+        int getConnectionState() const;
+        const QString getConnectionStateStr() const;
         void bail();
         void done();
         int index() const;

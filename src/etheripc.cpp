@@ -50,12 +50,10 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() :
-        fSocket(), fCallNum(0), fLocale(), fError(), fCode(0), fBusy(false), fAccountList(), fRequestQueue() {
-
+    EtherIPC::EtherIPC() {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
-        connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectToServerDone);
+        connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
     }
 
     void EtherIPC::start(const QString& ipcPath) {
@@ -81,6 +79,11 @@ namespace Etherwall {
 
     void EtherIPC::connectToServer(const QString& path) {
         fSocket.connectToServer(path);
+    }
+
+    void EtherIPC::connectedToServer() {
+        emit connectToServerDone();
+        emit connectionStateChanged();
     }
 
     void EtherIPC::getAccounts() {
@@ -210,12 +213,50 @@ namespace Etherwall {
         done();
     }
 
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, long double value) {
+        QJsonArray params;
+        BigInt::Vin vinVal = BigInt::Vin::fromDouble(value);
+        QString strHex = QString(vinVal.toStr0xHex().data());
+
+        QJsonObject p;
+        p["from"] = from;
+        p["to"] = to;
+        p["value"] = strHex;
+
+        params.append(p);
+
+        qDebug() << QJsonValue(p).toString() << "\n";
+
+        /*if ( !writeRequest(RequestIPC(SendTransaction, "eth_sendTransaction"), params) ) {
+            return bail();
+        }*/
+    }
+
     int EtherIPC::index() const {
         return fRequestQueue.length() > 0 ? fRequestQueue.first().getIndex() : -1;
     }
 
     RequestTypes EtherIPC::requestType() const {
         return fRequestQueue.length() > 0 ? fRequestQueue.first().getType() : NoRequest;
+    }
+
+    int EtherIPC::getConnectionState() const {
+        if ( fSocket.state() == QLocalSocket::ConnectedState ) {
+            return 1; // TODO: add higher states per peer count!
+        }
+
+        return 0;
+    }
+
+    const QString EtherIPC::getConnectionStateStr() const {
+        switch ( getConnectionState() ) {
+            case 0: return QStringLiteral("Disconnected");
+            case 1: return QStringLiteral("Connected (poor peer count)"); // TODO: show peer count in str
+            case 2: return QStringLiteral("Connected (fair peer count)");
+            case 3: return QStringLiteral("Connected (good peer count)");
+        default:
+            return QStringLiteral("Invalid");
+        }
     }
 
     void EtherIPC::bail() {

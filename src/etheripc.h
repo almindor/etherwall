@@ -82,6 +82,7 @@ namespace Etherwall {
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
+        void sendTransactionDone(const QString& hash);
 
         void peerCountChanged(quint64 num);
         void busyChanged(bool busy);
@@ -107,6 +108,7 @@ namespace Etherwall {
         void handleAccountTransactionCount();
         void handleGetBlockNumber();
         void handleGetPeerCount();
+        void handleSendTransaction();
 
         int getConnectionState() const;
         const QString getConnectionStateStr() const;

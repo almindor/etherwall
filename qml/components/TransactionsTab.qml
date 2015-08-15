@@ -150,7 +150,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(account, toField.text, val)
+                        transactionModel.sendTransaction(accountModel.getAccountHash(fromField.currentIndex), toField.text, val)
                     }
                 }
             }

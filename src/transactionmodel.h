@@ -44,6 +44,8 @@ namespace Etherwall {
         void connectToServerDone();
         void getTransactionsDone(const TransactionList& list);
         void getBlockNumberDone(quint64 num);
+        void sendTransaction(const QString& from, const QString& to, long double value);
+        void sendTransactionDone(const QString& hash);
     signals:
         void blockNumberChanged(quint64 num);
     private:

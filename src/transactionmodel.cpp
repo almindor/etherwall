@@ -31,6 +31,7 @@ namespace Etherwall {
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
+        connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
     }
 
     quint64 TransactionModel::getBlockNumber() const {
@@ -71,6 +72,14 @@ namespace Etherwall {
     void TransactionModel::getBlockNumberDone(quint64 num) {
         fBlockNumber = num;
         emit blockNumberChanged(num);
+    }
+
+    void TransactionModel::sendTransaction(const QString& from, const QString& to, long double value) {
+        fIpc.sendTransaction(from, to, value);
+    }
+
+    void TransactionModel::sendTransactionDone(const QString& hash) {
+        qDebug() << "Transaction sent hash: " << hash << "\n";
     }
 
 }

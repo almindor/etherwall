@@ -22,6 +22,7 @@
 #include "bigint.h"
 #include <QJsonDocument>
 #include <QJsonValue>
+#include <QTimer>
 
 namespace Etherwall {
 
@@ -84,6 +85,7 @@ namespace Etherwall {
         }
 
         fSocket.connectToServer(path);
+        QTimer::singleShot(2000, this, SLOT(disconnectedFromServer()));
     }
 
     void EtherIPC::connectedToServer() {
@@ -98,7 +100,7 @@ namespace Etherwall {
 
         if ( fReconnect ) {
             fReconnect = false;
-            return fSocket.connectToServer(fPath);
+            connectToServer(fPath);
         }
     }
 
@@ -250,6 +252,17 @@ namespace Etherwall {
         /*if ( !writeRequest(RequestIPC(SendTransaction, "eth_sendTransaction"), params) ) {
             return bail();
         }*/
+    }
+
+    void EtherIPC::handleSendTransaction() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        const QString hash = jv.toString();
+        emit sendTransactionDone(hash);
+        done();
     }
 
     int EtherIPC::index() const {

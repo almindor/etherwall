@@ -30,6 +30,8 @@ namespace Etherwall {
     class AccountModel : public QAbstractListModel
     {
         Q_OBJECT
+        Q_PROPERTY(int selectedAccountRow READ getSelectedAccountRow WRITE setSelectedAccountRow NOTIFY accountSelectionChanged)
+        Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
     public:
         AccountModel(EtherIPC& ipc);
         QString getError() const;
@@ -39,16 +41,23 @@ namespace Etherwall {
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
+        Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
+    signals:
+        void accountSelectionChanged(int);
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;
+        int fSelectedAccountRow;
+        QString fSelectedAccount;
 
-        void refresh();
+        int getSelectedAccountRow() const;
+        void setSelectedAccountRow(int row);
+        const QString getSelectedAccount() const;
     };
 
 }

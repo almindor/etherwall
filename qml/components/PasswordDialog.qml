@@ -23,11 +23,11 @@ import QtQuick.Controls 1.1
 import QtQuick.Dialogs 1.2
 
 Dialog {
-    title: qsTr("Confirm operation")
     width: Math.max(parent.width * 0.6, 500)
     property string password
 
-    function openFocused() {
+    function openFocused(m) {
+        title = m || "Confirm operation"
         open()
         accountPW.focus = true
     }

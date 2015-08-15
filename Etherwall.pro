@@ -11,7 +11,8 @@ SOURCES += src/main.cpp \
     src/etheripc.cpp \
     src/settings.cpp \
     src/bigint.cpp \
-    src/transactionmodel.cpp
+    src/transactionmodel.cpp \
+    src/clipboard.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -27,4 +28,5 @@ HEADERS += \
     src/etheripc.h \
     src/settings.h \
     src/bigint.h \
-    src/transactionmodel.h
+    src/transactionmodel.h \
+    src/clipboard.h

@@ -23,6 +23,7 @@
 #include <QQmlContext>
 #include <QDebug>
 #include "settings.h"
+#include "clipboard.h"
 #include "accountmodel.h"
 #include "transactionmodel.h"
 
@@ -37,6 +38,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Etherwall");
 
     Settings settings;
+    ClipboardAdapter clipboard;
     EtherIPC ipc;
 
     const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
@@ -54,6 +56,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
+    engine.rootContext()->setContextProperty("clipboard", &clipboard);
 
     QObject::connect(&app, &QApplication::lastWindowClosed, &ipc, &EtherIPC::closeApp);
 

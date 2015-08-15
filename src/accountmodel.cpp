@@ -28,7 +28,7 @@
 namespace Etherwall {
 
     AccountModel::AccountModel(EtherIPC& ipc) :
-        QAbstractListModel(0), fIpc(ipc), fAccountList()
+        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
@@ -69,6 +69,14 @@ namespace Etherwall {
         }
     }
 
+    const QString AccountModel::getAccountHash(int index) const {
+        if ( index >= 0 && fAccountList.length() > index ) {
+            return fAccountList.at(index).value(HashRole).toString();
+        }
+
+        return QString();
+    }
+
     void AccountModel::connectToServerDone() {
         fIpc.getAccounts();
     }
@@ -97,6 +105,19 @@ namespace Etherwall {
         } else {
             qDebug() << "Account delete failure";
         }
+    }
+
+    int AccountModel::getSelectedAccountRow() const {
+        return fSelectedAccountRow;
+    }
+
+    void AccountModel::setSelectedAccountRow(int row) {
+        fSelectedAccountRow = row;
+        emit accountSelectionChanged(row);
+    }
+
+    const QString AccountModel::getSelectedAccount() const {
+        return getAccountHash(fSelectedAccountRow);
     }
 
 }

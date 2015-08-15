@@ -39,7 +39,7 @@ Tab {
                 id: newAccountButton
                 text: qsTr("New account")
                 onClicked: {
-                    accountNewDialog.openFocused()
+                    accountNewDialog.openFocused("New account password")
                 }
             }
 
@@ -49,7 +49,8 @@ Tab {
                 enabled: (accountView.currentRow >= 0 && accountView.currentRow < accountView.rowCount)
 
                 onClicked: {
-                    accountDeleteDialog.openFocused()
+                    accountModel.selectedAccountRow = accountView.currentRow
+                    accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
                 }
             }
         }
@@ -94,6 +95,48 @@ Tab {
                 width: 150
             }
             model: accountModel
+
+            Menu {
+                id: rowMenu
+
+                MenuItem {
+                    text: qsTr("Copy")
+                    onTriggered: {
+                        clipboard.setText(accountModel.selectedAccount)
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Delete")
+                    onTriggered: {
+                        accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
+                    }
+                }
+            }
+
+            rowDelegate: Item {
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                    }
+                    height: parent.height
+                    color: styleData.selected ? 'darkblue' : 'white'
+                    MouseArea {
+                        anchors.fill: parent
+                        propagateComposedEvents: true
+                        acceptedButtons: Qt.RightButton
+
+                        onReleased: {
+                            if ( accountView.currentRow >= 0 ) {
+                                accountModel.selectedAccountRow = accountView.currentRow
+                                rowMenu.popup()
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

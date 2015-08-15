@@ -33,9 +33,11 @@ namespace Etherwall {
     {
         Q_OBJECT
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
+        Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
     public:
         TransactionModel(EtherIPC& ipc);
         quint64 getBlockNumber() const;
+        const QString& getGasPrice() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -44,14 +46,17 @@ namespace Etherwall {
         void connectToServerDone();
         void getTransactionsDone(const TransactionList& list);
         void getBlockNumberDone(quint64 num);
-        void sendTransaction(const QString& from, const QString& to, long double value);
+        void getGasPriceDone(const QString& num);
+        void sendTransaction(const QString& from, const QString& to, double value);
         void sendTransactionDone(const QString& hash);
     signals:
         void blockNumberChanged(quint64 num);
+        void gasPriceChanged(const QString& price);
     private:
         EtherIPC& fIpc;
         TransactionList fTransactionList;
         quint64 fBlockNumber;
+        QString fGasPrice;
 
         void refresh();
     };

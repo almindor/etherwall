@@ -46,11 +46,16 @@ namespace Etherwall {
         GetAccountRefs,
         GetBalance,
         GetTransactionCount,
-        GetPeerCount
+        GetPeerCount,
+        SendTransaction,
+        UnlockAccount,
+        GetGasPrice,
+        NewPendingTransactionFilter
     };
 
     enum AccountRoles {
-        HashRole = Qt::UserRole + 1,
+        LockedRole = Qt::UserRole + 1,
+        HashRole,
         BalanceRole,
         TransCountRole,
         SummaryRole
@@ -64,10 +69,12 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
         void setTransactionCount(quint64 count);
+        void unlock();
     private:
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;
+        bool fLocked;
     };
 
     typedef QList<AccountInfo> AccountList;

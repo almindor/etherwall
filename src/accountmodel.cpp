@@ -34,6 +34,7 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
+        connect(&ipc, &EtherIPC::unlockAccountDone, this, &AccountModel::unlockAccountDone);
     }
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
@@ -41,6 +42,7 @@ namespace Etherwall {
         roles[HashRole] = "hash";
         roles[BalanceRole] = "balance";
         roles[TransCountRole] = "transactions";
+        roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
         return roles;
     }
@@ -61,11 +63,21 @@ namespace Etherwall {
     }
 
     void AccountModel::deleteAccount(const QString& pw, int index) {
-        if ( index >= 0 && index < fAccountList.size() ) {
+        if ( index >= 0 && index < fAccountList.size() ) {            
             const QString hash = fAccountList.at(index).value(HashRole).toString();
             fIpc.deleteAccount(hash, pw, index);
         } else {
             qDebug() << "Invalid account selection for delete";
+        }
+    }
+
+    void AccountModel::unlockAccount(const QString& pw, int duration, int index) {
+        if ( index >= 0 && index < fAccountList.size() && duration > 0 ) {
+            const QString hash = fAccountList.at(index).value(HashRole).toString();
+            qDebug() << "model unlock";
+            fIpc.unlockAccount(hash, pw, duration, index);
+        } else {
+            qDebug() << "Invalid account selection for unlock";
         }
     }
 
@@ -104,6 +116,17 @@ namespace Etherwall {
             endRemoveRows();
         } else {
             qDebug() << "Account delete failure";
+        }
+    }
+
+    void AccountModel::unlockAccountDone(bool result, int index) {
+        qDebug() << "account unlock done";
+        if ( result ) {
+            fAccountList[index].unlock();
+            const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
+            emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
+        } else {
+            qDebug() << "Account unlock failure";
         }
     }
 

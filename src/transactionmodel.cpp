@@ -27,15 +27,20 @@
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc) :
-        QAbstractListModel(0), fIpc(ipc), fTransactionList()
+        QAbstractListModel(0), fIpc(ipc), fTransactionList(), fBlockNumber(0), fGasPrice("unknown")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
+        connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
     }
 
     quint64 TransactionModel::getBlockNumber() const {
         return fBlockNumber;
+    }
+
+    const QString& TransactionModel::getGasPrice() const {
+        return fGasPrice;
     }
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
@@ -61,6 +66,7 @@ namespace Etherwall {
 
     void TransactionModel::connectToServerDone() {
         fIpc.getBlockNumber();
+        fIpc.getGasPrice();
     }
 
     void TransactionModel::getTransactionsDone(const TransactionList &list) {
@@ -74,7 +80,12 @@ namespace Etherwall {
         emit blockNumberChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& from, const QString& to, long double value) {
+    void TransactionModel::getGasPriceDone(const QString& num) {
+        fGasPrice = num;
+        emit gasPriceChanged(num);
+    }
+
+    void TransactionModel::sendTransaction(const QString& from, const QString& to, double value) {
         fIpc.sendTransaction(from, to, value);
     }
 

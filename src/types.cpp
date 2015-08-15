@@ -25,7 +25,7 @@ namespace Etherwall {
 // ***************************** TransactionInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fHash(hash), fBalance(balance), fTransCount(transCount)
+        fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
     {
     }
 
@@ -34,6 +34,7 @@ namespace Etherwall {
         case HashRole: return QVariant(fHash);
         case BalanceRole: return QVariant(fBalance.toDouble());
         case TransCountRole: return QVariant(fTransCount);
+        case LockedRole: return QVariant(fLocked);
         case SummaryRole: return QVariant(fHash + (fBalance.toDouble() > 0 ? " [> 0 Ether]" : " [empty]") );
         }
 
@@ -46,6 +47,10 @@ namespace Etherwall {
 
     void AccountInfo::setTransactionCount(quint64 count) {
         fTransCount = count;
+    }
+
+    void AccountInfo::unlock() {
+        fLocked = false;
     }
 
 // ***************************** TransactionInfo ***************************** //

@@ -30,6 +30,7 @@ Tab {
         id: col
         anchors.margins: 20
         anchors.fill: parent
+        spacing: 15
 
         Row {
             id: rowIPCPath
@@ -75,5 +76,32 @@ Tab {
                 }
             }
         }
+
+        Row {
+            id: rowLockDur
+            width: parent.width
+
+            Label {
+                id: unlockDurLabel
+                text: qsTr("Account unlock duration (s): ")
+            }
+
+            SpinBox {
+                id: unlockDurSpinBox
+                minimumValue: 10
+                maximumValue: 3600
+
+                value: settings.value("/ipc/accounts/lockduration", 300)
+            }
+
+            Button {
+                text: qsTr("Set")
+
+                onClicked: {
+                    settings.setValue("/ipc/accounts/lockduration", unlockDurSpinBox.value)
+                }
+            }
+        }
+
     }
 }

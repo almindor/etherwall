@@ -41,12 +41,14 @@ namespace Etherwall {
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
+        Q_INVOKABLE void unlockAccount(const QString& pw, int duration, int index);
         Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
+        void unlockAccountDone(bool result, int index);
     signals:
         void accountSelectionChanged(int);
     private:

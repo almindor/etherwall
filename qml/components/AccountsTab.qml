@@ -73,12 +73,37 @@ Tab {
             }
         }
 
+        PasswordDialog {
+            id: accountUnlockDialog
+            standardButtons: StandardButton.Ok | StandardButton.Cancel
+
+            onAccepted: {
+                accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), accountView.currentRow)
+            }
+        }
+
         TableView {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - newAccountButton.height - parent.spacing
 
+            TableViewColumn {
+                role: "locked"
+                title: qsTr("Locked")
+                width: 70
+                delegate: ToolButton {
+                    iconSource: (styleData.value === true) ? "/images/locked" : "/images/unlocked"
+                    enabled: (styleData.value === true)
+                    onClicked: {
+                        if ( styleData.value === true ) {
+                            accountView.currentRow = styleData.row
+                            accountModel.selectedAccountRow = accountView.currentRow
+                            accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
+                        }
+                    }
+                }
+            }
             TableViewColumn {
                 role: "hash"
                 title: qsTr("Hash")
@@ -91,8 +116,8 @@ Tab {
             }
             TableViewColumn {
                 role: "transactions"
-                title: qsTr("Transactions Sent")
-                width: 150
+                title: qsTr("Sent Trans.")
+                width: 100
             }
             model: accountModel
 
@@ -115,6 +140,11 @@ Tab {
             }
 
             rowDelegate: Item {
+                SystemPalette {
+                    id: osPalette
+                    colorGroup: SystemPalette.Active
+                }
+
                 Rectangle {
                     anchors {
                         left: parent.left
@@ -122,7 +152,7 @@ Tab {
                         verticalCenter: parent.verticalCenter
                     }
                     height: parent.height
-                    color: styleData.selected ? 'darkblue' : 'white'
+                    color: styleData.selected ? osPalette.highlight : osPalette.base
                     MouseArea {
                         anchors.fill: parent
                         propagateComposedEvents: true

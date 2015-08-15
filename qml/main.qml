@@ -54,7 +54,7 @@ ApplicationWindow {
     TabView {
         id: tabView
         anchors.fill: parent
-        enabled: !ipc.busy
+        enabled: !ipc.busy && (ipc.connectionState > 0)
 
         AccountsTab {}
 
@@ -80,6 +80,7 @@ ApplicationWindow {
         Row {
             ToolButton {
                 id: blockButton
+                enabled: parent.enabled && (ipc.connectionState > 0)
                 iconSource: "/images/block"
                 tooltip: "Block number: " + transactionModel.blockNumber
                 onClicked: {
@@ -98,6 +99,29 @@ ApplicationWindow {
                 width: 100
                 readOnly: true
                 text: transactionModel.blockNumber
+            }
+
+            ToolButton {
+                id: gasButton
+                enabled: parent.enabled && (ipc.connectionState > 0)
+                iconSource: "/images/gas"
+                tooltip: "Gas price: " + transactionModel.gasPrice
+                onClicked: {
+                    gasField.visible = !gasField.visible
+
+                    if ( gasField.visible ) {
+                        gasField.selectAll()
+                        gasField.copy()
+                    }
+                }
+            }
+
+            TextField {
+                id: gasField
+                visible: false
+                width: 200
+                readOnly: true
+                text: transactionModel.gasPrice
             }
         }
 

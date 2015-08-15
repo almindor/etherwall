@@ -34,16 +34,23 @@ namespace Etherwall {
     class RequestIPC {
     public:
         RequestIPC(RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
+        RequestIPC(bool empty);
+        RequestIPC();
 
         RequestTypes getType() const;
         const QString& getMethod() const;
         const QJsonArray& getParams() const;
         int getIndex() const;
+        int getCallID() const;
+        bool empty() const;
+        static int sCallID;
     private:
+        int fCallID;
         RequestTypes fType;
         QString fMethod;
         QJsonArray fParams;
         int fIndex;
+        bool fEmpty;
     };
 
     typedef QList<RequestIPC> RequestList;
@@ -72,7 +79,9 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, long double value);
+        void sendTransaction(const QString& from, const QString& to, double value);
+        void unlockAccount(const QString& hash, const QString& password, int duration, int index);
+        void getGasPrice();
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         void closeApp();
@@ -83,6 +92,8 @@ namespace Etherwall {
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
         void sendTransactionDone(const QString& hash);
+        void unlockAccountDone(bool result, int index);
+        void getGasPriceDone(const QString& price);
 
         void peerCountChanged(quint64 num);
         void busyChanged(bool busy);
@@ -90,16 +101,15 @@ namespace Etherwall {
         void error(const QString& error, int code);
     private:
         QLocalSocket fSocket;
-        int fCallNum;
         QLocale fLocale;
         QString fError;
         int fCode;
         quint64 fPeerCount;
-        bool fBusy;
-        bool fReconnect;
         QString fPath;
         AccountList fAccountList;
         RequestList fRequestQueue;
+        quint64 fPendingTransactionsFilterID;
+        RequestIPC fActiveRequest;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -109,19 +119,23 @@ namespace Etherwall {
         void handleGetBlockNumber();
         void handleGetPeerCount();
         void handleSendTransaction();
+        void handleUnlockAccount();
+        void handleGetGasPrice();
+        void handleNewPendingTransactionFilter();
 
         int getConnectionState() const;
         const QString getConnectionStateStr() const;
         quint64 peerCount() const;
         void bail();
         void done();
-        int index() const;
-        RequestTypes requestType() const;
+        void newPendingTransactionFilter();
 
         QJsonObject methodToJSON(const RequestIPC& request);
-        bool writeRequest(const RequestIPC& request, bool fromQueue = false);
+        bool queueRequest(const RequestIPC& request);
+        bool writeRequest();
         bool readReply(QJsonValue& result);
-        quint64 readNumber();
+        bool readNumber(quint64& result);
+        const QString toDecStr(const QJsonValue& jv) const;
     };
 
 }

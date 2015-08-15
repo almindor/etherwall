@@ -93,39 +93,50 @@ Tab {
                     iconSource: "/images/warning"
                     width: sendButton.height
                     height: sendButton.height
-                    visible: (transactionInvalid() !== null)
 
                     function check() {
+                        var result = {
+                            error: null,
+                            from: null,
+                            to: null,
+                            value: -1
+                        }
+
                         if ( fromField.currentIndex < 0 ) {
-                            return qsTr("Sender account not selected")
+                            result.error = qsTr("Sender account not selected")
+                            return result
                         }
                         var index = fromField.currentIndex
-                        var account = accountModel.getAccountHash(index)
+                        result.from = accountModel.getAccountHash(index) || ""
 
-                        if ( !account.match(/0x[a-f,0-9]{40}/) ) {
-                            return qsTr("Sender account invalid")
+                        if ( !result.from.match(/0x[a-f,0-9]{40}/) ) {
+                            result.error = qsTr("Sender account invalid")
+                            return result
                         }
 
-                        if ( !toField.text.match(/0x[a-f,0-9]{40}/) ) {
-                            return qsTr("Recipient account invalid")
+                        result.to = toField.text || ""
+                        if ( !result.to.match(/0x[a-f,0-9]{40}/) ) {
+                            result.error = qsTr("Recipient account invalid")
+                            return result
                         }
 
-                        var txt = valueField.text.trim()
-                        var val = txt.length > 0 ? Number(txt) : NaN
-                        if ( isNaN(val) || val === 0.0 ) {
-                            return qsTr("Invalid value")
+                        var txt = valueField.text.trim() || ""
+                        result.value = txt.length > 0 ? Number(txt) : NaN
+                        if ( isNaN(result.value) || result.value <= 0.0 ) {
+                            result.error = qsTr("Invalid value")
+                            return result
                         }
 
-                        return null;
+                        return result;
                     }
 
                     function refresh() {
                         var result = check()
-                        if ( result !== null ) {
-                            tooltip = result
+                        if ( result.error !== null ) {
+                            tooltip = result.error
                         }
 
-                        enabled = (result !== null)
+                        enabled = (result.error !== null)
                     }
 
                     onClicked: {
@@ -143,14 +154,14 @@ Tab {
                     text: "Send"
 
                     onClicked: {
-                        var error = transactionWarning.check()
-                        if ( error !== null ) {
-                            errorDialog.error = error
+                        var result = transactionWarning.check()
+                        if ( result.error !== null ) {
+                            errorDialog.error = result.error
                             errorDialog.open()
                             return
                         }
 
-                        transactionModel.sendTransaction(accountModel.getAccountHash(fromField.currentIndex), toField.text, val)
+                        transactionModel.sendTransaction(result.from, result.to, result.value)
                     }
                 }
             }

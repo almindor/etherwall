@@ -221,9 +221,10 @@ Tab {
             height: parent.height - gridLayout.height - parent.spacing - historyRow.height
 
             TableViewColumn {
+                horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
-                width: 100
+                width: 70
             }
             TableViewColumn {
                 role: "sender"
@@ -236,14 +237,16 @@ Tab {
                 width: 200
             }
             TableViewColumn {
+                horizontalAlignment: Text.AlignRight
                 role: "value"
                 title: qsTr("Value (Ether)")
                 width: 150
             }
             TableViewColumn {
+                horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
-                width: 100
+                width: 70
             }
             model: transactionModel
         }

@@ -90,6 +90,7 @@ Tab {
             height: parent.height - newAccountButton.height - parent.spacing
 
             TableViewColumn {
+                horizontalAlignment: Text.AlignHCenter
                 role: "locked"
                 title: qsTr("Locked")
                 width: 70
@@ -111,11 +112,13 @@ Tab {
                 width: 400
             }
             TableViewColumn {
+                horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance (Ether)")
                 width: 150
             }
             TableViewColumn {
+                horizontalAlignment: Text.AlignRight
                 role: "transactions"
                 title: qsTr("Sent Trans.")
                 width: 100

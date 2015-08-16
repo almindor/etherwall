@@ -89,7 +89,7 @@ namespace Etherwall {
             case NonceRole: return QVariant(fNonce);
             case SenderRole: return QVariant(fSender);
             case ReceiverRole: return QVariant(fReceiver);
-            case ValueRole: return QVariant(fValue);
+            case ValueRole: return QVariant(fValue.toDouble());
             case BlockNumberRole: return QVariant(fBlockNumber);
             case BlockHashRole: return QVariant(fBlockHash);
             case TransactionIndexRole: return QVariant(fTransactionIndex);

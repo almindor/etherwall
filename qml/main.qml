@@ -98,6 +98,8 @@ ApplicationWindow {
         Row {
             ToolButton {
                 id: blockButton
+                height: 32
+                width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 iconSource: "/images/block"
                 tooltip: "Block number: " + transactionModel.blockNumber
@@ -121,6 +123,8 @@ ApplicationWindow {
 
             ToolButton {
                 id: gasButton
+                height: 32
+                width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 iconSource: "/images/gas"
                 tooltip: "Gas price: " + transactionModel.gasPrice
@@ -161,6 +165,8 @@ ApplicationWindow {
                 }
 
                 iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                height: 32
+                width: 32
                 tooltip: "Connection state: " + (ipc.connectionState > 0 ? ("connected with " + ipc.peerCount + " peers") : "disconnected")
                 onClicked: {
                     if ( ipc.connectionState > 0 ) {

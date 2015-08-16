@@ -155,7 +155,7 @@ namespace Etherwall {
         void done();
         void newPendingTransactionFilter();
         void newBlockFilter();
-        void uninstallFilter();
+        void uninstallFilter(int filterID);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

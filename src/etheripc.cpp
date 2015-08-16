@@ -105,8 +105,10 @@ namespace Etherwall {
             return false;
         }
 
-        if ( fSocket.state() == QLocalSocket::ConnectedState && fPendingTransactionsFilterID >= 0 ) { // remove filter if still connected
-            uninstallFilter();
+        if ( fSocket.state() == QLocalSocket::ConnectedState &&
+             ( fPendingTransactionsFilterID >= 0 || fBlockFilterID >= 0) ) { // remove filters if still connected
+            uninstallFilter(fPendingTransactionsFilterID);
+            uninstallFilter(fBlockFilterID);
             return false;
         }
 
@@ -451,13 +453,13 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::uninstallFilter() {
+    void EtherIPC::uninstallFilter(int filterID) {
         QJsonArray params;
-        BigInt::Vin vinVal(fPendingTransactionsFilterID);
+        BigInt::Vin vinVal(filterID);
         QString strHex = QString(vinVal.toStr0xHex().data());
         params.append(strHex);
 
-        if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
+        if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params, filterID)) ) {
             return bail();
         }
     }
@@ -468,10 +470,12 @@ namespace Etherwall {
             return bail();
         }
 
-        const bool result = jv.toBool(false);
-        if ( result ) {
+        if ( fActiveRequest.getIndex() == fBlockFilterID ) {
+            fBlockFilterID = -1;
+        } else if ( fActiveRequest.getIndex() == fPendingTransactionsFilterID ) {
             fPendingTransactionsFilterID = -1;
         }
+
         done();
     }
 

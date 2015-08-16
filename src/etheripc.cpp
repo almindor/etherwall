@@ -101,6 +101,7 @@ namespace Etherwall {
 
     bool EtherIPC::closeApp() {
         fClosingApp = true;
+        fTimer.stop();
 
         if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
             return true;

@@ -101,6 +101,11 @@ namespace Etherwall {
 
     bool EtherIPC::closeApp() {
         fClosingApp = true;
+
+        if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
+            return true;
+        }
+
         if ( getBusy() ) { // wait for operation first
             return false;
         }
@@ -532,6 +537,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::bail() {
+        qDebug() << "BAIL: " << fError << "\n";
         fTimer.stop();
         fActiveRequest = RequestIPC();
         fRequestQueue.clear();
@@ -599,18 +605,34 @@ namespace Etherwall {
         return true;
     }
 
+    bool EtherIPC::readData() {
+        fReadBuffer += QString(fSocket.readAll());
+
+        if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' ) {
+            return true;
+        }
+
+        return false;
+    }
+
     bool EtherIPC::readReply(QJsonValue& result) {
-        QByteArray recvBuf = fSocket.readAll();
-        if ( recvBuf.isNull() || recvBuf.isEmpty() ) {
+        if ( !readData() ) {
+            return true; // not finished yet
+        }
+
+        const QString data = fReadBuffer;
+        fReadBuffer.clear();
+
+        if ( data.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();
             fCode = 0;
             return false;
         }
 
-        //qDebug() << "received: " << recvBuf << "\n";
+        qDebug() << "received: " << data << "\n";
 
         QJsonParseError parseError;
-        QJsonDocument resDoc = QJsonDocument::fromJson(recvBuf, &parseError);
+        QJsonDocument resDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);
 
         if ( parseError.error != QJsonParseError::NoError ) {
             fError = "Response parse error: " + parseError.errorString();
@@ -643,7 +665,7 @@ namespace Etherwall {
             }
 
             fError = "Result object undefined in IPC response";
-            qDebug() << recvBuf << "\n";
+            qDebug() << data << "\n";
             return false;
         }
 

@@ -121,7 +121,7 @@ namespace Etherwall {
         int fBlockFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
-        QByteArray fReadBuffer;
+        QString fReadBuffer;
         QString fError;
         int fCode;
         QString fPath;
@@ -160,6 +160,7 @@ namespace Etherwall {
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);
         bool writeRequest();
+        bool readData();
         bool readReply(QJsonValue& result);
         bool readVin(BigInt::Vin& result);
         bool readNumber(quint64& result);

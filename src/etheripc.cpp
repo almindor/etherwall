@@ -629,7 +629,7 @@ namespace Etherwall {
             return false;
         }
 
-        qDebug() << "received: " << data << "\n";
+        //qDebug() << "received: " << data << "\n";
 
         QJsonParseError parseError;
         QJsonDocument resDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);

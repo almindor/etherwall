@@ -61,6 +61,12 @@ namespace Etherwall {
 
 // ***************************** TransactionInfo ***************************** //
 
+    TransactionInfo::TransactionInfo() {
+        fValue = "0x0";
+        fBlockNumber = 0;
+        fTransactionIndex = 0;
+    }
+
     TransactionInfo::TransactionInfo(const QJsonObject& source)
     {
         fHash = source.value("hash").toString("invalid");
@@ -93,6 +99,21 @@ namespace Etherwall {
         }
 
         return QVariant();
+    }
+
+    void TransactionInfo::setBlockNumber(quint64 num) {
+        fBlockNumber = num;
+    }
+
+    void TransactionInfo::setHash(const QString& hash) {
+        fHash = hash;
+    }
+
+    void TransactionInfo::init(const QString& from, const QString& to, double value) {
+        fSender = from;
+        fReceiver = to;
+        BigInt::Vin vinVal = BigInt::Vin::fromDouble(value * 1000000000000000000);
+        fValue = QString(vinVal.toStrDec().data());
     }
 
 // ***************************** Helpers ***************************** //

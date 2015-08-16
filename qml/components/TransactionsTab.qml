@@ -177,23 +177,29 @@ Tab {
             height: parent.height - gridLayout.height - parent.spacing
 
             TableViewColumn {
-                role: "hash"
-                title: qsTr("Hash")
-                width: 150
+                role: "blocknumber"
+                title: qsTr("Block#")
+                width: 100
             }
             TableViewColumn {
                 role: "sender"
                 title: qsTr("Sender")
-                width: 150
+                width: 200
             }
             TableViewColumn {
                 role: "receiver"
                 title: qsTr("Receiver")
-                width: 150
+                width: 200
             }
             TableViewColumn {
                 role: "value"
                 title: qsTr("Value (Ether)")
+                width: 150
+            }
+            TableViewColumn {
+                role: "depth"
+                title: qsTr("Depth")
+                width: 100
             }
             model: transactionModel
         }

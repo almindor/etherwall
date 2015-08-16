@@ -42,7 +42,7 @@ namespace Etherwall {
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-
+        int containsTransaction(const QString& hash);
     public slots:
         void connectToServerDone();
         void getTransactionsDone(const TransactionList& list);
@@ -51,6 +51,7 @@ namespace Etherwall {
         void sendTransaction(const QString& from, const QString& to, double value);
         void sendTransactionDone(const QString& hash);
         void newTransaction(const TransactionInfo& info);
+        void newBlock(const QJsonObject& block);
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
@@ -60,6 +61,7 @@ namespace Etherwall {
         TransactionList fTransactionList;
         quint64 fBlockNumber;
         QString fGasPrice;
+        TransactionInfo fQueuedTransaction;
 
         void refresh();
     };

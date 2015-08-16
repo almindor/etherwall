@@ -97,15 +97,20 @@ namespace Etherwall {
         TransactionIndexRole,
         GasRole,
         GasPriceRole,
-        InputRole
+        InputRole,
+        DepthRole
     };
 
     class TransactionInfo
     {
     public:
+        TransactionInfo();
         TransactionInfo(const QJsonObject& source);
 
         const QVariant value(const int role) const;
+        void setBlockNumber(quint64 num);
+        void setHash(const QString& hash);
+        void init(const QString& from, const QString& to, double value);
     private:
         QString fHash;
         quint64 fNonce;

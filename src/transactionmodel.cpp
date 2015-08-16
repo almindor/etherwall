@@ -34,6 +34,7 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
         connect(&ipc, &EtherIPC::newPendingTransaction, this, &TransactionModel::newTransaction);
+        connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
     }
 
     quint64 TransactionModel::getBlockNumber() const {
@@ -57,6 +58,7 @@ namespace Etherwall {
         roles[GasRole] = "gas";
         roles[GasPriceRole] = "gasprice";
         roles[InputRole] = "input";
+        roles[DepthRole] = "depth";
 
         return roles;
     }
@@ -68,7 +70,30 @@ namespace Etherwall {
     QVariant TransactionModel::data(const QModelIndex & index, int role) const {
         const int row = index.row();
 
+        // calculate distance from current block
+        if ( role == DepthRole ) {
+            quint64 transBlockNum = fTransactionList.at(row).value(BlockNumberRole).toULongLong();
+            if ( transBlockNum == 0 ) { // still pending
+                return -1;
+            }
+
+            quint64 diff = fBlockNumber - transBlockNum;
+            return diff;
+        }
+
         return fTransactionList.at(row).value(role);
+    }
+
+    int TransactionModel::containsTransaction(const QString& hash) {
+        int i = 0;
+        foreach ( const TransactionInfo& t, fTransactionList ) {
+            if ( t.value(THashRole).toString() == hash ) {
+                return i;
+            }
+            i++;
+        }
+
+        return -1;
     }
 
     void TransactionModel::connectToServerDone() {
@@ -85,6 +110,12 @@ namespace Etherwall {
     void TransactionModel::getBlockNumberDone(quint64 num) {
         fBlockNumber = num;
         emit blockNumberChanged(num);
+
+        if ( fTransactionList.length() ) { // depth changed for all
+            const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 5);
+            const QModelIndex& rightIndex = QAbstractListModel::createIndex(fTransactionList.length() - 1, 5);
+            emit dataChanged(leftIndex, rightIndex, QVector<int>(1, DepthRole));
+        }
     }
 
     void TransactionModel::getGasPriceDone(const QString& num) {
@@ -94,32 +125,59 @@ namespace Etherwall {
 
     void TransactionModel::sendTransaction(const QString& from, const QString& to, double value) {
         fIpc.sendTransaction(from, to, value);
+        fQueuedTransaction.init(from, to, value);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
-        qDebug() << "Transaction sent hash: " << hash << "\n";
+        fQueuedTransaction.setHash(hash);
+        qDebug() << "sent hash: " << hash << "\n";
+        const int size = fTransactionList.length();
+        beginInsertRows(QModelIndex(), size, size);
+        fTransactionList.append(fQueuedTransaction);
+        endInsertRows();
     }
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {
         int ai1, ai2;
         if ( fAccountModel.containsAccount(info, ai1, ai2) ) {
-            const int size = fTransactionList.length();
-            beginInsertRows(QModelIndex(), size, size);
-            fTransactionList.append(info);
-            endInsertRows();
 
-            // handle via block filter!
-            /*
-            if ( ai1 >= 0 ) {
-                const QString& hash1 = fAccountModel.getAccountHash(ai1);
-                fIpc.refreshAccount(hash1, ai1);
+            const int n = containsTransaction(info.value(THashRole).toString());
+            if ( n >= 0 ) { // ours
+                fTransactionList[n] = info;
+                const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
+                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 12);
+                emit dataChanged(leftIndex, rightIndex);
+            } else { // external
+                const int size = fTransactionList.length();
+                beginInsertRows(QModelIndex(), size, size);
+                fTransactionList.append(info);
+                endInsertRows();
             }
+        }
+    }
 
-            if ( ai2 >= 0 ) {
-                const QString& hash2 = fAccountModel.getAccountHash(ai2);
-                fIpc.refreshAccount(hash2, ai2);
-            }*/
+    void TransactionModel::newBlock(const QJsonObject& block) {
+        const QJsonArray transactions = block.value("transactions").toArray();
+        const quint64 blockNum = Helpers::toQUInt64(block.value("number"));
 
+        if ( blockNum == 0 ) {
+            return; // not interested in pending blocks
+        }
+
+        foreach ( QJsonValue t, transactions ) {
+            const QJsonObject to = t.toObject();
+            const QString thash = to.value("hash").toString();
+
+            const int n = containsTransaction(thash);
+            if ( n >= 0 ) {
+                fTransactionList[n].setBlockNumber(blockNum);
+                const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
+                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 12);
+                QVector<int> roles(2);
+                roles[0] = BlockNumberRole;
+                roles[1] = DepthRole;
+                emit dataChanged(leftIndex, rightIndex, roles);
+            }
         }
     }
 

@@ -25,6 +25,7 @@ import QtQuick.Layouts 1.0
 
 Tab {
     id: transactionsTab
+    enabled: !ipc.busy && (ipc.connectionState > 0)
     title: qsTr("Transactions")
 
     //onActiveChanged:
@@ -35,6 +36,7 @@ Tab {
         spacing: 15
 
         GridLayout {
+            id: gridLayout
             columns: 3
             width: parent.width
 
@@ -166,5 +168,35 @@ Tab {
                 }
             }
         }
+
+
+        TableView {
+            id: transactionView
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: parent.height - gridLayout.height - parent.spacing
+
+            TableViewColumn {
+                role: "hash"
+                title: qsTr("Hash")
+                width: 150
+            }
+            TableViewColumn {
+                role: "sender"
+                title: qsTr("Sender")
+                width: 150
+            }
+            TableViewColumn {
+                role: "receiver"
+                title: qsTr("Receiver")
+                width: 150
+            }
+            TableViewColumn {
+                role: "value"
+                title: qsTr("Value (Ether)")
+            }
+            model: transactionModel
+        }
+
     }
 }

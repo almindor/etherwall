@@ -25,6 +25,9 @@
 #include <QList>
 #include <QVariant>
 #include <QStandardPaths>
+#include <QJsonObject>
+#include <QJsonValue>
+#include "bigint.h"
 
 namespace Etherwall {
 
@@ -50,7 +53,12 @@ namespace Etherwall {
         SendTransaction,
         UnlockAccount,
         GetGasPrice,
-        NewPendingTransactionFilter
+        NewPendingTransactionFilter,
+        NewBlockFilter,
+        GetFilterChanges,
+        UninstallFilter,
+        GetTransactionByHash,
+        GetBlockByHash
     };
 
     enum AccountRoles {
@@ -69,39 +77,56 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
         void setTransactionCount(quint64 count);
-        void unlock();
+        void unlock(qint64 toTime);
     private:
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;
-        bool fLocked;
     };
 
     typedef QList<AccountInfo> AccountList;
 
     enum TransactionRoles {
-        SenderRole = Qt::UserRole + 1,
+        THashRole = Qt::UserRole + 1,
+        NonceRole,
+        SenderRole,
         ReceiverRole,
         ValueRole,
         BlockNumberRole,
-        BlockHashRole
+        BlockHashRole,
+        TransactionIndexRole,
+        GasRole,
+        GasPriceRole,
+        InputRole
     };
 
     class TransactionInfo
     {
     public:
-        TransactionInfo(const QString& sender, const QString& receiver, const QString& value, quint64 blockNumber, const QString& blockHash);
+        TransactionInfo(const QJsonObject& source);
 
         const QVariant value(const int role) const;
     private:
+        QString fHash;
+        quint64 fNonce;
         QString fSender;
         QString fReceiver;
         QString fValue; // in ether
         quint64 fBlockNumber;
         QString fBlockHash;
+        quint64 fTransactionIndex;
+        QString fGas;
+        QString fGasPrice;
+        QString fInput;
     };
 
     typedef QList<TransactionInfo> TransactionList;
+
+    class Helpers {
+    public:
+        static const QString toDecStr(const QJsonValue &jv);
+        static quint64 toQUInt64(const QJsonValue& jv);
+    };
 
 }
 

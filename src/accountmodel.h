@@ -22,6 +22,10 @@
 #define ACCOUNTMODEL_H
 
 #include <QAbstractListModel>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
 #include "types.h"
 #include "etheripc.h"
 
@@ -38,6 +42,7 @@ namespace Etherwall {
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
+        bool containsAccount(const TransactionInfo& info, int& ai1, int& ai2) const;
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
@@ -45,10 +50,11 @@ namespace Etherwall {
         Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
         void unlockAccountDone(bool result, int index);
+        void accountChanged(const AccountInfo& info);
+        void newBlock(const QJsonObject& block);
     signals:
         void accountSelectionChanged(int);
     private:

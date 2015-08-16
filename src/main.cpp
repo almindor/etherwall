@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     }
 
     AccountModel accountModel(ipc);
-    TransactionModel transactionModel(ipc);
+    TransactionModel transactionModel(ipc, accountModel);
 
     QQmlApplicationEngine engine;
 
@@ -57,8 +57,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
-
-    QObject::connect(&app, &QApplication::lastWindowClosed, &ipc, &EtherIPC::closeApp);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 

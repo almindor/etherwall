@@ -19,26 +19,28 @@
  */
 
 #include "etheripc.h"
-#include "bigint.h"
-#include <QJsonDocument>
-#include <QJsonValue>
-#include <QTimer>
+#include <QSettings>
 
 namespace Etherwall {
 
 // *************************** RequestIPC **************************** //
     int RequestIPC::sCallID = 0;
 
+    RequestIPC::RequestIPC(RequestBurden burden, RequestTypes type, const QString method, const QJsonArray params, int index) :
+        fCallID(sCallID++), fType(type), fMethod(method), fParams(params), fIndex(index), fBurden(burden)
+    {
+    }
+
     RequestIPC::RequestIPC(RequestTypes type, const QString method, const QJsonArray params, int index) :
-        fCallID(sCallID++), fType(type), fMethod(method), fParams(params), fIndex(index), fEmpty(false)
+        fCallID(sCallID++), fType(type), fMethod(method), fParams(params), fIndex(index), fBurden(Full)
     {
     }
 
-    RequestIPC::RequestIPC(bool empty) : fEmpty(empty)
+    RequestIPC::RequestIPC(RequestBurden burden) : fBurden(burden)
     {
     }
 
-    RequestIPC::RequestIPC() : fEmpty(true)
+    RequestIPC::RequestIPC() : fBurden(None)
     {
     }
 
@@ -62,22 +64,27 @@ namespace Etherwall {
         return fCallID;
     }
 
-    bool RequestIPC::empty() const {
-        return fEmpty;
+    RequestBurden RequestIPC::burden() const {
+        return fBurden;
     }
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC()
+    EtherIPC::EtherIPC() : fPendingTransactionsFilterID(-1), fBlockFilterID(-1), fClosingApp(false), fPeerCount(0)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
         connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
+
+        const QSettings settings;
+
+        fTimer.setInterval(settings.value("ipc/interval", 10).toInt() * 1000);
+        connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
     }
 
     bool EtherIPC::getBusy() const {
-        return !fActiveRequest.empty();
+        return (fActiveRequest.burden() != None);
     }
 
     const QString& EtherIPC::getError() const {
@@ -88,13 +95,31 @@ namespace Etherwall {
         return fCode;
     }
 
-    void EtherIPC::closeApp() {
-        fSocket.abort();
-        thread()->quit();
+    void EtherIPC::setInterval(int interval) {
+        fTimer.setInterval(interval);
+    }
+
+    bool EtherIPC::closeApp() {
+        fClosingApp = true;
+        if ( getBusy() ) { // wait for operation first
+            return false;
+        }
+
+        if ( fSocket.state() == QLocalSocket::ConnectedState && fPendingTransactionsFilterID >= 0 ) { // remove filter if still connected
+            uninstallFilter();
+            return false;
+        }
+
+        if ( fSocket.state() != QLocalSocket::UnconnectedState ) { // wait for clean disconnect
+            fSocket.disconnectFromServer();
+            return false;
+        }
+
+        return true;
     }
 
     void EtherIPC::connectToServer(const QString& path) {
-        fActiveRequest = RequestIPC(false);
+        fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
         fPath = path;
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
@@ -109,13 +134,20 @@ namespace Etherwall {
     void EtherIPC::connectedToServer() {
         done();
 
+        getBlockNumber(); // initial
         newPendingTransactionFilter();
+        newBlockFilter();
+        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
 
         emit connectToServerDone();
         emit connectionStateChanged();
     }
 
     void EtherIPC::disconnectedFromServer() {
+        if ( fClosingApp ) { // expected
+            return;
+        }
+
         if ( fSocket.state() == QLocalSocket::UnconnectedState ) { // could be just the bloody timer
             fError = fSocket.errorString();
             bail();
@@ -126,6 +158,23 @@ namespace Etherwall {
         if ( !queueRequest(RequestIPC(GetAccountRefs, "personal_listAccounts", QJsonArray())) ) {
             return bail();
         }
+    }
+
+    bool EtherIPC::refreshAccount(const QString& hash, int index) {
+        QJsonArray params;
+        params.append(hash);
+        params.append("latest");
+        if ( !queueRequest(RequestIPC(GetBalance, "eth_getBalance", params, index)) ) {
+            bail();
+            return false;
+        }
+
+        if ( !queueRequest(RequestIPC(GetTransactionCount, "eth_getTransactionCount", params, index)) ) {
+            bail();
+            return false;
+        }
+
+        return true;
     }
 
     void EtherIPC::handleAccountDetails() {
@@ -139,16 +188,7 @@ namespace Etherwall {
         foreach( QJsonValue r, refs ) {
             const QString hash = r.toString("INVALID");
             fAccountList.append(AccountInfo(hash, QString(), -1));
-            QJsonArray params;
-            params.append(hash);
-            params.append("latest");
-            if ( !queueRequest(RequestIPC(GetBalance, "eth_getBalance", params, i)) ) {
-                return bail();
-            }
-
-            if ( !queueRequest(RequestIPC(GetTransactionCount, "eth_getTransactionCount", params, i++)) ) {
-                return bail();
-            }
+            refreshAccount(hash, i++);
         }
 
         done();
@@ -160,8 +200,10 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = toDecStr(jv);
-        fAccountList[fActiveRequest.getIndex()].setBalance(decStr);
+        const QString decStr = Helpers::toDecStr(jv);
+        const int index = fActiveRequest.getIndex();
+        fAccountList[index].setBalance(decStr);
+        emit accountChanged(fAccountList.at(index));
 
         done();
     }
@@ -175,11 +217,10 @@ namespace Etherwall {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         const BigInt::Vin bv(hexStr, 16);
         quint64 count = bv.toUlong();
-        fAccountList[fActiveRequest.getIndex()].setTransactionCount(count);
+        const int index = fActiveRequest.getIndex();
+        fAccountList[index].setTransactionCount(count);
 
-        if ( fActiveRequest.getIndex() + 1 == fAccountList.length() ) {
-            emit getAccountsDone(fAccountList);
-        }
+        emit accountChanged(fAccountList.at(index));
         done();
     }
 
@@ -223,7 +264,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::getBlockNumber() {
-        if ( !queueRequest(RequestIPC(GetBlockNumber, "eth_blockNumber")) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetBlockNumber, "eth_blockNumber")) ) {
             return bail();
         }
     }
@@ -239,7 +280,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::getPeerCount() {
-        if ( !queueRequest(RequestIPC(GetPeerCount, "net_peerCount")) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetPeerCount, "net_peerCount")) ) {
             return bail();
         }
     }
@@ -319,17 +360,6 @@ namespace Etherwall {
         done();
     }
 
-    const QString EtherIPC::getConnectionStateStr() const {
-        switch ( getConnectionState() ) {
-            case 0: return QStringLiteral("Disconnected");
-            case 1: return QStringLiteral("Connected (poor peer count)"); // TODO: show peer count in str
-            case 2: return QStringLiteral("Connected (fair peer count)");
-            case 3: return QStringLiteral("Connected (good peer count)");
-        default:
-            return QStringLiteral("Invalid");
-        }
-    }
-
     void EtherIPC::getGasPrice() {
         if ( !queueRequest(RequestIPC(GetGasPrice, "eth_gasPrice")) ) {
             return bail();
@@ -342,7 +372,7 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = toDecStr(jv);
+        const QString decStr = Helpers::toDecStr(jv);
 
         emit getGasPriceDone(decStr);
         done();
@@ -358,18 +388,139 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::handleNewPendingTransactionFilter() {
-        if ( !readNumber(fPendingTransactionsFilterID) ) {
+    void EtherIPC::newBlockFilter() {
+        if ( !queueRequest(RequestIPC(NewBlockFilter, "eth_newBlockFilter")) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleFilter(int &filterID) {
+        BigInt::Vin bv;
+        if ( !readVin(bv) ) {
+            return bail();
+        }
+        const QString strDec = QString(bv.toStrDec().data());
+        filterID = strDec.toInt();
+
+        qDebug() << "BF:  " << filterID << "\n";
+
+        if ( filterID < 0 ) {
+            fError = "Filter ID invalid";
             return bail();
         }
 
         done();
     }
 
+    void EtherIPC::onTimer() {
+        getPeerCount();
+        getFilterChanges(NewPendingTransactionFilter, fPendingTransactionsFilterID);
+        getFilterChanges(NewBlockFilter, fBlockFilterID);
+    }
+
+    void EtherIPC::getFilterChanges(RequestTypes subRequest, int filterID) {
+        QJsonArray params;
+        BigInt::Vin vinVal(filterID);
+        QString strHex = QString(vinVal.toStr0xHex().data());
+        params.append(strHex);
+
+        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, subRequest)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetFilterChanges() {
+        RequestTypes type = (RequestTypes)fActiveRequest.getIndex();
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        QJsonArray ar = jv.toArray();
+        foreach( QJsonValue v, ar ) {
+            switch ( type ) {
+                case NewPendingTransactionFilter: getTransactionByHash(v.toString()); break;
+                case NewBlockFilter: getBlockByHash(v.toString()); break;
+                default:
+                    fError = "Unknown filter subrequest";
+                    return bail();
+            }
+        }
+
+        done();
+    }
+
+    void EtherIPC::uninstallFilter() {
+        QJsonArray params;
+        BigInt::Vin vinVal(fPendingTransactionsFilterID);
+        QString strHex = QString(vinVal.toStr0xHex().data());
+        params.append(strHex);
+
+        if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleUninstallFilter() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        const bool result = jv.toBool(false);
+        if ( result ) {
+            fPendingTransactionsFilterID = -1;
+        }
+        done();
+    }
+
+    void EtherIPC::getTransactionByHash(const QString& hash) {
+        QJsonArray params;
+        params.append(hash);
+
+        if ( !queueRequest(RequestIPC(GetTransactionByHash, "eth_getTransactionByHash", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetTransactionByHash() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        emit newPendingTransaction(TransactionInfo(jv.toObject()));
+        done();
+    }
+
+    void EtherIPC::getBlockByHash(const QString& hash) {
+        QJsonArray params;
+        params.append(hash);
+        params.append(true); // get transaction bodies
+
+        if ( !queueRequest(RequestIPC(GetBlockByHash, "eth_getBlockByHash", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetBlockByHash() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        const QJsonObject block = jv.toObject();
+        const quint64 num = Helpers::toQUInt64(block.value("number"));
+        emit getBlockNumberDone(num);
+        emit newBlock(block);
+        done();
+    }
+
     void EtherIPC::bail() {
+        fTimer.stop();
         fActiveRequest = RequestIPC();
         fRequestQueue.clear();
-        emit error(fError, fCode);
+        emit error();
         emit connectionStateChanged();
         done();
     }
@@ -397,9 +548,11 @@ namespace Etherwall {
     }
 
     bool EtherIPC::queueRequest(const RequestIPC& request) {
-        if ( fActiveRequest.empty() ) {
+        if ( fActiveRequest.burden() == None ) {
             fActiveRequest = request;
-            emit busyChanged(getBusy());
+            if ( fActiveRequest.burden() == Full ) {
+                emit busyChanged(getBusy());
+            }
             return writeRequest();
         } else {
             fRequestQueue.append(request);
@@ -475,37 +628,33 @@ namespace Etherwall {
             }
 
             fError = "Result object undefined in IPC response";
+            qDebug() << recvBuf << "\n";
             return false;
         }
 
         return true;
     }
 
-    bool EtherIPC::readNumber(quint64& result) {
+    bool EtherIPC::readVin(BigInt::Vin& result) {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return false;
         }
 
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin bv(hexStr, 16);
+        result = BigInt::Vin(hexStr, 16);
 
-        result = bv.toUlong();
         return true;
     }
 
-    const QString EtherIPC::toDecStr(const QJsonValue& jv) const {
-        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin bv(hexStr, 16);
-        QString decStr = QString(bv.toStrDec().data());
-
-        int dsl = decStr.length();
-        if ( dsl <= 18 ) {
-            decStr.prepend(QString(19 - dsl, '0'));
-            dsl = decStr.length();
+    bool EtherIPC::readNumber(quint64& result) {
+        BigInt::Vin r;
+        if ( !readVin(r) ) {
+            return false;
         }
-        decStr.insert(dsl - 18, fLocale.decimalPoint());
-        return decStr;
+
+        result = r.toUlong();
+        return true;
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
@@ -538,6 +687,10 @@ namespace Etherwall {
         case GetTransactionCount: {
                 handleAccountTransactionCount();
                 break;
+            } 
+        case GetPeerCount: {
+                handleGetPeerCount();
+                break;
             }
         case SendTransaction: {
                 handleSendTransaction();
@@ -552,10 +705,30 @@ namespace Etherwall {
                 break;
             }
         case NewPendingTransactionFilter: {
-                handleNewPendingTransactionFilter();
+                handleFilter(fPendingTransactionsFilterID);
                 break;
             }
-        default: break;
+        case NewBlockFilter: {
+                handleFilter(fBlockFilterID);
+                break;
+            }
+        case GetFilterChanges: {
+                handleGetFilterChanges();
+                break;
+            }
+        case UninstallFilter: {
+                handleUninstallFilter();
+                break;
+            }
+        case GetTransactionByHash: {
+                handleGetTransactionByHash();
+                break;
+            }
+        case GetBlockByHash: {
+                handleGetBlockByHash();
+                break;
+            }
+        default: fError = "Unknown reply: " + fActiveRequest.getType(); return bail();
         }
     }
 

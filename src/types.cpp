@@ -19,13 +19,16 @@
  */
 
 #include "types.h"
+#include <QLocale>
+#include <QSettings>
+#include <QDateTime>
 
 namespace Etherwall {
 
 // ***************************** TransactionInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
+        fHash(hash), fBalance(balance), fTransCount(transCount)
     {
     }
 
@@ -34,7 +37,7 @@ namespace Etherwall {
         case HashRole: return QVariant(fHash);
         case BalanceRole: return QVariant(fBalance.toDouble());
         case TransCountRole: return QVariant(fTransCount);
-        case LockedRole: return QVariant(fLocked);
+        case LockedRole: return QVariant(QSettings().value("accounts/" + fHash, 0).toLongLong() < QDateTime::currentMSecsSinceEpoch());
         case SummaryRole: return QVariant(fHash + (fBalance.toDouble() > 0 ? " [> 0 Ether]" : " [empty]") );
         }
 
@@ -49,27 +52,71 @@ namespace Etherwall {
         fTransCount = count;
     }
 
-    void AccountInfo::unlock() {
-        fLocked = false;
+    void AccountInfo::unlock(qint64 toTime) {
+        if ( fHash.length() > 0 ) {
+            QSettings settings;
+            settings.setValue("accounts/" + fHash, toTime);
+        }
     }
 
 // ***************************** TransactionInfo ***************************** //
 
-    TransactionInfo::TransactionInfo(const QString& sender, const QString& receiver, const QString& value, quint64 blockNumber, const QString& blockHash) :
-        fSender(sender), fReceiver(receiver), fValue(value), fBlockNumber(blockNumber), fBlockHash(blockHash)
+    TransactionInfo::TransactionInfo(const QJsonObject& source)
     {
+        fHash = source.value("hash").toString("invalid");
+        fNonce = Helpers::toQUInt64(source.value("nonce"));
+        fSender = source.value("from").toString("invalid");
+        fReceiver = source.value("to").toString("invalid");
+        fBlockHash = source.value("blockHash").toString("invalid");
+        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
+        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
+        fValue = Helpers::toDecStr(source.value("value"));
+        fGas = Helpers::toDecStr(source.value("gas"));
+        fGasPrice = Helpers::toDecStr(source.value("gasPrice"));
+        fInput = source.value("gasPrice").toString("invalid");
+
     }
 
     const QVariant TransactionInfo::value(const int role) const {
         switch ( role ) {
+            case THashRole: return QVariant(fHash);
+            case NonceRole: return QVariant(fNonce);
             case SenderRole: return QVariant(fSender);
             case ReceiverRole: return QVariant(fReceiver);
             case ValueRole: return QVariant(fValue);
             case BlockNumberRole: return QVariant(fBlockNumber);
             case BlockHashRole: return QVariant(fBlockHash);
+            case TransactionIndexRole: return QVariant(fTransactionIndex);
+            case GasRole: return QVariant(fGas);
+            case GasPriceRole: return QVariant(fGasPrice);
+            case InputRole: return QVariant(fInput);
         }
 
         return QVariant();
+    }
+
+// ***************************** Helpers ***************************** //
+
+    static const QLocale sLocale;
+
+    const QString Helpers::toDecStr(const QJsonValue& jv) {
+        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
+        const BigInt::Vin bv(hexStr, 16);
+        QString decStr = QString(bv.toStrDec().data());
+
+        int dsl = decStr.length();
+        if ( dsl <= 18 ) {
+            decStr.prepend(QString(19 - dsl, '0'));
+            dsl = decStr.length();
+        }
+        decStr.insert(dsl - 18, sLocale.decimalPoint());
+        return decStr;
+    }
+
+    quint64 Helpers::toQUInt64(const QJsonValue& jv) {
+        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
+        BigInt::Vin vin(hexStr, 16);
+        return vin.toUlong();
     }
 
 }

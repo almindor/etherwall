@@ -26,13 +26,14 @@
 
 namespace Etherwall {
 
-    TransactionModel::TransactionModel(EtherIPC& ipc) :
-        QAbstractListModel(0), fIpc(ipc), fTransactionList(), fBlockNumber(0), fGasPrice("unknown")
+    TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
+        connect(&ipc, &EtherIPC::newPendingTransaction, this, &TransactionModel::newTransaction);
     }
 
     quint64 TransactionModel::getBlockNumber() const {
@@ -45,11 +46,17 @@ namespace Etherwall {
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[THashRole] = "hash";
+        roles[NonceRole] = "nonce";
         roles[SenderRole] = "sender";
         roles[ReceiverRole] = "receiver";
         roles[ValueRole] = "value";
         roles[BlockNumberRole] = "blocknumber";
         roles[BlockHashRole] = "blockhash";
+        roles[TransactionIndexRole] = "tindex";
+        roles[GasRole] = "gas";
+        roles[GasPriceRole] = "gasprice";
+        roles[InputRole] = "input";
 
         return roles;
     }
@@ -91,6 +98,29 @@ namespace Etherwall {
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
         qDebug() << "Transaction sent hash: " << hash << "\n";
+    }
+
+    void TransactionModel::newTransaction(const TransactionInfo &info) {
+        int ai1, ai2;
+        if ( fAccountModel.containsAccount(info, ai1, ai2) ) {
+            const int size = fTransactionList.length();
+            beginInsertRows(QModelIndex(), size, size);
+            fTransactionList.append(info);
+            endInsertRows();
+
+            // handle via block filter!
+            /*
+            if ( ai1 >= 0 ) {
+                const QString& hash1 = fAccountModel.getAccountHash(ai1);
+                fIpc.refreshAccount(hash1, ai1);
+            }
+
+            if ( ai2 >= 0 ) {
+                const QString& hash2 = fAccountModel.getAccountHash(ai2);
+                fIpc.refreshAccount(hash2, ai2);
+            }*/
+
+        }
     }
 
 }

@@ -78,11 +78,9 @@ Tab {
         }
 
         Row {
-            id: rowLockDur
             width: parent.width
 
             Label {
-                id: unlockDurLabel
                 text: qsTr("Account unlock duration (s): ")
             }
 
@@ -99,6 +97,31 @@ Tab {
 
                 onClicked: {
                     settings.setValue("/ipc/accounts/lockduration", unlockDurSpinBox.value)
+                }
+            }
+        }
+
+        Row {
+            width: parent.width
+
+            Label {
+                text: qsTr("Update interval (s): ")
+            }
+
+            SpinBox {
+                id: intervalSpinBox
+                minimumValue: 5
+                maximumValue: 60
+
+                value: settings.value("/ipc/interval", 10)
+            }
+
+            Button {
+                text: qsTr("Set")
+
+                onClicked: {
+                    settings.setValue("/ipc/interval", intervalSpinBox.value)
+                    ipc.setInterval(intervalSpinBox.value * 1000)
                 }
             }
         }

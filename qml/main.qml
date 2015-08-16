@@ -19,6 +19,7 @@
  */
 
 import QtQuick 2.0
+import QtQml 2.2
 import QtQuick.Controls 1.1
 import QtQuick.Dialogs 1.2
 import "components"
@@ -31,6 +32,24 @@ ApplicationWindow {
     minimumHeight: 400
     minimumWidth: 650
     title: qsTr("Etherwall Ethereum Wallet")
+
+    Timer {
+        id: closeTimer
+        interval: 100
+        running: false
+
+        onTriggered: {
+            appWindow.close()
+        }
+    }
+
+    onClosing: {
+        close.accepted = ipc.closeApp()
+
+        if ( !close.accepted && !closeTimer.running ) {
+            closeTimer.start()
+        }
+    }
 
     ErrorDialog {
         id: errorDialog
@@ -54,7 +73,6 @@ ApplicationWindow {
     TabView {
         id: tabView
         anchors.fill: parent
-        enabled: !ipc.busy && (ipc.connectionState > 0)
 
         AccountsTab {}
 
@@ -128,8 +146,22 @@ ApplicationWindow {
         Row {
             anchors.right: parent.right
             ToolButton {
-                iconSource: "/images/connected" + ipc.connectionState
-                tooltip: "Connection state: " + ipc.connectionStateStr
+                function getQuality(cs, pc) {
+                    if ( cs <= 0 ) {
+                        return 0; // disconnected
+                    }
+
+                    if ( pc > 6 ) {
+                        return 3; // high
+                    } else if ( pc > 3 ) {
+                        return 2; // medium
+                    } else {
+                        return 1; // low
+                    }
+                }
+
+                iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                tooltip: "Connection state: " + (ipc.connectionState > 0 ? ("connected with " + ipc.peerCount + " peers") : "disconnected")
                 onClicked: {
                     if ( ipc.connectionState > 0 ) {
                         connectDialog.open()

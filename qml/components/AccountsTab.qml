@@ -24,6 +24,7 @@ import QtQuick.Dialogs 1.2
 
 Tab {
     id: accountsTab
+    enabled: !ipc.busy && (ipc.connectionState > 0)
     title: qsTr("Accounts")
 
     Column {

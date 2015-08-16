@@ -26,15 +26,25 @@
 #include <QLocalSocket>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonValue>
+#include <QJsonDocument>
+#include <QTimer>
 #include <QThread>
 #include "types.h"
 
 namespace Etherwall {
 
+    enum RequestBurden {
+        Full,
+        NonVisual,
+        None
+    };
+
     class RequestIPC {
     public:
+        RequestIPC(RequestBurden burden, RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
         RequestIPC(RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
-        RequestIPC(bool empty);
+        RequestIPC(RequestBurden burden);
         RequestIPC();
 
         RequestTypes getType() const;
@@ -42,7 +52,7 @@ namespace Etherwall {
         const QJsonArray& getParams() const;
         int getIndex() const;
         int getCallID() const;
-        bool empty() const;
+        RequestBurden burden() const;
         static int sCallID;
     private:
         int fCallID;
@@ -50,7 +60,7 @@ namespace Etherwall {
         QString fMethod;
         QJsonArray fParams;
         int fIndex;
-        bool fEmpty;
+        RequestBurden fBurden;
     };
 
     typedef QList<RequestIPC> RequestList;
@@ -63,7 +73,6 @@ namespace Etherwall {
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
-        Q_PROPERTY(const QString connectionStateStr READ getConnectionStateStr NOTIFY connectionStateChanged)
     public:
         EtherIPC();
         void setWorker(QThread* worker);
@@ -75,6 +84,7 @@ namespace Etherwall {
         void connectedToServer();
         void disconnectedFromServer();
         void getAccounts();
+        bool refreshAccount(const QString& hash, int index);
         void newAccount(const QString& password, int index);
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
@@ -84,32 +94,38 @@ namespace Etherwall {
         void getGasPrice();
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
-        void closeApp();
+        Q_INVOKABLE void setInterval(int interval);
+        bool closeApp();
     signals:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
         void sendTransactionDone(const QString& hash);
         void unlockAccountDone(bool result, int index);
         void getGasPriceDone(const QString& price);
+        void newPendingTransaction(const TransactionInfo& info);
+        void newBlock(const QJsonObject& block);
 
         void peerCountChanged(quint64 num);
+        void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
         void connectionStateChanged();
-        void error(const QString& error, int code);
+        void error();
     private:
         QLocalSocket fSocket;
-        QLocale fLocale;
+        int fPendingTransactionsFilterID;
+        int fBlockFilterID;
+        bool fClosingApp;
+        quint64 fPeerCount;
         QString fError;
         int fCode;
-        quint64 fPeerCount;
         QString fPath;
         AccountList fAccountList;
+        TransactionList fTransactionList;
         RequestList fRequestQueue;
-        quint64 fPendingTransactionsFilterID;
         RequestIPC fActiveRequest;
+        QTimer fTimer;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -121,19 +137,29 @@ namespace Etherwall {
         void handleSendTransaction();
         void handleUnlockAccount();
         void handleGetGasPrice();
-        void handleNewPendingTransactionFilter();
+        void handleFilter(int& filterID);
+        void handleGetFilterChanges();
+        void handleUninstallFilter();
+        void handleGetTransactionByHash();
+        void handleGetBlockByHash();
 
+        void onTimer();
+        void getFilterChanges(RequestTypes subRequest, int filterID);
         int getConnectionState() const;
-        const QString getConnectionStateStr() const;
         quint64 peerCount() const;
         void bail();
         void done();
         void newPendingTransactionFilter();
+        void newBlockFilter();
+        void uninstallFilter();
+        void getTransactionByHash(const QString& hash);
+        void getBlockByHash(const QString& hash);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);
         bool writeRequest();
         bool readReply(QJsonValue& result);
+        bool readVin(BigInt::Vin& result);
         bool readNumber(quint64& result);
         const QString toDecStr(const QJsonValue& jv) const;
     };

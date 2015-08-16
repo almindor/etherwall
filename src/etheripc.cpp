@@ -635,6 +635,7 @@ namespace Etherwall {
         QJsonDocument resDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);
 
         if ( parseError.error != QJsonParseError::NoError ) {
+            qDebug() << data << "\n";
             fError = "Response parse error: " + parseError.errorString();
             fCode = 0;
             return false;
@@ -700,6 +701,10 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketReadyRead() {
+        if ( !getBusy() ) {
+            return; // probably error-ed out
+        }
+
         switch ( fActiveRequest.getType() ) {
         case NewAccount: {
                 handleNewAccount();

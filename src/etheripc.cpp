@@ -644,7 +644,7 @@ namespace Etherwall {
         const int objID = obj["id"].toInt(-1);
 
         if ( objID != fActiveRequest.getCallID() ) { // TODO
-            fError = "Call number mismatch";
+            fError = "Call number mismatch " + QString::number(objID) + " != " + QString::number(fActiveRequest.getCallID());
             fCode = 0;
             return false;
         }
@@ -765,7 +765,7 @@ namespace Etherwall {
                 handleGetBlock();
                 break;
             }
-        default: fError = "Unknown reply: " + fActiveRequest.getType(); return bail();
+        default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;
         }
     }
 

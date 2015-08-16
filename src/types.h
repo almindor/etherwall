@@ -58,7 +58,7 @@ namespace Etherwall {
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,
-        GetBlockByHash
+        GetBlock
     };
 
     enum AccountRoles {
@@ -110,7 +110,7 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBlockNumber(quint64 num);
         void setHash(const QString& hash);
-        void init(const QString& from, const QString& to, double value);
+        void init(const QString& from, const QString& to, double value, double gas = -1.0);
     private:
         QString fHash;
         quint64 fNonce;
@@ -130,6 +130,9 @@ namespace Etherwall {
     class Helpers {
     public:
         static const QString toDecStr(const QJsonValue &jv);
+        static const QString toDecStr(quint64 val);
+        static const QString toHexStr(quint64 val);
+        static const QString toHexWeiStr(double val);
         static quint64 toQUInt64(const QJsonValue& jv);
     };
 

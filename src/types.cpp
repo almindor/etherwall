@@ -109,11 +109,14 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, double value) {
+    void TransactionInfo::init(const QString& from, const QString& to, double value, double gas) {
         fSender = from;
         fReceiver = to;
         BigInt::Vin vinVal = BigInt::Vin::fromDouble(value * 1000000000000000000);
         fValue = QString(vinVal.toStrDec().data());
+        if ( gas > 0 ) {
+            fGas = gas;
+        }
     }
 
 // ***************************** Helpers ***************************** //
@@ -132,6 +135,21 @@ namespace Etherwall {
         }
         decStr.insert(dsl - 18, sLocale.decimalPoint());
         return decStr;
+    }
+
+    const QString Helpers::toDecStr(quint64 val) {
+        BigInt::Vin vinVal(val);
+        return QString(vinVal.toStrDec().data());
+    }
+
+    const QString Helpers::toHexStr(quint64 val) {
+        BigInt::Vin vinVal(val);
+        return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QString Helpers::toHexWeiStr(double val) {
+        BigInt::Vin vinVal = BigInt::Vin::fromDouble(val * 1000000000000000000);
+        return QString(vinVal.toStr0xHex().data());
     }
 
     quint64 Helpers::toQUInt64(const QJsonValue& jv) {

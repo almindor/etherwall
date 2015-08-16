@@ -34,6 +34,7 @@ namespace Etherwall {
     {
         Q_OBJECT
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
+        Q_PROPERTY(double historyProgress READ getHistoryProgress NOTIFY historyChanged FINAL)
         Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
     public:
         TransactionModel(EtherIPC& ipc, const AccountModel& accountModel);
@@ -43,27 +44,35 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         int containsTransaction(const QString& hash);
+        Q_INVOKABLE void loadHistory();
+        double getHistoryProgress() const;
     public slots:
         void connectToServerDone();
         void getTransactionsDone(const TransactionList& list);
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
-        void sendTransaction(const QString& from, const QString& to, double value);
+        void sendTransaction(const QString& from, const QString& to, double value, double gas = -1.0);
         void sendTransactionDone(const QString& hash);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
+        void refresh();
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
+        void historyChanged();
     private:
         EtherIPC& fIpc;
         const AccountModel& fAccountModel;
         TransactionList fTransactionList;
         quint64 fBlockNumber;
         QString fGasPrice;
+        quint64 fHistoryFromBlock;
+        quint64 fHistoryToBlock;
+        quint64 fHistoryCurrentBlock;
         TransactionInfo fQueuedTransaction;
 
-        void refresh();
+        void addTransaction(const TransactionInfo& info);
+        void storeTransaction(const TransactionInfo& info);
     };
 
 }

@@ -29,8 +29,8 @@ ApplicationWindow {
     visible: true
     width: 800
     height: 600
-    minimumHeight: 400
-    minimumWidth: 650
+    minimumWidth: 800
+    minimumHeight: 600
     title: qsTr("Etherwall Ethereum Wallet")
 
     Timer {

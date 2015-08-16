@@ -89,9 +89,12 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, double value);
+        void sendTransaction(const QString& from, const QString& to, double value, double gas = -1);
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
+        void getTransactionByHash(const QString& hash);
+        void getBlockByHash(const QString& hash);
+        void getBlockByNumber(quint64 blockNum);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         Q_INVOKABLE void setInterval(int interval);
@@ -104,7 +107,7 @@ namespace Etherwall {
         void sendTransactionDone(const QString& hash);
         void unlockAccountDone(bool result, int index);
         void getGasPriceDone(const QString& price);
-        void newPendingTransaction(const TransactionInfo& info);
+        void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
 
         void peerCountChanged(quint64 num);
@@ -118,6 +121,7 @@ namespace Etherwall {
         int fBlockFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
+        QByteArray fReadBuffer;
         QString fError;
         int fCode;
         QString fPath;
@@ -141,7 +145,7 @@ namespace Etherwall {
         void handleGetFilterChanges();
         void handleUninstallFilter();
         void handleGetTransactionByHash();
-        void handleGetBlockByHash();
+        void handleGetBlock();
 
         void onTimer();
         void getFilterChanges(RequestTypes subRequest, int filterID);
@@ -152,8 +156,6 @@ namespace Etherwall {
         void newPendingTransactionFilter();
         void newBlockFilter();
         void uninstallFilter();
-        void getTransactionByHash(const QString& hash);
-        void getBlockByHash(const QString& hash);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

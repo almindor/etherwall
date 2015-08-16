@@ -48,7 +48,7 @@ namespace Etherwall {
     }
 
     int AccountModel::rowCount(const QModelIndex & parent __attribute__ ((unused))) const {
-        return fAccountList.length();
+        return fAccountList.size();
     }
 
     QVariant AccountModel::data(const QModelIndex & index, int role) const {
@@ -57,6 +57,7 @@ namespace Etherwall {
         return fAccountList.at(row).value(role);
     }
 
+    // TODO: optimize with hashmap
     bool AccountModel::containsAccount(const TransactionInfo& info, int& ai1, int& ai2) const {
         int i = 0;
         ai1 = -1;
@@ -83,6 +84,18 @@ namespace Etherwall {
         }
 
         return (ai1 > 0 || ai2 > 0);
+    }
+
+    // TODO: optimize with hashmap
+    bool AccountModel::containsAccount(const QString& from, const QString& to) const {
+        foreach ( const AccountInfo& a, fAccountList ) {
+            const QString addr = a.value(HashRole).toString();
+            if ( addr == from || addr == to ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void AccountModel::newAccount(const QString& pw) {

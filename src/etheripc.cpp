@@ -294,20 +294,23 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, double value) {
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, double value, double gas) {
         if ( value <= 0 ) {
             fError = "Invalid transaction value";
             return bail();
         }
 
         QJsonArray params;
-        BigInt::Vin vinVal = BigInt::Vin::fromDouble(value * 1000000000000000000);
-        QString strHex = QString(vinVal.toStr0xHex().data());
+        const QString valHex = Helpers::toHexWeiStr(value);
+        const QString gasHex = Helpers::toHexWeiStr(value);
 
         QJsonObject p;
         p["from"] = from;
         p["to"] = to;
-        p["value"] = strHex;
+        p["value"] = valHex;
+        if ( gas > 0 ) {
+            p["gas"] = gasHex;
+        }
 
         params.append(p);
 
@@ -402,8 +405,6 @@ namespace Etherwall {
         const QString strDec = QString(bv.toStrDec().data());
         filterID = strDec.toInt();
 
-        qDebug() << "BF:  " << filterID << "\n";
-
         if ( filterID < 0 ) {
             fError = "Filter ID invalid";
             return bail();
@@ -489,7 +490,7 @@ namespace Etherwall {
             return bail();
         }
 
-        emit newPendingTransaction(TransactionInfo(jv.toObject()));
+        emit newTransaction(TransactionInfo(jv.toObject()));
         done();
     }
 
@@ -498,12 +499,22 @@ namespace Etherwall {
         params.append(hash);
         params.append(true); // get transaction bodies
 
-        if ( !queueRequest(RequestIPC(GetBlockByHash, "eth_getBlockByHash", params)) ) {
+        if ( !queueRequest(RequestIPC(GetBlock, "eth_getBlockByHash", params)) ) {
             return bail();
         }
     }
 
-    void EtherIPC::handleGetBlockByHash() {
+    void EtherIPC::getBlockByNumber(quint64 blockNum) {
+        QJsonArray params;
+        params.append(Helpers::toHexStr(blockNum));
+        params.append(true); // get transaction bodies
+
+        if ( !queueRequest(RequestIPC(GetBlock, "eth_getBlockByNumber", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetBlock() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
@@ -585,7 +596,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::readReply(QJsonValue& result) {
-        QByteArray recvBuf = fSocket.read(4096);
+        QByteArray recvBuf = fSocket.readAll();
         if ( recvBuf.isNull() || recvBuf.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();
             fCode = 0;
@@ -724,8 +735,8 @@ namespace Etherwall {
                 handleGetTransactionByHash();
                 break;
             }
-        case GetBlockByHash: {
-                handleGetBlockByHash();
+        case GetBlock: {
+                handleGetBlock();
                 break;
             }
         default: fError = "Unknown reply: " + fActiveRequest.getType(); return bail();

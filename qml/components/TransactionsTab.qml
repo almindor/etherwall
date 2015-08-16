@@ -37,7 +37,7 @@ Tab {
 
         GridLayout {
             id: gridLayout
-            columns: 3
+            columns: 4
             width: parent.width
 
             Label {
@@ -48,7 +48,7 @@ Tab {
             ComboBox {
                 id: fromField
                 Layout.minimumWidth: 600
-                Layout.columnSpan: 2
+                Layout.columnSpan: 3
                 model: accountModel
                 textRole: "summary"
                 onCurrentIndexChanged: transactionWarning.refresh()
@@ -67,24 +67,7 @@ Tab {
 
                 maximumLength: 42
                 Layout.minimumWidth: 600
-                Layout.columnSpan: 2
-
-                onTextChanged: transactionWarning.refresh()
-            }
-
-            Label {
-                text: qsTr("Value [Ether]: ")
-            }
-
-            TextField {
-                id: valueField
-                validator: DoubleValidator {
-                    bottom: 0.000000000000000001 // should be 1 wei
-                    decimals: 18
-                }
-
-                maximumLength: 50
-                Layout.minimumWidth: 100
+                Layout.columnSpan: 3
 
                 onTextChanged: transactionWarning.refresh()
             }
@@ -167,14 +150,75 @@ Tab {
                     }
                 }
             }
+
+            Row {
+                Layout.columnSpan: 1
+
+                Label {
+                    text: qsTr("Value: ")
+                }
+
+                TextField {
+                    id: valueField
+                    validator: DoubleValidator {
+                        bottom: 0.000000000000000001 // should be 1 wei
+                        decimals: 18
+                    }
+
+                    maximumLength: 50
+                    Layout.minimumWidth: 250
+                    onTextChanged: transactionWarning.refresh()
+                }
+            }
+
+            Row {
+                Layout.columnSpan: 2
+                Layout.minimumWidth: 450
+
+                Label {
+                    text: qsTr("Estimated Total: ")
+                }
+                TextField {
+                    id: valueTotalField
+                    readOnly: true
+                    maximumLength: 50
+                    width: 300
+                    validator: DoubleValidator {
+                        bottom: 0.000000000000000001 // should be 1 wei
+                        decimals: 18
+                    }
+
+                    text: Number(valueField.text) > 0 ? Number(valueField.text) + Number(transactionModel.gasPrice) : ""
+                }
+            }
+
         }
 
+        Row {
+            id: historyRow
+            width: parent.width
+
+            Button {
+                id: historyButton
+                text: qsTr("Load transaction history (") + Math.round(settings.value("/ipc/transactions/historyblocks", 10800) / 225) + qsTr(" hours)")
+                onClicked: {
+                    transactionModel.loadHistory()
+                }
+            }
+
+            ProgressBar {
+                width: parent.width - historyButton.width
+                minimumValue: 0
+                maximumValue: 100
+                value: transactionModel.historyProgress
+            }
+        }
 
         TableView {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - gridLayout.height - parent.spacing
+            height: parent.height - gridLayout.height - parent.spacing - historyRow.height
 
             TableViewColumn {
                 role: "blocknumber"

@@ -43,6 +43,7 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const TransactionInfo& info, int& ai1, int& ai2) const;
+        bool containsAccount(const QString& from, const QString& to) const;
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);

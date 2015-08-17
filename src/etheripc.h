@@ -155,7 +155,7 @@ namespace Etherwall {
         quint64 peerCount() const;
         void bail();
         void done();
-        void newFilter(const QString& fromBlock, const QString& toBlock, const AccountList& accounts);
+        void newFilter();
         void uninstallFilter();
 
         QJsonObject methodToJSON(const RequestIPC& request);

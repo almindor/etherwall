@@ -179,7 +179,7 @@ namespace Etherwall {
         }
 
         // TODO: figure out a way to get account transaction history
-        newFilter("latest", "latest", fAccountList);
+        newFilter();
 
         done();
     }
@@ -416,17 +416,8 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::newFilter(const QString& fromBlock, const QString& toBlock, const AccountList& accounts) {
-        QJsonArray params;
-        QJsonObject o;
-        o["fromBlock"] = fromBlock;
-        o["toBlock"] = toBlock;
-        if ( accounts.length() > 0 ) {
-            o["address"] = Helpers::toQJsonArray(accounts);
-        }
-        params.append(o);
-
-        if ( !queueRequest(RequestIPC(NewFilter, "eth_newFilter", params)) ) {
+    void EtherIPC::newFilter() {
+        if ( !queueRequest(RequestIPC(NewFilter, "eth_newBlockFilter")) ) {
             return bail();
         }
     }
@@ -470,11 +461,10 @@ namespace Etherwall {
         }
 
         QJsonArray ar = jv.toArray();
-        qDebug() << "Got filter changes: " << ar << "\n";
+        qDebug() << "Got filter changes: " << ar.size() << "\n";
         foreach( const QJsonValue v, ar ) {
-           const QJsonObject o = v.toObject();
-           const QJsonValue hash = o.value("transactionHash");
-           getTransactionByHash(hash.toString("bogus"));
+           const QString hash = v.toString("bogus");
+           getBlockByHash(hash);
         }
 
         done();

@@ -117,8 +117,7 @@ namespace Etherwall {
         void error();
     private:
         QLocalSocket fSocket;
-        int fPendingTransactionsFilterID;
-        int fBlockFilterID;
+        int fFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
         QString fReadBuffer;
@@ -141,21 +140,22 @@ namespace Etherwall {
         void handleSendTransaction();
         void handleUnlockAccount();
         void handleGetGasPrice();
-        void handleFilter(int& filterID);
+        void handleGetLogs();
+        void handleNewFilter();
         void handleGetFilterChanges();
         void handleUninstallFilter();
         void handleGetTransactionByHash();
         void handleGetBlock();
 
         void onTimer();
-        void getFilterChanges(RequestTypes subRequest, int filterID);
+        void getFilterChanges(int filterID);
         int getConnectionState() const;
         quint64 peerCount() const;
         void bail();
         void done();
-        void newPendingTransactionFilter();
-        void newBlockFilter();
-        void uninstallFilter(int filterID);
+        void getLogs(const QString& fromBlock, const QString& toBlock, const AccountList& accounts);
+        void newFilter(const QString& fromBlock, const QString& toBlock, const AccountList& accounts);
+        void uninstallFilter();
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

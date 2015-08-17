@@ -70,7 +70,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fPendingTransactionsFilterID(-1), fBlockFilterID(-1), fClosingApp(false), fPeerCount(0)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -111,10 +111,8 @@ namespace Etherwall {
             return false;
         }
 
-        if ( fSocket.state() == QLocalSocket::ConnectedState &&
-             ( fPendingTransactionsFilterID >= 0 || fBlockFilterID >= 0) ) { // remove filters if still connected
-            uninstallFilter(fPendingTransactionsFilterID);
-            uninstallFilter(fBlockFilterID);
+        if ( fSocket.state() == QLocalSocket::ConnectedState && fFilterID >= 0 ) { // remove filter if still connected
+            uninstallFilter();
             return false;
         }
 
@@ -143,8 +141,6 @@ namespace Etherwall {
         done();
 
         getBlockNumber(); // initial
-        newPendingTransactionFilter();
-        newBlockFilter();
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
 
         emit connectToServerDone();
@@ -168,6 +164,26 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::handleAccountDetails() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        QJsonArray refs = jv.toArray();
+        int i = 0;
+        foreach( QJsonValue r, refs ) {
+            const QString hash = r.toString("INVALID");
+            fAccountList.append(AccountInfo(hash, QString(), 0));
+            refreshAccount(hash, i++);
+        }
+
+        // TODO: figure out a way to get account transaction history
+        newFilter("latest", "latest", fAccountList);
+
+        done();
+    }
+
     bool EtherIPC::refreshAccount(const QString& hash, int index) {
         QJsonArray params;
         params.append(hash);
@@ -185,23 +201,6 @@ namespace Etherwall {
         return true;
     }
 
-    void EtherIPC::handleAccountDetails() {
-        QJsonValue jv;
-        if ( !readReply(jv) ) {
-            return bail();
-        }
-
-        QJsonArray refs = jv.toArray();
-        int i = 0;
-        foreach( QJsonValue r, refs ) {
-            const QString hash = r.toString("INVALID");
-            fAccountList.append(AccountInfo(hash, QString(), -1));
-            refreshAccount(hash, i++);
-        }
-
-        done();
-    }
-
     void EtherIPC::handleAccountBalance() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
@@ -211,8 +210,8 @@ namespace Etherwall {
         const QString decStr = Helpers::toDecStr(jv);
         const int index = fActiveRequest.getIndex();
         fAccountList[index].setBalance(decStr);
-        emit accountChanged(fAccountList.at(index));
 
+        emit accountChanged(fAccountList.at(index));
         done();
     }
 
@@ -393,27 +392,59 @@ namespace Etherwall {
         return fPeerCount;
     }
 
-    void EtherIPC::newPendingTransactionFilter() {
-        if ( !queueRequest(RequestIPC(NewPendingTransactionFilter, "eth_newPendingTransactionFilter")) ) {
+    void EtherIPC::getLogs(const QString& fromBlock, const QString& toBlock, const AccountList& accounts) {
+        QJsonArray params;
+        QJsonObject o;
+        o["fromBlock"] = fromBlock;
+        o["toBlock"] = toBlock;
+        /*if ( accounts.length() > 0 ) {
+            o["address"] = Helpers::toQJsonArray(accounts);
+        }*/
+        //o["address"] = "0xcbbdad70d0ff27254925ad37b5c135eee1116615";
+        params.append(o);
+
+        if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
             return bail();
         }
     }
 
-    void EtherIPC::newBlockFilter() {
-        if ( !queueRequest(RequestIPC(NewBlockFilter, "eth_newBlockFilter")) ) {
+    void EtherIPC::handleGetLogs() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        QJsonArray ja = jv.toArray();
+
+        qDebug() << "Got logs: " << ja << "\n";
+
+        done();
+    }
+
+    void EtherIPC::newFilter(const QString& fromBlock, const QString& toBlock, const AccountList& accounts) {
+        QJsonArray params;
+        QJsonObject o;
+        o["fromBlock"] = fromBlock;
+        o["toBlock"] = toBlock;
+        if ( accounts.length() > 0 ) {
+            o["address"] = Helpers::toQJsonArray(accounts);
+        }
+        params.append(o);
+
+        if ( !queueRequest(RequestIPC(NewFilter, "eth_newFilter", params)) ) {
             return bail();
         }
     }
 
-    void EtherIPC::handleFilter(int &filterID) {
+    void EtherIPC::handleNewFilter() {
         BigInt::Vin bv;
         if ( !readVin(bv) ) {
             return bail();
         }
         const QString strDec = QString(bv.toStrDec().data());
-        filterID = strDec.toInt();
+        fFilterID = strDec.toInt();
 
-        if ( filterID < 0 ) {
+        if ( fFilterID < 0 ) {
             fError = "Filter ID invalid";
             return bail();
         }
@@ -423,49 +454,44 @@ namespace Etherwall {
 
     void EtherIPC::onTimer() {
         getPeerCount();
-        getFilterChanges(NewPendingTransactionFilter, fPendingTransactionsFilterID);
-        getFilterChanges(NewBlockFilter, fBlockFilterID);
+        getFilterChanges(fFilterID);
     }
 
-    void EtherIPC::getFilterChanges(RequestTypes subRequest, int filterID) {
+    void EtherIPC::getFilterChanges(int filterID) {
         QJsonArray params;
         BigInt::Vin vinVal(filterID);
         QString strHex = QString(vinVal.toStr0xHex().data());
         params.append(strHex);
 
-        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, subRequest)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, filterID)) ) {
             return bail();
         }
     }
 
     void EtherIPC::handleGetFilterChanges() {
-        RequestTypes type = (RequestTypes)fActiveRequest.getIndex();
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
         }
 
         QJsonArray ar = jv.toArray();
-        foreach( QJsonValue v, ar ) {
-            switch ( type ) {
-                case NewPendingTransactionFilter: getTransactionByHash(v.toString()); break;
-                case NewBlockFilter: getBlockByHash(v.toString()); break;
-                default:
-                    fError = "Unknown filter subrequest";
-                    return bail();
-            }
+        qDebug() << "Got filter changes: " << ar << "\n";
+        foreach( const QJsonValue v, ar ) {
+           const QJsonObject o = v.toObject();
+           const QJsonValue hash = o.value("transactionHash");
+           getTransactionByHash(hash.toString("bogus"));
         }
 
         done();
     }
 
-    void EtherIPC::uninstallFilter(int filterID) {
+    void EtherIPC::uninstallFilter() {
         QJsonArray params;
-        BigInt::Vin vinVal(filterID);
+        BigInt::Vin vinVal(fFilterID);
         QString strHex = QString(vinVal.toStr0xHex().data());
         params.append(strHex);
 
-        if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params, filterID)) ) {
+        if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
             return bail();
         }
     }
@@ -476,11 +502,7 @@ namespace Etherwall {
             return bail();
         }
 
-        if ( fActiveRequest.getIndex() == fBlockFilterID ) {
-            fBlockFilterID = -1;
-        } else if ( fActiveRequest.getIndex() == fPendingTransactionsFilterID ) {
-            fPendingTransactionsFilterID = -1;
-        }
+        fFilterID = -1;
 
         done();
     }
@@ -747,12 +769,12 @@ namespace Etherwall {
                 handleGetGasPrice();
                 break;
             }
-        case NewPendingTransactionFilter: {
-                handleFilter(fPendingTransactionsFilterID);
+        case GetLogs: {
+                handleGetLogs();
                 break;
             }
-        case NewBlockFilter: {
-                handleFilter(fBlockFilterID);
+        case NewFilter: {
+                handleNewFilter();
                 break;
             }
         case GetFilterChanges: {

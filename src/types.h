@@ -27,6 +27,7 @@
 #include <QStandardPaths>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QJsonArray>
 #include "bigint.h"
 
 namespace Etherwall {
@@ -53,8 +54,8 @@ namespace Etherwall {
         SendTransaction,
         UnlockAccount,
         GetGasPrice,
-        NewPendingTransactionFilter,
-        NewBlockFilter,
+        GetLogs,
+        NewFilter,
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,
@@ -133,6 +134,7 @@ namespace Etherwall {
         static const QString toDecStr(quint64 val);
         static const QString toHexStr(quint64 val);
         static const QString toHexWeiStr(double val);
+        static const QJsonArray toQJsonArray(const AccountList& list);
         static quint64 toQUInt64(const QJsonValue& jv);
     };
 

@@ -19,9 +19,9 @@
  */
 
 #include "types.h"
-#include <QLocale>
 #include <QSettings>
 #include <QDateTime>
+#include <QLocale>
 
 namespace Etherwall {
 
@@ -150,6 +150,17 @@ namespace Etherwall {
     const QString Helpers::toHexWeiStr(double val) {
         BigInt::Vin vinVal = BigInt::Vin::fromDouble(val * 1000000000000000000);
         return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QJsonArray Helpers::toQJsonArray(const AccountList& list) {
+        QJsonArray result;
+
+        foreach ( const AccountInfo info, list ) {
+            const QString hash = info.value(HashRole).toString();
+            result.append(hash);
+        }
+
+        return result;
     }
 
     quint64 Helpers::toQUInt64(const QJsonValue& jv) {

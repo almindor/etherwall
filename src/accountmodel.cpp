@@ -169,8 +169,9 @@ namespace Etherwall {
 
     void AccountModel::accountChanged(const AccountInfo& info) {
         int index = 0;
+        const QString infoHash = info.value(HashRole).toString();
         foreach ( const AccountInfo& a, fAccountList ) {
-            if ( a.value(HashRole).toString() == info.value(HashRole).toString() ) {
+            if ( a.value(HashRole).toString() == infoHash ) {
                 fAccountList[index] = info;
                 const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
                 const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);

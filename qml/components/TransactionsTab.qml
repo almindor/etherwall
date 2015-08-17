@@ -194,23 +194,11 @@ Tab {
 
         }
 
-        Row {
-            id: historyRow
-            width: parent.width
-
-            Button {
-                id: historyButton
-                text: qsTr("Load transaction history (") + Math.round(settings.value("/ipc/transactions/historyblocks", 10800) / 225) + qsTr(" hours)")
-                onClicked: {
-                    transactionModel.loadHistory()
-                }
-            }
-
-            ProgressBar {
-                width: parent.width - historyButton.width
-                minimumValue: 0
-                maximumValue: 100
-                value: transactionModel.historyProgress
+        Button {
+            id: historyButton
+            text: qsTr("Load transaction history")
+            onClicked: {
+                transactionModel.loadHistory()
             }
         }
 
@@ -218,7 +206,7 @@ Tab {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - gridLayout.height - parent.spacing - historyRow.height
+            height: parent.height - gridLayout.height - parent.spacing - historyButton.height
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight

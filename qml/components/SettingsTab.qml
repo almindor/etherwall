@@ -126,29 +126,5 @@ Tab {
             }
         }
 
-        Row {
-            width: parent.width
-
-            Label {
-                text: qsTr("Transaction history (hours estimate): ")
-            }
-
-            SpinBox {
-                id: historySpinBox
-                minimumValue: 2
-                maximumValue: 24 * 30
-
-                value: settings.value("/ipc/transactions/historyblocks", 10800) / 225
-            }
-
-            Button {
-                text: qsTr("Set")
-
-                onClicked: {
-                    settings.setValue("/ipc/transactions/historyblocks", historySpinBox.value * 225) // roughly 225 blocks per hour
-                }
-            }
-        }
-
     }
 }

@@ -27,7 +27,7 @@
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fHistoryFromBlock(0), fHistoryToBlock(0), fHistoryCurrentBlock(0)
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
@@ -104,12 +104,6 @@ namespace Etherwall {
         QTimer::singleShot(1000, this, SLOT(refresh()));
     }
 
-    void TransactionModel::getTransactionsDone(const TransactionList &list) {
-        beginResetModel();
-        fTransactionList = list;
-        endResetModel();
-    }
-
     void TransactionModel::getBlockNumberDone(quint64 num) {
         if ( num <= fBlockNumber ) {
             return;
@@ -122,15 +116,6 @@ namespace Etherwall {
             const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 5);
             const QModelIndex& rightIndex = QAbstractListModel::createIndex(fTransactionList.length() - 1, 5);
             emit dataChanged(leftIndex, rightIndex, QVector<int>(1, DepthRole));
-        }
-
-        if ( fHistoryToBlock == 0 ) { // first assignment
-            QSettings settings;
-            quint64 diff = settings.value("/ipc/transactions/historyblocks", 10800).toULongLong(); // default to roughly 2 days
-            fHistoryFromBlock = num - diff;
-            fHistoryToBlock = num;
-            fHistoryCurrentBlock = fHistoryFromBlock;
-            emit historyChanged();
         }
     }
 
@@ -172,11 +157,6 @@ namespace Etherwall {
 
         if ( blockNum == 0 ) {
             return; // not interested in pending blocks
-        }
-
-        if ( blockNum >= fHistoryFromBlock && blockNum <= fHistoryToBlock ) {
-            fHistoryCurrentBlock = blockNum;
-            emit historyChanged();
         }
 
         foreach ( QJsonValue t, transactions ) {
@@ -236,19 +216,7 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistory() {
-        // loop all block from fromBlock to now and get our transactions
-        if ( fBlockNumber > 0 && fHistoryFromBlock < fBlockNumber ) {
-            for ( quint64 i = fHistoryFromBlock; i <= fHistoryToBlock; i++ ) {
-                fIpc.getBlockByNumber(i);
-            }
-        }
-    }
 
-    double TransactionModel::getHistoryProgress() const {
-        double diff = fHistoryToBlock - fHistoryFromBlock;
-        double result = (fHistoryCurrentBlock - fHistoryFromBlock) / diff * 100.0;
-
-        return result;
     }
 
 }

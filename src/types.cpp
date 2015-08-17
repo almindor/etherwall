@@ -21,7 +21,6 @@
 #include "types.h"
 #include <QSettings>
 #include <QDateTime>
-#include <QLocale>
 
 namespace Etherwall {
 
@@ -121,8 +120,6 @@ namespace Etherwall {
 
 // ***************************** Helpers ***************************** //
 
-    static const QLocale sLocale;
-
     const QString Helpers::toDecStr(const QJsonValue& jv) {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         const BigInt::Vin bv(hexStr, 16);
@@ -133,7 +130,7 @@ namespace Etherwall {
             decStr.prepend(QString(19 - dsl, '0'));
             dsl = decStr.length();
         }
-        decStr.insert(dsl - 18, sLocale.decimalPoint());
+        decStr.insert(dsl - 18, '.');
         return decStr;
     }
 

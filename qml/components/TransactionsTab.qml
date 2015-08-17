@@ -163,6 +163,7 @@ Tab {
                     validator: DoubleValidator {
                         bottom: 0.000000000000000001 // should be 1 wei
                         decimals: 18
+                        locale: "en_US"
                     }
 
                     maximumLength: 50

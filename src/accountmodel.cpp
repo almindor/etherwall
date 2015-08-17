@@ -137,7 +137,7 @@ namespace Etherwall {
     void AccountModel::newAccountDone(const QString& hash, int index) {
         if ( !hash.isEmpty() ) {
             beginInsertRows(QModelIndex(), index, index);
-            fAccountList.append(AccountInfo(hash, (QString("0") + QLocale().decimalPoint() + "00000000000000000"), 0));
+            fAccountList.append(AccountInfo(hash, "0.00000000000000000", 0));
             endInsertRows();
         } else {
             qDebug() << "Account create failure";

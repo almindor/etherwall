@@ -35,10 +35,12 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
         Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
+        Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
     public:
         TransactionModel(EtherIPC& ipc, const AccountModel& accountModel);
         quint64 getBlockNumber() const;
         const QString& getGasPrice() const;
+        const QString& getGasEstimate() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -49,6 +51,7 @@ namespace Etherwall {
         void connectToServerDone();
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
+        void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
         void sendTransaction(const QString& from, const QString& to, double value, double gas = -1.0);
         void newTransaction(const TransactionInfo& info);
@@ -57,6 +60,7 @@ namespace Etherwall {
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
+        void gasEstimateChanged(const QString& price);
         void historyChanged();
     private:
         EtherIPC& fIpc;
@@ -64,6 +68,7 @@ namespace Etherwall {
         TransactionList fTransactionList;
         quint64 fBlockNumber;
         QString fGasPrice;
+        QString fGasEstimate;
         TransactionInfo fQueuedTransaction;
 
         void addTransaction(const TransactionInfo& info);

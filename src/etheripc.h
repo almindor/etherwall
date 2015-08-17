@@ -92,6 +92,7 @@ namespace Etherwall {
         void sendTransaction(const QString& from, const QString& to, double value, double gas = -1);
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
+        void estimateGas(const QString& from, const QString& to, double value);
         void getTransactionByHash(const QString& hash);
         void getBlockByHash(const QString& hash);
         void getBlockByNumber(quint64 blockNum);
@@ -107,6 +108,7 @@ namespace Etherwall {
         void sendTransactionDone(const QString& hash);
         void unlockAccountDone(bool result, int index);
         void getGasPriceDone(const QString& price);
+        void estimateGasDone(const QString& price);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
 
@@ -140,7 +142,7 @@ namespace Etherwall {
         void handleSendTransaction();
         void handleUnlockAccount();
         void handleGetGasPrice();
-        void handleGetLogs();
+        void handleEstimateGas();
         void handleNewFilter();
         void handleGetFilterChanges();
         void handleUninstallFilter();
@@ -153,7 +155,6 @@ namespace Etherwall {
         quint64 peerCount() const;
         void bail();
         void done();
-        void getLogs(const QString& fromBlock, const QString& toBlock, const AccountList& accounts);
         void newFilter(const QString& fromBlock, const QString& toBlock, const AccountList& accounts);
         void uninstallFilter();
 

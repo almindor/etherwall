@@ -172,13 +172,24 @@ Tab {
                 }
             }
 
-            Row {
+            /*Row {
                 Layout.columnSpan: 2
                 Layout.minimumWidth: 450
 
-                Label {
-                    text: qsTr("Estimated Total: ")
+                Button {
+                    text: qsTr("Estimate total")
+                    onClicked: {
+                        var result = transactionWarning.check()
+                        if ( result.error !== null ) {
+                            errorDialog.error = result.error
+                            errorDialog.open()
+                            return
+                        }
+
+                        ipc.estimateGas(result.from, result.to, result.value)
+                    }
                 }
+
                 TextField {
                     id: valueTotalField
                     readOnly: true
@@ -189,9 +200,9 @@ Tab {
                         decimals: 18
                     }
 
-                    text: Number(valueField.text) > 0 ? Number(valueField.text) + Number(transactionModel.gasPrice) : ""
+                    text: Number(valueField.text) > 0 ? Number(valueField.text) + Number(transactionModel.gasEstimate) : ""
                 }
-            }
+            }*/
 
         }
 

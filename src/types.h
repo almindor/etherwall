@@ -54,7 +54,7 @@ namespace Etherwall {
         SendTransaction,
         UnlockAccount,
         GetGasPrice,
-        GetLogs,
+        EstimateGas,
         NewFilter,
         GetFilterChanges,
         UninstallFilter,

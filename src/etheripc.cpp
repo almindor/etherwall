@@ -392,31 +392,26 @@ namespace Etherwall {
         return fPeerCount;
     }
 
-    void EtherIPC::getLogs(const QString& fromBlock, const QString& toBlock, const AccountList& accounts) {
+    void EtherIPC::estimateGas(const QString& from, const QString& to, double value) {
         QJsonArray params;
         QJsonObject o;
-        o["fromBlock"] = fromBlock;
-        o["toBlock"] = toBlock;
-        /*if ( accounts.length() > 0 ) {
-            o["address"] = Helpers::toQJsonArray(accounts);
-        }*/
-        //o["address"] = "0xcbbdad70d0ff27254925ad37b5c135eee1116615";
+        o["to"] = to;
+        o["from"] = from;
+        o["value"] = Helpers::toHexWeiStr(value);
         params.append(o);
-
-        if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
+        if ( !queueRequest(RequestIPC(EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
     }
 
-    void EtherIPC::handleGetLogs() {
+    void EtherIPC::handleEstimateGas() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
         }
 
-        QJsonArray ja = jv.toArray();
-
-        qDebug() << "Got logs: " << ja << "\n";
+        const QString price = Helpers::toDecStr(jv);
+        emit estimateGasDone(price);
 
         done();
     }
@@ -769,8 +764,8 @@ namespace Etherwall {
                 handleGetGasPrice();
                 break;
             }
-        case GetLogs: {
-                handleGetLogs();
+        case EstimateGas: {
+                handleEstimateGas();
                 break;
             }
         case NewFilter: {

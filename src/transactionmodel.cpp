@@ -27,11 +27,12 @@
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown")
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fGasEstimate("unknown")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
+        connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
@@ -43,6 +44,10 @@ namespace Etherwall {
 
     const QString& TransactionModel::getGasPrice() const {
         return fGasPrice;
+    }
+
+    const QString& TransactionModel::getGasEstimate() const {
+        return fGasEstimate;
     }
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
@@ -121,6 +126,12 @@ namespace Etherwall {
 
     void TransactionModel::getGasPriceDone(const QString& num) {
         fGasPrice = num;
+        emit gasPriceChanged(num);
+    }
+
+    void TransactionModel::estimateGasDone(const QString& num) {
+        qDebug() << "gas estimate done: " << num << "\n";
+        fGasEstimate = num;
         emit gasPriceChanged(num);
     }
 

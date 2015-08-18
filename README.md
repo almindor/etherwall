@@ -40,8 +40,6 @@ qmake && make
 
 ### Caveats & bugs
 
-Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.
-
-Currently doesn't support getting transaction history. If someone knows how to get it for an account from block #0 I'm all ears.
-
-Do not run while geth is synchronizing a big number of blocks, might slow down to a crawl.
+Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.  
+Currently doesn't support getting transaction history. If someone knows how to get it for an account from block #0 I'm all ears.  
+Do not run while geth is synchronizing a big number of blocks, might slow down to a crawl.  

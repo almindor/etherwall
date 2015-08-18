@@ -156,7 +156,7 @@ Tab {
                         verticalCenter: parent.verticalCenter
                     }
                     height: parent.height
-                    color: styleData.selected ? osPalette.highlight : osPalette.base
+                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
                     MouseArea {
                         anchors.fill: parent
                         propagateComposedEvents: true

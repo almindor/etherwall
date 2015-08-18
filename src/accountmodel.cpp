@@ -143,7 +143,7 @@ namespace Etherwall {
     void AccountModel::unlockAccountDone(bool result, int index) {
         if ( result ) {
             QSettings settings;
-            qint64 diff = settings.value("/ipc/accounts/lockduration", 10).toInt() * 1000;
+            qint64 diff = settings.value("/ipc/accounts/lockduration", 300).toInt() * 1000;
 
             fAccountList[index].unlock(QDateTime::currentMSecsSinceEpoch() + diff);
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);

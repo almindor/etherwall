@@ -31,7 +31,7 @@ ApplicationWindow {
     height: 600
     minimumWidth: 800
     minimumHeight: 600
-    title: qsTr("Etherwall Ethereum Wallet")
+    title: qsTr("Etherdiene Ethereum Wallet")
 
     Timer {
         id: closeTimer

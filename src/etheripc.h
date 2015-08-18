@@ -45,7 +45,6 @@ namespace Etherwall {
         RequestIPC(RequestBurden burden, RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
         RequestIPC(RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
         RequestIPC(RequestBurden burden);
-        RequestIPC();
 
         RequestTypes getType() const;
         const QString& getMethod() const;
@@ -131,6 +130,7 @@ namespace Etherwall {
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
+        int fExpectedID;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -153,14 +153,15 @@ namespace Etherwall {
         void getFilterChanges(int filterID);
         int getConnectionState() const;
         quint64 peerCount() const;
-        void bail();
+        void bail(bool soft = false);
+        void errorOut();
         void done();
         void newFilter();
         void uninstallFilter();
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);
-        bool writeRequest();
+        bool writeRequest(const RequestIPC& request);
         bool readData();
         bool readReply(QJsonValue& result);
         bool readVin(BigInt::Vin& result);

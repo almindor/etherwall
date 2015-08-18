@@ -40,10 +40,6 @@ namespace Etherwall {
     {
     }
 
-    RequestIPC::RequestIPC() : fBurden(None)
-    {
-    }
-
     RequestTypes RequestIPC::getType() const {
         return fType;
     }
@@ -70,7 +66,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0), fExpectedID(0), fActiveRequest(None)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -304,7 +300,7 @@ namespace Etherwall {
     void EtherIPC::sendTransaction(const QString& from, const QString& to, double value, double gas) {
         if ( value <= 0 ) {
             fError = "Invalid transaction value";
-            return bail();
+            return errorOut(); // softbail
         }
 
         QJsonArray params;
@@ -322,7 +318,7 @@ namespace Etherwall {
         params.append(p);
 
         if ( !queueRequest(RequestIPC(SendTransaction, "eth_sendTransaction", params)) ) {
-            return bail();
+            return bail(true); // softbail
         }
     }
 
@@ -461,7 +457,6 @@ namespace Etherwall {
         }
 
         QJsonArray ar = jv.toArray();
-        qDebug() << "Got filter changes: " << ar.size() << "\n";
         foreach( const QJsonValue v, ar ) {
            const QString hash = v.toString("bogus");
            getBlockByHash(hash);
@@ -544,23 +539,31 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::bail() {
-        qDebug() << "BAIL: " << fError << "\n";
-        fTimer.stop();
-        fActiveRequest = RequestIPC();
-        fRequestQueue.clear();
+    void EtherIPC::bail(bool soft) {
+        qDebug() << "BAIL[" << soft << "]: " << fError << "\n";
+
+        if ( !soft ) {
+            fTimer.stop();
+            fRequestQueue.clear();
+        }
+
+        fActiveRequest = RequestIPC(None);
+        errorOut();
+    }
+
+    void EtherIPC::errorOut() {
         emit error();
         emit connectionStateChanged();
         done();
     }
 
     void EtherIPC::done() {
+        fActiveRequest = RequestIPC(None);
         if ( !fRequestQueue.isEmpty() ) {
-            fActiveRequest = fRequestQueue.first();
+            const RequestIPC request = fRequestQueue.first();
             fRequestQueue.removeFirst();
-            writeRequest();
+            writeRequest(request);
         } else {
-            fActiveRequest = RequestIPC();
             emit busyChanged(getBusy());
         }
     }
@@ -578,18 +581,24 @@ namespace Etherwall {
 
     bool EtherIPC::queueRequest(const RequestIPC& request) {
         if ( fActiveRequest.burden() == None ) {
-            fActiveRequest = request;
-            if ( fActiveRequest.burden() == Full ) {
-                emit busyChanged(getBusy());
-            }
-            return writeRequest();
+            return writeRequest(request);
         } else {
             fRequestQueue.append(request);
             return true;
         }
     }
 
-    bool EtherIPC::writeRequest() {
+    bool EtherIPC::writeRequest(const RequestIPC& request) {
+        if ( fExpectedID != request.getCallID() ) {
+            fError = "Send desynchronization error";
+            return false;
+        }
+
+        fActiveRequest = request;
+        if ( fActiveRequest.burden() == Full ) {
+            emit busyChanged(getBusy());
+        }
+
         QJsonDocument doc(methodToJSON(fActiveRequest));
         const QString msg(doc.toJson());
 
@@ -608,15 +617,13 @@ namespace Etherwall {
             return false;
         }
 
-        //qDebug() << "sent: " << msg << "\n";
-
         return true;
     }
 
     bool EtherIPC::readData() {
         fReadBuffer += QString(fSocket.readAll());
 
-        if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' ) {
+        if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' && fReadBuffer.count('{') == fReadBuffer.count('}') ) {
             return true;
         }
 
@@ -624,10 +631,6 @@ namespace Etherwall {
     }
 
     bool EtherIPC::readReply(QJsonValue& result) {
-        if ( !readData() ) {
-            return true; // not finished yet
-        }
-
         const QString data = fReadBuffer;
         fReadBuffer.clear();
 
@@ -636,8 +639,6 @@ namespace Etherwall {
             fCode = 0;
             return false;
         }
-
-        //qDebug() << "received: " << data << "\n";
 
         QJsonParseError parseError;
         QJsonDocument resDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);
@@ -659,6 +660,7 @@ namespace Etherwall {
         }
 
         result = obj["result"];
+        fExpectedID++;
 
         if ( result.isUndefined() || result.isNull() ) {
             if ( obj.contains("error") ) {
@@ -711,6 +713,10 @@ namespace Etherwall {
     void EtherIPC::onSocketReadyRead() {
         if ( !getBusy() ) {
             return; // probably error-ed out
+        }
+
+        if ( !readData() ) {
+            return; // not finished yet
         }
 
         switch ( fActiveRequest.getType() ) {

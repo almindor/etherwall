@@ -183,7 +183,7 @@ namespace Etherwall {
     bool EtherIPC::refreshAccount(const QString& hash, int index) {
         QJsonArray params;
         params.append(hash);
-        params.append("latest");
+        params.append(QString("latest"));
         if ( !queueRequest(RequestIPC(GetBalance, "eth_getBalance", params, index)) ) {
             bail();
             return false;
@@ -571,7 +571,7 @@ namespace Etherwall {
     QJsonObject EtherIPC::methodToJSON(const RequestIPC& request) {
         QJsonObject result;
 
-        result.insert("jsonrpc", QJsonValue("2.0"));
+        result.insert("jsonrpc", QJsonValue(QString("2.0")));
         result.insert("method", QJsonValue(request.getMethod()));
         result.insert("id", QJsonValue(request.getCallID()));
         result.insert("params", QJsonValue(request.getParams()));

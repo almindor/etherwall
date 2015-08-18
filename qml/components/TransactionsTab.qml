@@ -20,7 +20,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.0
 
 Tab {
@@ -51,7 +50,7 @@ Tab {
 
                 PasswordDialog {
                     id: accountUnlockDialog
-                    standardButtons: StandardButton.Ok | StandardButton.Cancel
+                    //standardButtons: StandardButton.Ok | StandardButton.Cancel
 
                     onAccepted: {
                         accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), fromField.currentIndex)

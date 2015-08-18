@@ -21,7 +21,7 @@
 import QtQuick 2.0
 import QtQml 2.2
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.0
 import "components"
 
 ApplicationWindow {
@@ -58,7 +58,7 @@ ApplicationWindow {
         Connections {
             target: ipc
             onError: {
-                errorDialog.error = ipc.error
+                errorDialog.msg = ipc.error
                 errorDialog.open()
             }
         }

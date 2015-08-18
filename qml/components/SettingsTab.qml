@@ -20,7 +20,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 
 Tab {
     id: accountsTab
@@ -66,7 +65,7 @@ Tab {
                 }
             }
 
-            FileDialog {
+            /*FileDialog {
                 id: fileDialog
                 title: qsTr("IPC")
                 nameFilters: ["Unix Socket IPC (*.ipc)"]
@@ -74,7 +73,7 @@ Tab {
                 onAccepted: {
                     ipcPathField.text = fileDialog.fileUrl
                 }
-            }
+            }*/
         }
 
         Row {
@@ -86,6 +85,7 @@ Tab {
 
             SpinBox {
                 id: unlockDurSpinBox
+                width: 100
                 minimumValue: 10
                 maximumValue: 3600
 
@@ -110,6 +110,7 @@ Tab {
 
             SpinBox {
                 id: intervalSpinBox
+                width: 100
                 minimumValue: 5
                 maximumValue: 60
 

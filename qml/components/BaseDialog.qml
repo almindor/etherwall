@@ -11,27 +11,45 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file ErrorDialog.qml
+/** @file BaseDialog.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Error dialog
+ * Base dialog
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import QtQuick.Window 2.0
 
-BaseDialog {
-    title: qsTr("Error")
+Window {
+    signal accepted
+    signal yes
 
-    Button {
-        text: "OK"
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: 10
-        onClicked: {
-           close()
-           accepted()
+    property string msg
+
+    modality: Qt.ApplicationModal
+    visible: false
+    width: 600
+    height: 70
+
+    function open() {
+        visible = true;
+    }
+
+    function close() {
+        visible = false;
+    }
+
+    Label {
+        y: 10
+        x: 10
+        text: msg
+        wrapMode: Text.Wrap
+        width: parent.width
+
+        Keys.onEscapePressed: {
+            close()
         }
     }
 }

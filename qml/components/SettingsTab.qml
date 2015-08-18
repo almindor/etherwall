@@ -42,11 +42,11 @@ Tab {
 
             TextField {
                 id: ipcPathField
-                width: parent.width - ipcSaveButton.width - ipcPathLabel.width - ipcPathButton.width
+                width: parent.width - ipcSaveButton.width - ipcPathLabel.width
                 text: settings.value("ipc/path", "")
             }
 
-            Button {
+            /*Button {
                 id: ipcPathButton
                 text: qsTr("Choose")
 
@@ -54,7 +54,7 @@ Tab {
                     fileDialog.folder = settings.value("/ipc/path")
                     fileDialog.open()
                 }
-            }
+            }*/
 
             Button {
                 id: ipcSaveButton

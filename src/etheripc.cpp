@@ -66,7 +66,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0), fExpectedID(0), fActiveRequest(None)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -589,11 +589,6 @@ namespace Etherwall {
     }
 
     bool EtherIPC::writeRequest(const RequestIPC& request) {
-        if ( fExpectedID != request.getCallID() ) {
-            fError = "Send desynchronization error";
-            return false;
-        }
-
         fActiveRequest = request;
         if ( fActiveRequest.burden() == Full ) {
             emit busyChanged(getBusy());
@@ -660,7 +655,6 @@ namespace Etherwall {
         }
 
         result = obj["result"];
-        fExpectedID++;
 
         if ( result.isUndefined() || result.isNull() ) {
             if ( obj.contains("error") ) {

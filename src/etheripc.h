@@ -130,7 +130,6 @@ namespace Etherwall {
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
-        int fExpectedID;
 
         void handleNewAccount();
         void handleDeleteAccount();

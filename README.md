@@ -6,6 +6,8 @@ Etherwall is a free software wallet/front-end for Ethereum Geth*.
 
 ## Usage
 
+Geth 1.0.0+ is required to be running for Etherwall to work.
+
 Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
 
 If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
@@ -35,6 +37,7 @@ LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
 ### Requirements
 
 Geth 1.0.0+ (eth and others might be supported)
+
 Qt5.4+ with qmake
 
 ### Building

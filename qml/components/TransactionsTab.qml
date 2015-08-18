@@ -206,19 +206,11 @@ Tab {
 
         }
 
-        Button {
-            id: historyButton
-            text: qsTr("Load transaction history")
-            onClicked: {
-                transactionModel.loadHistory()
-            }
-        }
-
         TableView {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - gridLayout.height - parent.spacing - historyButton.height
+            height: parent.height - gridLayout.height - parent.spacing
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight

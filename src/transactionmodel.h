@@ -71,6 +71,7 @@ namespace Etherwall {
         QString fGasEstimate;
         TransactionInfo fQueuedTransaction;
 
+        int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);
         void storeTransaction(const TransactionInfo& info);
     };

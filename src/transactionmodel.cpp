@@ -196,9 +196,23 @@ namespace Etherwall {
         }
     }
 
+    int TransactionModel::getInsertIndex(const TransactionInfo& info) const {
+        const quint64 block = info.value(BlockNumberRole).toULongLong();
+
+        for ( int i = 0; i < fTransactionList.length(); i++ ) {
+            const quint64 oldBlock = fTransactionList.at(i).value(BlockNumberRole).toULongLong();
+            if ( oldBlock <= block ) {
+                return i;
+            }
+        }
+
+        return fTransactionList.length();
+    }
+
     void TransactionModel::addTransaction(const TransactionInfo& info) {
-        beginInsertRows(QModelIndex(), 0, 0);
-        fTransactionList.insert(0, info);
+        const int index = getInsertIndex(info);
+        beginInsertRows(QModelIndex(), index, index);
+        fTransactionList.insert(index, info);
         endInsertRows();
 
         storeTransaction(info);
@@ -218,8 +232,6 @@ namespace Etherwall {
         QSettings settings;
         settings.beginGroup("transactions");
         QStringList list = settings.allKeys();
-
-        list.sort();
 
         foreach ( const QString bns, list ) {
             const QString hash = settings.value(bns, "bogus").toString();

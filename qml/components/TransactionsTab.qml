@@ -45,13 +45,46 @@ Tab {
                 text: qsTr("From: ")
             }
 
-            ComboBox {
-                id: fromField
-                Layout.minimumWidth: 600
+            Row {
                 Layout.columnSpan: 3
-                model: accountModel
-                textRole: "summary"
-                onCurrentIndexChanged: transactionWarning.refresh()
+                Layout.minimumWidth: 600
+
+                PasswordDialog {
+                    id: accountUnlockDialog
+                    standardButtons: StandardButton.Ok | StandardButton.Cancel
+
+                    onAccepted: {
+                        accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), fromField.currentIndex)
+                    }
+                }
+
+                ToolButton {
+                    id: lockTool
+                    iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
+                    width: 24
+                    height: 24
+
+                    Connections {
+                        target: accountModel
+                        onAccountUnlocked: {
+                            lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
+                            transactionWarning.refresh()
+                        }
+                    }
+
+                    onClicked: {
+                        accountModel.selectedAccountRow = fromField.currentIndex
+                        accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
+                    }
+                }
+
+                ComboBox {
+                    id: fromField
+                    width: parent.width - lockTool.width
+                    model: accountModel
+                    textRole: "summary"
+                    onCurrentIndexChanged: transactionWarning.refresh()
+                }
             }
 
             Label {
@@ -96,6 +129,11 @@ Tab {
 
                         if ( !result.from.match(/0x[a-f,0-9]{40}/) ) {
                             result.error = qsTr("Sender account invalid")
+                            return result
+                        }
+
+                        if ( accountModel.isLocked(index) ) {
+                            result.error = qsTr("From account is locked")
                             return result
                         }
 

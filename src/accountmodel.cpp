@@ -94,11 +94,18 @@ namespace Etherwall {
     void AccountModel::unlockAccount(const QString& pw, int duration, int index) {
         if ( index >= 0 && index < fAccountList.size() && duration > 0 ) {
             const QString hash = fAccountList.at(index).value(HashRole).toString();
-            qDebug() << "model unlock";
             fIpc.unlockAccount(hash, pw, duration, index);
         } else {
             qDebug() << "Invalid account selection for unlock";
         }
+    }
+
+    bool AccountModel::isLocked(int index) const {
+        if ( index < 0 || index >= fAccountList.length() ) {
+            return true;
+        }
+
+        return fAccountList.at(index).value(LockedRole).toBool();
     }
 
     const QString AccountModel::getAccountHash(int index) const {
@@ -141,6 +148,7 @@ namespace Etherwall {
             fAccountList[index].unlock(QDateTime::currentMSecsSinceEpoch() + diff);
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
             emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
+            emit accountUnlocked(index);
         } else {
             qDebug() << "Account unlock failure";
         }

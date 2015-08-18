@@ -47,6 +47,7 @@ namespace Etherwall {
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
         Q_INVOKABLE void unlockAccount(const QString& pw, int duration, int index);
+        Q_INVOKABLE bool isLocked(int index) const;
         Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
@@ -57,6 +58,7 @@ namespace Etherwall {
         void newBlock(const QJsonObject& block);
     signals:
         void accountSelectionChanged(int);
+        void accountUnlocked(int);
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;

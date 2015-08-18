@@ -44,7 +44,7 @@ Dialog {
         TextField {
             id: accountPW
             echoMode: TextInput.Password
-            width: accountNewDialog.width * 0.7
+            width: parent.parent.width * 0.7
             focus: true
 
             onTextChanged: {

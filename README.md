@@ -8,9 +8,12 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ## Donations
 
-BTC: 1NcJoao879C1pSKvFqnUKD6wKtFpCMppP6
-LTC: LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
-Ether: 0xc64b50db57c0362e27a32b65bd29363f29fdfa59
+### Bitcoin
+1NcJoao879C1pSKvFqnUKD6wKtFpCMppP6
+### Litecoin
+LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
+### Ether
+0xc64b50db57c0362e27a32b65bd29363f29fdfa59
 
 ## Development
 

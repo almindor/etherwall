@@ -4,6 +4,14 @@ Ethereum QT5 Wallet
 
 Etherwall is a free software wallet/front-end for Ethereum Geth*.
 
+## Usage
+
+Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
+
+If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
+
+Do not run Ethwerwall while geth is syncing unless you really need the old transactions listed. See caveats for more info.
+
 ## License
 
 Etherwall is licensed under the GPLv3 license. See LICENSE for more info.

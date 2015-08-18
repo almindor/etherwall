@@ -58,44 +58,23 @@ namespace Etherwall {
     }
 
     // TODO: optimize with hashmap
-    bool AccountModel::containsAccount(const TransactionInfo& info, int& ai1, int& ai2) const {
+    bool AccountModel::containsAccount(const QString& from, const QString& to, int& i1, int& i2) const {
+        i1 = -1;
+        i2 = -1;
         int i = 0;
-        ai1 = -1;
-        ai2 = -1;
-
-        foreach ( const AccountInfo& a, fAccountList ) {
-            const QString& ahash = a.value(HashRole).toString();
-            const QString& fhash = info.value(SenderRole).toString();
-            if ( ahash == fhash ) {
-                ai1 = i;
-                break;
-            }
-            i++;
-        }
-
-        foreach ( const AccountInfo& a, fAccountList ) {
-            const QString& ahash = a.value(HashRole).toString();
-            const QString& thash = info.value(ReceiverRole).toString();
-            if ( ahash == thash ) {
-                ai2 = i;
-                break;
-            }
-            i++;
-        }
-
-        return (ai1 > 0 || ai2 > 0);
-    }
-
-    // TODO: optimize with hashmap
-    bool AccountModel::containsAccount(const QString& from, const QString& to) const {
         foreach ( const AccountInfo& a, fAccountList ) {
             const QString addr = a.value(HashRole).toString();
-            if ( addr == from || addr == to ) {
-                return true;
+            if ( addr == from ) {
+                i1 = i;
             }
+
+            if ( addr == to ) {
+                i2 = i;
+            }
+            i++;
         }
 
-        return false;
+        return (i1 >= 0 || i2 >= 0);
     }
 
     void AccountModel::newAccount(const QString& pw) {
@@ -193,15 +172,17 @@ namespace Etherwall {
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const TransactionInfo info(to);
+            const QString& sender = info.value(SenderRole).toString();
+            const QString& receiver = info.value(ReceiverRole).toString();
             int i1, i2;
 
-            if ( containsAccount(info, i1, i2) ) {
+            if ( containsAccount(sender, receiver, i1, i2) ) {
                 if ( i1 >= 0 ) {
-                    fIpc.refreshAccount(info.value(SenderRole).toString(), i1);
+                    fIpc.refreshAccount(sender, i1);
                 }
 
                 if ( i2 >= 0 ) {
-                    fIpc.refreshAccount(info.value(ReceiverRole).toString(), i2);
+                    fIpc.refreshAccount(receiver, i2);
                 }
             }
         }

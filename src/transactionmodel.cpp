@@ -105,6 +105,7 @@ namespace Etherwall {
         fIpc.getBlockNumber();
         fIpc.getGasPrice();
 
+        //refresh();
         // TODO: figure out a deterministic way of knowing that all accounts have loaded up
         QTimer::singleShot(1000, this, SLOT(refresh()));
     }
@@ -148,7 +149,9 @@ namespace Etherwall {
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {
         int ai1, ai2;
-        if ( fAccountModel.containsAccount(info, ai1, ai2) ) { // either our sent or someone sent to us
+        const QString& sender = info.value(SenderRole).toString();
+        const QString& receiver = info.value(ReceiverRole).toString();
+        if ( fAccountModel.containsAccount(sender, receiver, ai1, ai2) ) { // either our sent or someone sent to us
             const int n = containsTransaction(info.value(THashRole).toString());
             if ( n >= 0 ) { // ours
                 fTransactionList[n] = info;
@@ -175,6 +178,7 @@ namespace Etherwall {
             const QString thash = to.value("hash").toString();
             const QString sender = to.value("from").toString();
             const QString receiver = to.value("to").toString();
+            int i1, i2;
 
             const int n = containsTransaction(thash);
             if ( n >= 0 ) {
@@ -186,7 +190,7 @@ namespace Etherwall {
                 roles[1] = DepthRole;
                 emit dataChanged(leftIndex, rightIndex, roles);
                 storeTransaction(fTransactionList.at(n));
-            } else if ( fAccountModel.containsAccount(sender, receiver) ) {
+            } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
                 addTransaction(TransactionInfo(to));
             }
         }

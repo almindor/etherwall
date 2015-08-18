@@ -18,16 +18,16 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ## Donations
 
-### Flattr
+#### Flattr
 [![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Almindor&url=https://github.com/almindor/etherwall&title=Etherwall&language=&tags=github&category=software)
 
-### Bitcoin
+#### Bitcoin
 1NcJoao879C1pSKvFqnUKD6wKtFpCMppP6
 
-### Litecoin
+#### Litecoin
 LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
 
-### Ether
+#### Ether
 0xc64b50db57c0362e27a32b65bd29363f29fdfa59
 
 ## Development

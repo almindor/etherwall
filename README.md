@@ -2,6 +2,8 @@
 
 Ethereum QT5 Wallet
 
+Etherwall is a free software wallet/front-end for Ethereum Geth*.
+
 ## License
 
 Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
@@ -25,7 +27,7 @@ LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
 ### Requirements
 
 Geth 1.0.0+ (eth and others might be supported)
-Qt5.2+ with qmake
+Qt5.4+ with qmake
 
 ### Building
 
@@ -40,6 +42,6 @@ qmake && make
 
 ### Caveats & bugs
 
-Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.  
-Currently doesn't support getting transaction history. If someone knows how to get it for an account from block #0 I'm all ears.  
-Do not run while geth is synchronizing a big number of blocks, might slow down to a crawl.  
+Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.
+Currently doesn't support getting transaction history. If someone knows how to get it for an account from block #0 I'm all ears.
+Do not run while geth is synchronizing a big number of blocks, might slow down to a crawl.

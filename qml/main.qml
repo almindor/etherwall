@@ -21,7 +21,7 @@
 import QtQuick 2.0
 import QtQml 2.2
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.0
 import "components"
 
 ApplicationWindow {
@@ -31,7 +31,7 @@ ApplicationWindow {
     height: 600
     minimumWidth: 800
     minimumHeight: 600
-    title: qsTr("Etherdiene Ethereum Wallet")
+    title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version
 
     Timer {
         id: closeTimer
@@ -58,7 +58,7 @@ ApplicationWindow {
         Connections {
             target: ipc
             onError: {
-                errorDialog.error = ipc.error
+                errorDialog.msg = ipc.error
                 errorDialog.open()
             }
         }

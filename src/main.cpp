@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdiene");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
+    QCoreApplication::setApplicationVersion("0.8.0");
 
     Settings settings;
     ClipboardAdapter clipboard;

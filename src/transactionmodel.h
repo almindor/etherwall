@@ -49,6 +49,7 @@ namespace Etherwall {
         double getHistoryProgress() const;
     public slots:
         void connectToServerDone();
+        void getAccountsDone(const AccountList& list);
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);

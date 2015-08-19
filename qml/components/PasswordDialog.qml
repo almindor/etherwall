@@ -20,9 +20,8 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 
-Dialog {
+BaseDialog {
     width: Math.max(parent.width * 0.6, 500)
     property string password
 
@@ -33,6 +32,7 @@ Dialog {
     }
 
     Row {
+        anchors.centerIn: parent
         Keys.onEscapePressed: {
             close()
         }
@@ -44,11 +44,19 @@ Dialog {
         TextField {
             id: accountPW
             echoMode: TextInput.Password
-            width: parent.parent.width * 0.7
+            width: parent.parent.width * 0.6
             focus: true
 
             onTextChanged: {
                 password = text
+            }
+        }
+
+        Button {
+            text: "OK"
+            onClicked: {
+               close()
+               accepted()
             }
         }
     }

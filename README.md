@@ -38,11 +38,11 @@ LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm
 
 Geth 1.0.0+ (eth and others might be supported)
 
-Qt5.4+ with qmake
+Qt5.2+ with qmake
 
 ### Building
 
-qmake && make
+qmake -config release && make
 
 ### Roadmap
 

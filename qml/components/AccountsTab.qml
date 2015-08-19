@@ -20,7 +20,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 
 Tab {
     id: accountsTab
@@ -58,7 +57,7 @@ Tab {
 
         PasswordDialog {
             id: accountNewDialog
-            standardButtons: StandardButton.Save | StandardButton.Cancel
+            //standardButtons: StandardButton.Save | StandardButton.Cancel
 
             onAccepted: {
                 accountModel.newAccount(password)
@@ -67,7 +66,7 @@ Tab {
 
         PasswordDialog {
             id: accountDeleteDialog
-            standardButtons: StandardButton.Ok | StandardButton.Cancel
+            //standardButtons: StandardButton.Ok | StandardButton.Cancel
 
             onAccepted: {
                 accountModel.deleteAccount(password, accountView.currentRow);
@@ -76,7 +75,7 @@ Tab {
 
         PasswordDialog {
             id: accountUnlockDialog
-            standardButtons: StandardButton.Ok | StandardButton.Cancel
+            //standardButtons: StandardButton.Ok | StandardButton.Cancel
 
             onAccepted: {
                 accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), accountView.currentRow)

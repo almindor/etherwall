@@ -20,7 +20,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.0
 
 Tab {
@@ -51,7 +50,7 @@ Tab {
 
                 PasswordDialog {
                     id: accountUnlockDialog
-                    standardButtons: StandardButton.Ok | StandardButton.Cancel
+                    //standardButtons: StandardButton.Ok | StandardButton.Cancel
 
                     onAccepted: {
                         accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), fromField.currentIndex)
@@ -166,7 +165,7 @@ Tab {
                         refresh()
 
                         if ( enabled ) {
-                            errorDialog.error = tooltip
+                            errorDialog.msg = tooltip
                             errorDialog.open()
                         }
                     }
@@ -179,7 +178,7 @@ Tab {
                     onClicked: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
-                            errorDialog.error = result.error
+                            errorDialog.msg = result.error
                             errorDialog.open()
                             return
                         }
@@ -219,7 +218,7 @@ Tab {
                     onClicked: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
-                            errorDialog.error = result.error
+                            errorDialog.msg = result.error
                             errorDialog.open()
                             return
                         }

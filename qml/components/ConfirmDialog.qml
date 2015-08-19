@@ -20,21 +20,28 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
 
-Dialog {
+BaseDialog {
     title: qsTr("Confirm")
-    property string msg
-    standardButtons: StandardButton.Yes | StandardButton.No
 
-    Label {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: msg
-        wrapMode: Text.Wrap
-        width: parent.width
+    Row {
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.margins: 10
 
-        Keys.onEscapePressed: {
-            close()
+        Button {
+            text: "Yes"
+            onClicked: {
+               close()
+               yes()
+            }
+        }
+
+        Button {
+            text: "No"
+            onClicked: {
+               close()
+            }
         }
     }
 }

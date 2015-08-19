@@ -160,19 +160,19 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::handleAccountDetails() {
+    void EtherIPC::handleGetAccounts() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
         }
 
         QJsonArray refs = jv.toArray();
-        int i = 0;
         foreach( QJsonValue r, refs ) {
             const QString hash = r.toString("INVALID");
             fAccountList.append(AccountInfo(hash, QString(), 0));
-            refreshAccount(hash, i++);
         }
+
+        emit getAccountsDone(fAccountList);
 
         // TODO: figure out a way to get account transaction history
         newFilter();
@@ -181,14 +181,29 @@ namespace Etherwall {
     }
 
     bool EtherIPC::refreshAccount(const QString& hash, int index) {
+        if ( getBalance(hash, index) ) {
+            return getTransactionCount(hash, index);
+        }
+
+        return false;
+    }
+
+    bool EtherIPC::getBalance(const QString& hash, int index) {
         QJsonArray params;
         params.append(hash);
-        params.append("latest");
+        params.append(QString("latest"));
         if ( !queueRequest(RequestIPC(GetBalance, "eth_getBalance", params, index)) ) {
             bail();
             return false;
         }
 
+        return true;
+    }
+
+    bool EtherIPC::getTransactionCount(const QString& hash, int index) {
+        QJsonArray params;
+        params.append(hash);
+        params.append(QString("latest"));
         if ( !queueRequest(RequestIPC(GetTransactionCount, "eth_getTransactionCount", params, index)) ) {
             bail();
             return false;
@@ -196,6 +211,7 @@ namespace Etherwall {
 
         return true;
     }
+
 
     void EtherIPC::handleAccountBalance() {
         QJsonValue jv;
@@ -571,7 +587,7 @@ namespace Etherwall {
     QJsonObject EtherIPC::methodToJSON(const RequestIPC& request) {
         QJsonObject result;
 
-        result.insert("jsonrpc", QJsonValue("2.0"));
+        result.insert("jsonrpc", QJsonValue(QString("2.0")));
         result.insert("method", QJsonValue(request.getMethod()));
         result.insert("id", QJsonValue(request.getCallID()));
         result.insert("params", QJsonValue(request.getParams()));
@@ -727,7 +743,7 @@ namespace Etherwall {
                 break;
             }
         case GetAccountRefs: {
-                handleAccountDetails();
+                handleGetAccounts();
                 break;
             }
         case GetBalance: {

@@ -30,3 +30,7 @@ HEADERS += \
     src/bigint.h \
     src/transactionmodel.h \
     src/clipboard.h
+
+macx {
+    ICON=qml/images/icon.icns
+}

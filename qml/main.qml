@@ -21,7 +21,6 @@
 import QtQuick 2.0
 import QtQml 2.2
 import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.0
 import "components"
 
 ApplicationWindow {
@@ -79,16 +78,6 @@ ApplicationWindow {
         TransactionsTab {}
 
         SettingsTab {}
-    }
-
-    ConfirmDialog {
-        id: connectDialog
-        width: 500
-        msg: "IPC already connected. Are you sure you want to reconnect?"
-
-        onYes: {
-            ipc.connectToServer(settings.value("ipc/path", "bogus"))
-        }
     }
 
     statusBar: StatusBar {
@@ -169,11 +158,7 @@ ApplicationWindow {
                 width: 32
                 tooltip: "Connection state: " + (ipc.connectionState > 0 ? ("connected with " + ipc.peerCount + " peers") : "disconnected")
                 onClicked: {
-                    if ( ipc.connectionState > 0 ) {
-                        connectDialog.open()
-                    } else {
-                        ipc.connectToServer(settings.value("ipc/path", "bogus"))
-                    }
+                    ipc.connectToServer(settings.value("ipc/path", "bogus"))
                 }
             }
         }

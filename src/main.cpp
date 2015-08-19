@@ -21,6 +21,8 @@
 #include <QApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QIcon>
+#include <QPixmap>
 #include <QDebug>
 #include "settings.h"
 #include "clipboard.h"
@@ -37,6 +39,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
     QCoreApplication::setApplicationVersion("0.8.0");
+    app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     Settings settings;
     ClipboardAdapter clipboard;

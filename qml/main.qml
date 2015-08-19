@@ -31,7 +31,7 @@ ApplicationWindow {
     height: 600
     minimumWidth: 800
     minimumHeight: 600
-    title: qsTr("Etherdiene Ethereum Wallet")
+    title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version
 
     Timer {
         id: closeTimer

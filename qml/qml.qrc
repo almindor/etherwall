@@ -10,6 +10,7 @@
         <file>components/BaseDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
+        <file alias="icon">images/icon.png</file>
         <file alias="block">images/block.png</file>
         <file alias="connected3">images/high_connection.png</file>
         <file alias="connected2">images/medium_connection.png</file>

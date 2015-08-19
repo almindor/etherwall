@@ -76,6 +76,32 @@ Tab {
             }*/
         }
 
+        /*
+        Row {
+            id: rowArgs
+            width: parent.width
+
+            Label {
+                id: argsLabel
+                text: "Geth args: "
+            }
+
+            TextField {
+                id: argsField
+                width: parent.width - argsButton.width - argsLabel.width
+                text: settings.value("/geth/args", "")
+            }
+
+            Button {
+                id: argsButton
+                text: qsTr("Set")
+
+                onClicked: {
+                    settings.setValue("/geth/args", argsField.text)
+                }
+            }
+        }*/
+
         Row {
             width: parent.width
 

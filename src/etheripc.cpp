@@ -103,7 +103,7 @@ namespace Etherwall {
             return true;
         }
 
-        if ( getBusy() ) { // wait for operation first
+        if ( fSocket.state() == QLocalSocket::ConnectedState && getBusy() ) { // wait for operation first if we're still connected
             return false;
         }
 
@@ -113,6 +113,7 @@ namespace Etherwall {
         }
 
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) { // wait for clean disconnect
+            fActiveRequest = RequestIPC(Full);
             fSocket.disconnectFromServer();
             return false;
         }
@@ -130,7 +131,7 @@ namespace Etherwall {
         }
 
         fSocket.connectToServer(path);
-        QTimer::singleShot(2000, this, SLOT(disconnectedFromServer()));
+        QTimer::singleShot(2000, this, SLOT(connectionTimeout()));
     }
 
     void EtherIPC::connectedToServer() {
@@ -143,18 +144,25 @@ namespace Etherwall {
         emit connectionStateChanged();
     }
 
+    void EtherIPC::connectionTimeout() {
+        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+            fSocket.abort();
+            fError = tr("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
+            bail();
+        }
+    }
+
     void EtherIPC::disconnectedFromServer() {
         if ( fClosingApp ) { // expected
             return;
         }
 
-        if ( fSocket.state() == QLocalSocket::UnconnectedState ) { // could be just the bloody timer
-            fError = fSocket.errorString();
-            bail();
-        }
+        fError = fSocket.errorString();
+        bail();
     }
 
     void EtherIPC::getAccounts() {
+        fAccountList.clear();
         if ( !queueRequest(RequestIPC(GetAccountRefs, "personal_listAccounts", QJsonArray())) ) {
             return bail();
         }
@@ -410,7 +418,9 @@ namespace Etherwall {
         o["to"] = to;
         o["from"] = from;
         o["value"] = Helpers::toHexWeiStr(value);
+        o["gas"] = Helpers::toHexStr(90000);
         params.append(o);
+        params.append("latest");
         if ( !queueRequest(RequestIPC(EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
@@ -644,6 +654,7 @@ namespace Etherwall {
     bool EtherIPC::readReply(QJsonValue& result) {
         const QString data = fReadBuffer;
         fReadBuffer.clear();
+        //qDebug() << "recv: " << data << "\n";
 
         if ( data.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();

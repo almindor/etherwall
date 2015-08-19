@@ -81,16 +81,6 @@ ApplicationWindow {
         SettingsTab {}
     }
 
-    ConfirmDialog {
-        id: connectDialog
-        width: 500
-        msg: "IPC already connected. Are you sure you want to reconnect?"
-
-        onYes: {
-            ipc.connectToServer(settings.value("ipc/path", "bogus"))
-        }
-    }
-
     statusBar: StatusBar {
         height: 38
         enabled: !ipc.busy
@@ -169,11 +159,7 @@ ApplicationWindow {
                 width: 32
                 tooltip: "Connection state: " + (ipc.connectionState > 0 ? ("connected with " + ipc.peerCount + " peers") : "disconnected")
                 onClicked: {
-                    if ( ipc.connectionState > 0 ) {
-                        connectDialog.open()
-                    } else {
-                        ipc.connectToServer(settings.value("ipc/path", "bogus"))
-                    }
+                    ipc.connectToServer(settings.value("ipc/path", "bogus"))
                 }
             }
         }

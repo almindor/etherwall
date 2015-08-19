@@ -81,6 +81,7 @@ namespace Etherwall {
     public slots:
         void connectToServer(const QString& path);
         void connectedToServer();
+        void connectionTimeout();
         void disconnectedFromServer();
         void getAccounts();
         bool refreshAccount(const QString& hash, int index);

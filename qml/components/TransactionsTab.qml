@@ -165,7 +165,7 @@ Tab {
                         refresh()
 
                         if ( enabled ) {
-                            errorDialog.error = tooltip
+                            errorDialog.msg = tooltip
                             errorDialog.open()
                         }
                     }
@@ -178,7 +178,7 @@ Tab {
                     onClicked: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
-                            errorDialog.error = result.error
+                            errorDialog.msg = result.error
                             errorDialog.open()
                             return
                         }
@@ -218,7 +218,7 @@ Tab {
                     onClicked: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
-                            errorDialog.error = result.error
+                            errorDialog.msg = result.error
                             errorDialog.open()
                             return
                         }

@@ -200,6 +200,10 @@ namespace Etherwall {
     int TransactionModel::getInsertIndex(const TransactionInfo& info) const {
         const quint64 block = info.value(BlockNumberRole).toULongLong();
 
+        if ( block == 0 ) {
+            return 0; // new/pending
+        }
+
         for ( int i = 0; i < fTransactionList.length(); i++ ) {
             const quint64 oldBlock = fTransactionList.at(i).value(BlockNumberRole).toULongLong();
             if ( oldBlock <= block ) {

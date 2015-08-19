@@ -111,8 +111,7 @@ namespace Etherwall {
     void TransactionInfo::init(const QString& from, const QString& to, double value, double gas) {
         fSender = from;
         fReceiver = to;
-        BigInt::Vin vinVal = BigInt::Vin::fromDouble(value * 1000000000000000000);
-        fValue = QString(vinVal.toStrDec().data());
+        fValue = QString::number(value);
         if ( gas > 0 ) {
             fGas = gas;
         }

@@ -30,6 +30,7 @@ namespace Etherwall {
         QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fGasEstimate("unknown")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
+        connect(&ipc, &EtherIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
@@ -104,10 +105,10 @@ namespace Etherwall {
     void TransactionModel::connectToServerDone() {
         fIpc.getBlockNumber();
         fIpc.getGasPrice();
+    }
 
-        //refresh();
-        // TODO: figure out a deterministic way of knowing that all accounts have loaded up
-        QTimer::singleShot(1000, this, SLOT(refresh()));
+    void TransactionModel::getAccountsDone(const AccountList& list __attribute__((unused))) {
+        refresh();
     }
 
     void TransactionModel::getBlockNumberDone(quint64 num) {

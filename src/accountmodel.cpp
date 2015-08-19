@@ -30,6 +30,7 @@ namespace Etherwall {
         QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
+        connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
         connect(&ipc, &EtherIPC::unlockAccountDone, this, &AccountModel::unlockAccountDone);
@@ -151,6 +152,18 @@ namespace Etherwall {
             emit accountUnlocked(index);
         } else {
             qDebug() << "Account unlock failure";
+        }
+    }
+
+    void AccountModel::getAccountsDone(const AccountList& list) {
+        beginResetModel();
+        fAccountList = list;
+        endResetModel();
+
+        int i = 0;
+        foreach ( const AccountInfo& info, list ) {
+            const QString& hash = info.value(HashRole).toString();
+            fIpc.refreshAccount(hash, i++);
         }
     }
 

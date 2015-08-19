@@ -84,6 +84,8 @@ namespace Etherwall {
         void disconnectedFromServer();
         void getAccounts();
         bool refreshAccount(const QString& hash, int index);
+        bool getBalance(const QString& hash, int index);
+        bool getTransactionCount(const QString& hash, int index);
         void newAccount(const QString& password, int index);
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
@@ -101,6 +103,7 @@ namespace Etherwall {
         bool closeApp();
     signals:
         void connectToServerDone();
+        void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& result, int index);
         void deleteAccountDone(bool result, int index);
         void getBlockNumberDone(quint64 num);
@@ -133,7 +136,7 @@ namespace Etherwall {
 
         void handleNewAccount();
         void handleDeleteAccount();
-        void handleAccountDetails();
+        void handleGetAccounts();
         void handleAccountBalance();
         void handleAccountTransactionCount();
         void handleGetBlockNumber();

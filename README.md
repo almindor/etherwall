@@ -42,7 +42,7 @@ Qt5.2+ with qmake
 
 ### Building
 
-qmake && make
+qmake -config release && make
 
 ### Roadmap
 

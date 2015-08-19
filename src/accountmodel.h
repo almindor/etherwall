@@ -51,6 +51,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
+        void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
         void unlockAccountDone(bool result, int index);

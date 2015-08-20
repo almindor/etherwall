@@ -158,6 +158,7 @@ namespace Etherwall {
         void handleGetClientVersion();
 
         void onTimer();
+        int parseVersionNum() const;
         void getFilterChanges(int filterID);
         void getClientVersion();
         int getConnectionState() const;

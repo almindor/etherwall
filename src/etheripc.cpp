@@ -392,6 +392,14 @@ namespace Etherwall {
         }
 
         const bool result = jv.toBool(false);
+
+        if ( !result ) {
+            fError = "Unlock account failure";
+            if ( parseVersionNum() == 100002 ) {
+                fError += " Geth v1.0.2 has a bug with unlocking empty password accounts! Consider updating";
+            }
+            emit error();
+        }
         emit unlockAccountDone(result, fActiveRequest.getIndex());
         done();
     }
@@ -470,6 +478,18 @@ namespace Etherwall {
     void EtherIPC::onTimer() {
         getPeerCount();
         getFilterChanges(fFilterID);
+    }
+
+    int EtherIPC::parseVersionNum() const {
+        QRegExp reg("^Geth/v([0-9]+)\\.([0-9]+)\\.([0-9]+).*$");
+        reg.indexIn(fClientVersion);
+        if ( reg.captureCount() == 3 ) try { // it's geth
+            return reg.cap(1).toInt() * 100000 + reg.cap(2).toInt() * 1000 + reg.cap(3).toInt();
+        } catch ( ... ) {
+            return 0;
+        }
+
+        return 0;
     }
 
     void EtherIPC::getFilterChanges(int filterID) {
@@ -585,6 +605,13 @@ namespace Etherwall {
         }
 
         fClientVersion = jv.toString();
+
+        const int vn = parseVersionNum();
+        if ( vn > 0 && vn < 100002 ) {
+            fError = "Geth version 1.0.1 and older contain a critical bug! Please update immediately.";
+            emit error();
+        }
+
         emit clientVersionChanged(fClientVersion);
         done();
     }

@@ -59,7 +59,8 @@ namespace Etherwall {
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,
-        GetBlock
+        GetBlock,
+        GetClientVersion
     };
 
     enum AccountRoles {

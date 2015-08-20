@@ -66,7 +66,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -122,6 +122,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectToServer(const QString& path) {
+        if ( fAborted ) {
+            bail();
+            return;
+        }
+
         fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
         fPath = path;
@@ -137,6 +142,7 @@ namespace Etherwall {
     void EtherIPC::connectedToServer() {
         done();
 
+        getClientVersion();
         getBlockNumber(); // initial
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
 
@@ -145,7 +151,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectionTimeout() {
-        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+        if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
             fError = tr("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
             bail();
@@ -153,7 +159,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::disconnectedFromServer() {
-        if ( fClosingApp ) { // expected
+        if ( fClosingApp || fAborted ) { // expected
             return;
         }
 
@@ -476,6 +482,12 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::getClientVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
+            return bail();
+        }
+    }
+
     void EtherIPC::handleGetFilterChanges() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
@@ -563,6 +575,50 @@ namespace Etherwall {
         emit getBlockNumberDone(num);
         emit newBlock(block);
         done();
+    }
+
+    void EtherIPC::handleGetClientVersion() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        fClientVersion = jv.toString();
+        emit clientVersionChanged(fClientVersion);
+
+        QString v;
+        if ( fClientVersion.contains("Geth") ) {
+            const int n1 = fClientVersion.indexOf("/v");
+            int n2 = -1;
+            if ( n1 >= 0 ) {
+                qDebug() << "N1: " << n1 << "\n";
+                n2 = fClientVersion.indexOf('/', n1 + 2);
+            }
+
+            if ( n1 > 0 && n2 > 0 ) {
+                 v = fClientVersion.mid(n1 + 2, (n2 - n1 - 2));
+            }
+
+            if ( v.count('.') == 2 ) {
+                const QStringList verList = v.split('.');
+                if ( verList.length() >= 3 && verList.at(0) == "1" && verList.at(1) == "0" ) {
+                    int minorV = verList.at(2).toInt();
+                    if ( minorV < 3 ) {
+                        fError = "Geth version 1.0.2- is bugged. Please update";
+                        return abort();
+                    }
+                }
+            }
+        }
+        done();
+
+    }
+
+    void EtherIPC::abort() {
+        fAborted = true;
+        bail();
+        fSocket.abort();
+        emit connectionStateChanged();
     }
 
     void EtherIPC::bail(bool soft) {
@@ -727,6 +783,10 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
+        if ( fAborted ) {
+            return; // ignore
+        }
+
         fError = fSocket.errorString();
         fCode = err;
     }
@@ -803,6 +863,10 @@ namespace Etherwall {
             }
         case GetBlock: {
                 handleGetBlock();
+                break;
+            }
+        case GetClientVersion: {
+                handleGetClientVersion();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

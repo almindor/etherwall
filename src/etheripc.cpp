@@ -585,33 +585,7 @@ namespace Etherwall {
 
         fClientVersion = jv.toString();
         emit clientVersionChanged(fClientVersion);
-
-        QString v;
-        if ( fClientVersion.contains("Geth") ) {
-            const int n1 = fClientVersion.indexOf("/v");
-            int n2 = -1;
-            if ( n1 >= 0 ) {
-                qDebug() << "N1: " << n1 << "\n";
-                n2 = fClientVersion.indexOf('/', n1 + 2);
-            }
-
-            if ( n1 > 0 && n2 > 0 ) {
-                 v = fClientVersion.mid(n1 + 2, (n2 - n1 - 2));
-            }
-
-            if ( v.count('.') == 2 ) {
-                const QStringList verList = v.split('.');
-                if ( verList.length() >= 3 && verList.at(0) == "1" && verList.at(1) == "0" ) {
-                    int minorV = verList.at(2).toInt();
-                    if ( minorV < 2 ) {
-                        fError = "Geth version 1.0.1- is bugged. Please update to 1.0.2+";
-                        return abort();
-                    }
-                }
-            }
-        }
         done();
-
     }
 
     void EtherIPC::abort() {

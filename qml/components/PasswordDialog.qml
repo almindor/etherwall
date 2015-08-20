@@ -24,8 +24,9 @@ import QtQuick.Controls 1.1
 BaseDialog {
     width: Math.max(parent.width * 0.6, 500)
     property string password
+    property bool acceptEmpty: true
 
-    function openFocused(m) {
+    function openFocused(m, ae) {
         title = m || "Confirm operation"
         open()
         accountPW.focus = true
@@ -55,6 +56,10 @@ BaseDialog {
         Button {
             text: "OK"
             onClicked: {
+               if ( !acceptEmpty && password.length == 0 ) {
+                   return;
+               }
+
                close()
                accepted()
             }

@@ -603,8 +603,8 @@ namespace Etherwall {
                 const QStringList verList = v.split('.');
                 if ( verList.length() >= 3 && verList.at(0) == "1" && verList.at(1) == "0" ) {
                     int minorV = verList.at(2).toInt();
-                    if ( minorV < 3 ) {
-                        fError = "Geth version 1.0.2- is bugged. Please update";
+                    if ( minorV < 2 ) {
+                        fError = "Geth version 1.0.1- is bugged. Please update to 1.0.2+";
                         return abort();
                     }
                 }
@@ -710,7 +710,6 @@ namespace Etherwall {
     bool EtherIPC::readReply(QJsonValue& result) {
         const QString data = fReadBuffer;
         fReadBuffer.clear();
-        //qDebug() << "recv: " << data << "\n";
 
         if ( data.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();

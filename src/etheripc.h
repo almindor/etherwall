@@ -72,6 +72,7 @@ namespace Etherwall {
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
+        Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
     public:
         EtherIPC();
         void setWorker(QThread* worker);
@@ -119,11 +120,13 @@ namespace Etherwall {
         void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
         void connectionStateChanged();
+        void clientVersionChanged(const QString& ver);
         void error();
     private:
         QLocalSocket fSocket;
         int fFilterID;
         bool fClosingApp;
+        bool fAborted;
         quint64 fPeerCount;
         QString fReadBuffer;
         QString fError;
@@ -134,6 +137,7 @@ namespace Etherwall {
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
+        QString fClientVersion;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -151,11 +155,15 @@ namespace Etherwall {
         void handleUninstallFilter();
         void handleGetTransactionByHash();
         void handleGetBlock();
+        void handleGetClientVersion();
 
         void onTimer();
+        int parseVersionNum() const;
         void getFilterChanges(int filterID);
+        void getClientVersion();
         int getConnectionState() const;
         quint64 peerCount() const;
+        void abort();
         void bail(bool soft = false);
         void errorOut();
         void done();

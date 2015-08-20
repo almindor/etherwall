@@ -66,7 +66,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -122,6 +122,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectToServer(const QString& path) {
+        if ( fAborted ) {
+            bail();
+            return;
+        }
+
         fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
         fPath = path;
@@ -137,6 +142,7 @@ namespace Etherwall {
     void EtherIPC::connectedToServer() {
         done();
 
+        getClientVersion();
         getBlockNumber(); // initial
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
 
@@ -145,7 +151,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectionTimeout() {
-        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+        if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
             fError = tr("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
             bail();
@@ -153,7 +159,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::disconnectedFromServer() {
-        if ( fClosingApp ) { // expected
+        if ( fClosingApp || fAborted ) { // expected
             return;
         }
 
@@ -227,7 +233,7 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = Helpers::toDecStr(jv);
+        const QString decStr = Helpers::toDecStrEther(jv);
         const int index = fActiveRequest.getIndex();
         fAccountList[index].setBalance(decStr);
 
@@ -386,6 +392,14 @@ namespace Etherwall {
         }
 
         const bool result = jv.toBool(false);
+
+        if ( !result ) {
+            fError = "Unlock account failure";
+            if ( parseVersionNum() == 100002 ) {
+                fError += " Geth v1.0.2 has a bug with unlocking empty password accounts! Consider updating";
+            }
+            emit error();
+        }
         emit unlockAccountDone(result, fActiveRequest.getIndex());
         done();
     }
@@ -402,7 +416,7 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = Helpers::toDecStr(jv);
+        const QString decStr = Helpers::toDecStrEther(jv);
 
         emit getGasPriceDone(decStr);
         done();
@@ -433,6 +447,7 @@ namespace Etherwall {
         }
 
         const QString price = Helpers::toDecStr(jv);
+
         emit estimateGasDone(price);
 
         done();
@@ -465,6 +480,18 @@ namespace Etherwall {
         getFilterChanges(fFilterID);
     }
 
+    int EtherIPC::parseVersionNum() const {
+        QRegExp reg("^Geth/v([0-9]+)\\.([0-9]+)\\.([0-9]+).*$");
+        reg.indexIn(fClientVersion);
+        if ( reg.captureCount() == 3 ) try { // it's geth
+            return reg.cap(1).toInt() * 100000 + reg.cap(2).toInt() * 1000 + reg.cap(3).toInt();
+        } catch ( ... ) {
+            return 0;
+        }
+
+        return 0;
+    }
+
     void EtherIPC::getFilterChanges(int filterID) {
         QJsonArray params;
         BigInt::Vin vinVal(filterID);
@@ -472,6 +499,12 @@ namespace Etherwall {
         params.append(strHex);
 
         if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, filterID)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::getClientVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
             return bail();
         }
     }
@@ -565,6 +598,31 @@ namespace Etherwall {
         done();
     }
 
+    void EtherIPC::handleGetClientVersion() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        fClientVersion = jv.toString();
+
+        const int vn = parseVersionNum();
+        if ( vn > 0 && vn < 100002 ) {
+            fError = "Geth version 1.0.1 and older contain a critical bug! Please update immediately.";
+            emit error();
+        }
+
+        emit clientVersionChanged(fClientVersion);
+        done();
+    }
+
+    void EtherIPC::abort() {
+        fAborted = true;
+        bail();
+        fSocket.abort();
+        emit connectionStateChanged();
+    }
+
     void EtherIPC::bail(bool soft) {
         qDebug() << "BAIL[" << soft << "]: " << fError << "\n";
 
@@ -654,7 +712,6 @@ namespace Etherwall {
     bool EtherIPC::readReply(QJsonValue& result) {
         const QString data = fReadBuffer;
         fReadBuffer.clear();
-        //qDebug() << "recv: " << data << "\n";
 
         if ( data.isEmpty() ) {
             fError = "Error on socket read: " + fSocket.errorString();
@@ -727,6 +784,10 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
+        if ( fAborted ) {
+            return; // ignore
+        }
+
         fError = fSocket.errorString();
         fCode = err;
     }
@@ -803,6 +864,10 @@ namespace Etherwall {
             }
         case GetBlock: {
                 handleGetBlock();
+                break;
+            }
+        case GetClientVersion: {
+                handleGetClientVersion();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

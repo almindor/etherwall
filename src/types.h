@@ -59,7 +59,8 @@ namespace Etherwall {
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,
-        GetBlock
+        GetBlock,
+        GetClientVersion
     };
 
     enum AccountRoles {
@@ -131,6 +132,7 @@ namespace Etherwall {
     class Helpers {
     public:
         static const QString toDecStr(const QJsonValue &jv);
+        static const QString toDecStrEther(const QJsonValue &jv);
         static const QString toDecStr(quint64 val);
         static const QString toHexStr(quint64 val);
         static const QString toHexWeiStr(double val);

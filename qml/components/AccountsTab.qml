@@ -57,7 +57,7 @@ Tab {
 
         PasswordDialog {
             id: accountNewDialog
-            //standardButtons: StandardButton.Save | StandardButton.Cancel
+            acceptEmpty: false
 
             onAccepted: {
                 accountModel.newAccount(password)

@@ -233,7 +233,7 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = Helpers::toDecStr(jv);
+        const QString decStr = Helpers::toDecStrEther(jv);
         const int index = fActiveRequest.getIndex();
         fAccountList[index].setBalance(decStr);
 
@@ -408,7 +408,7 @@ namespace Etherwall {
             return bail();
         }
 
-        const QString decStr = Helpers::toDecStr(jv);
+        const QString decStr = Helpers::toDecStrEther(jv);
 
         emit getGasPriceDone(decStr);
         done();
@@ -439,6 +439,7 @@ namespace Etherwall {
         }
 
         const QString price = Helpers::toDecStr(jv);
+
         emit estimateGasDone(price);
 
         done();

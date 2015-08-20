@@ -209,7 +209,7 @@ Tab {
                 }
             }
 
-            /* -- estimate is broken in geth 1.0.1- must wait for later release
+            // -- estimate is broken in geth 1.0.1- must wait for later release
             Row {
                 Layout.columnSpan: 2
                 Layout.minimumWidth: 450
@@ -240,7 +240,7 @@ Tab {
 
                     text: Number(valueField.text) > 0 ? Number(valueField.text) + Number(transactionModel.gasPrice) * Number(transactionModel.gasEstimate) : ""
                 }
-            }*/
+            }
 
         }
 

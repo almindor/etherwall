@@ -124,6 +124,12 @@ namespace Etherwall {
         const BigInt::Vin bv(hexStr, 16);
         QString decStr = QString(bv.toStrDec().data());
 
+        return decStr;
+    }
+
+    const QString Helpers::toDecStrEther(const QJsonValue& jv) {
+        QString decStr = toDecStr(jv);
+
         int dsl = decStr.length();
         if ( dsl <= 18 ) {
             decStr.prepend(QString(19 - dsl, '0'));

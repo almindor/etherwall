@@ -132,9 +132,8 @@ namespace Etherwall {
     }
 
     void TransactionModel::estimateGasDone(const QString& num) {
-        qDebug() << "gas estimate done: " << num << "\n";
         fGasEstimate = num;
-        emit gasPriceChanged(num);
+        emit gasEstimateChanged(num);
     }
 
     void TransactionModel::sendTransaction(const QString& from, const QString& to, double value, double gas) {

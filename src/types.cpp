@@ -75,7 +75,7 @@ namespace Etherwall {
         fBlockHash = source.value("blockHash").toString("invalid");
         fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
         fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
-        fValue = Helpers::toDecStr(source.value("value"));
+        fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStr(source.value("gasPrice"));
         fInput = source.value("gasPrice").toString("invalid");

@@ -434,7 +434,7 @@ namespace Etherwall {
         o["value"] = Helpers::toHexWeiStr(value);
         o["gas"] = Helpers::toHexStr(90000);
         params.append(o);
-        params.append("latest");
+        params.append(QString("latest"));
         if ( !queueRequest(RequestIPC(EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }

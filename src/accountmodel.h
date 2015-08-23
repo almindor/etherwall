@@ -28,6 +28,7 @@
 #include <QJsonValue>
 #include "types.h"
 #include "etheripc.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 

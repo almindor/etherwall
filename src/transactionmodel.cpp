@@ -143,8 +143,8 @@ namespace Etherwall {
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
         fQueuedTransaction.setHash(hash);
-        qDebug() << "sent hash: " << hash << "\n";
         addTransaction(fQueuedTransaction);
+        EtherLog::logMsg("Transaction sent hash: " + hash);
     }
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {

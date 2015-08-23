@@ -24,6 +24,34 @@
 
 namespace Etherwall {
 
+// ***************************** LogInfo ***************************** //
+
+    LogInfo::LogInfo(const QString& info, LogSeverity sev) : fMsg(info), fDate(QDateTime::currentDateTime()), fSeverity(sev)
+    {
+
+    }
+
+    const QVariant LogInfo::value(int role) const {
+        switch ( role ) {
+            case MsgRole: return QVariant(fMsg);
+            case DateRole: return QVariant(fDate);
+            case SeverityRole: return QVariant(getSeverityString());
+        }
+
+        return QVariant();
+    }
+
+    const QString LogInfo::getSeverityString() const {
+        switch ( fSeverity ) {
+            case LS_Debug: return QString("Debug");
+            case LS_Info: return QString("Info");
+            case LS_Warning: return QString("Warning");
+            case LS_Error: return QString("Error");
+        }
+
+        return QString("Unknown");
+    }
+
 // ***************************** TransactionInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
@@ -172,3 +200,4 @@ namespace Etherwall {
     }
 
 }
+

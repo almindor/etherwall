@@ -78,6 +78,8 @@ ApplicationWindow {
         TransactionsTab {}
 
         SettingsTab {}
+
+        LogTab {}
     }
 
     statusBar: StatusBar {

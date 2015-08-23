@@ -27,6 +27,7 @@
 #include "types.h"
 #include "etheripc.h"
 #include "accountmodel.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 

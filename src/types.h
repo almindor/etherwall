@@ -28,6 +28,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QDateTime>
 #include "bigint.h"
 
 namespace Etherwall {
@@ -41,6 +42,34 @@ namespace Etherwall {
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/geth.ipc";
     #endif
 #endif
+
+    enum LogRoles {
+        MsgRole = Qt::UserRole + 1,
+        DateRole,
+        SeverityRole
+    };
+
+    enum LogSeverity {
+        LS_Debug,
+        LS_Info,
+        LS_Warning,
+        LS_Error
+    };
+
+    class LogInfo
+    {
+    public:
+        LogInfo(const QString& info, LogSeverity sev);
+        const QVariant value(int role) const;
+    private:
+        QString fMsg;
+        QDateTime fDate;
+        LogSeverity fSeverity;
+
+        const QString getSeverityString() const;
+    };
+
+    typedef QList<LogInfo> LogList;
 
     enum RequestTypes {
         NoRequest,

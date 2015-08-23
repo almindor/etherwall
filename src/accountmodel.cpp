@@ -88,7 +88,7 @@ namespace Etherwall {
             const QString hash = fAccountList.at(index).value(HashRole).toString();
             fIpc.deleteAccount(hash, pw, index);
         } else {
-            qDebug() << "Invalid account selection for delete";
+            EtherLog::logMsg("Invalid account selection for delete", LS_Error);
         }
     }
 
@@ -97,7 +97,7 @@ namespace Etherwall {
             const QString hash = fAccountList.at(index).value(HashRole).toString();
             fIpc.unlockAccount(hash, pw, duration, index);
         } else {
-            qDebug() << "Invalid account selection for unlock";
+            EtherLog::logMsg("Invalid account selection for unlock");
         }
     }
 
@@ -126,8 +126,9 @@ namespace Etherwall {
             beginInsertRows(QModelIndex(), index, index);
             fAccountList.append(AccountInfo(hash, "0.00000000000000000", 0));
             endInsertRows();
+            EtherLog::logMsg("New account created");
         } else {
-            qDebug() << "Account create failure";
+            EtherLog::logMsg("Account create failure");
         }
     }
 
@@ -136,8 +137,9 @@ namespace Etherwall {
             beginRemoveRows(QModelIndex(), index, index);
             fAccountList.removeAt(index);
             endRemoveRows();
+            EtherLog::logMsg("Account deleted");
         } else {
-            qDebug() << "Account delete failure";
+            EtherLog::logMsg("Account delete failure");
         }
     }
 
@@ -150,8 +152,9 @@ namespace Etherwall {
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
             emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
             emit accountUnlocked(index);
+            EtherLog::logMsg("Account unlocked");
         } else {
-            qDebug() << "Account unlock failure";
+            EtherLog::logMsg("Account unlock failure");
         }
     }
 

@@ -12,7 +12,8 @@ SOURCES += src/main.cpp \
     src/settings.cpp \
     src/bigint.cpp \
     src/transactionmodel.cpp \
-    src/clipboard.cpp
+    src/clipboard.cpp \
+    src/etherlog.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -29,7 +30,8 @@ HEADERS += \
     src/settings.h \
     src/bigint.h \
     src/transactionmodel.h \
-    src/clipboard.h
+    src/clipboard.h \
+    src/etherlog.h
 
 macx {
     ICON=qml/images/icon.icns

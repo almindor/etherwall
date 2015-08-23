@@ -31,6 +31,7 @@
 #include <QTimer>
 #include <QThread>
 #include "types.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 
@@ -165,6 +166,7 @@ namespace Etherwall {
         quint64 peerCount() const;
         void abort();
         void bail(bool soft = false);
+        void setError(const QString& error);
         void errorOut();
         void done();
         void newFilter();

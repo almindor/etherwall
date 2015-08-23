@@ -55,7 +55,7 @@ namespace Etherwall {
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
-        void sendTransaction(const QString& from, const QString& to, double value, double gas = -1.0);
+        void sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();

@@ -142,7 +142,7 @@ Tab {
                             return result
                         }
 
-                        var txt = valueField.text.trim() || ""
+                        result.txtVal = valueField.text.trim() || ""
                         result.value = txt.length > 0 ? Number(txt) : NaN
                         if ( isNaN(result.value) || result.value <= 0.0 ) {
                             result.error = qsTr("Invalid value")
@@ -183,7 +183,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.value)
+                        transactionModel.sendTransaction(result.from, result.to, result.txtVal)
                     }
                 }
             }

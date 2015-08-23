@@ -330,22 +330,17 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, double value, double gas) {
-        if ( value <= 0 ) {
-            setError("Invalid transaction value");
-            return errorOut(); // softbail
-        }
-
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gasStr) {
         QJsonArray params;
-        const QString valHex = Helpers::toHexWeiStr(value);
-        const QString gasHex = Helpers::toHexWeiStr(value);
-        EtherLog::logMsg(QString("Trans Value: ") + QString::number(value) + QString(" HexValue: ") + valHex);
+        const QString valHex = Helpers::toHexWeiStr(valStr);
+        EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
 
         QJsonObject p;
         p["from"] = from;
         p["to"] = to;
         p["value"] = valHex;
-        if ( gas > 0 ) {
+        if ( !gasStr.isEmpty() ) {
+            const QString gasHex = Helpers::toHexWeiStr(gasStr);
             p["gas"] = gasHex;
         }
 

@@ -21,6 +21,7 @@
 #include "types.h"
 #include <QSettings>
 #include <QDateTime>
+#include <QDebug>
 
 namespace Etherwall {
 
@@ -136,10 +137,10 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, double value, double gas) {
+    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fSender = from;
         fReceiver = to;
-        fValue = QString::number(value);
+        fValue = value;
         if ( gas > 0 ) {
             fGas = gas;
         }
@@ -174,6 +175,23 @@ namespace Etherwall {
 
     const QString Helpers::toHexStr(quint64 val) {
         BigInt::Vin vinVal(val);
+        return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QString Helpers::toHexWeiStr(const QString& val) {
+        QString decStr = val;
+
+        int n = decStr.indexOf('.');
+        int diff = 19 - (decStr.length() - n);
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+        decStr.replace(".", "");
+
+        BigInt::Vin vinVal(decStr.toUtf8().data(), 10);
+        QString res = QString(vinVal.toStr0xHex().data());
+
         return QString(vinVal.toStr0xHex().data());
     }
 

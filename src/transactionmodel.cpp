@@ -136,7 +136,7 @@ namespace Etherwall {
         emit gasEstimateChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& from, const QString& to, double value, double gas) {
+    void TransactionModel::sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fIpc.sendTransaction(from, to, value, gas);
         fQueuedTransaction.init(from, to, value, gas);
     }

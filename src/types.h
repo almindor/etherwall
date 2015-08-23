@@ -141,7 +141,7 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBlockNumber(quint64 num);
         void setHash(const QString& hash);
-        void init(const QString& from, const QString& to, double value, double gas = -1.0);
+        void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
     private:
         QString fHash;
         quint64 fNonce;
@@ -164,6 +164,7 @@ namespace Etherwall {
         static const QString toDecStrEther(const QJsonValue &jv);
         static const QString toDecStr(quint64 val);
         static const QString toHexStr(quint64 val);
+        static const QString toHexWeiStr(const QString& val);
         static const QString toHexWeiStr(double val);
         static const QJsonArray toQJsonArray(const AccountList& list);
         static quint64 toQUInt64(const QJsonValue& jv);

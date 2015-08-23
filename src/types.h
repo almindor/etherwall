@@ -165,7 +165,7 @@ namespace Etherwall {
         static const QString toDecStr(quint64 val);
         static const QString toHexStr(quint64 val);
         static const QString toHexWeiStr(const QString& val);
-        static const QString toHexWeiStr(double val);
+        static const QString toHexWeiStr(quint64 val);
         static const QJsonArray toQJsonArray(const AccountList& list);
         static quint64 toQUInt64(const QJsonValue& jv);
     };

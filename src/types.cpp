@@ -106,7 +106,7 @@ namespace Etherwall {
         fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
         fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
-        fGasPrice = Helpers::toDecStr(source.value("gasPrice"));
+        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("gasPrice").toString("invalid");
 
     }
@@ -141,7 +141,7 @@ namespace Etherwall {
         fSender = from;
         fReceiver = to;
         fValue = value;
-        if ( gas > 0 ) {
+        if ( !gas.isEmpty() ) {
             fGas = gas;
         }
     }
@@ -195,8 +195,8 @@ namespace Etherwall {
         return QString(vinVal.toStr0xHex().data());
     }
 
-    const QString Helpers::toHexWeiStr(double val) {
-        BigInt::Vin vinVal = BigInt::Vin::fromDouble(val * 1000000000000000000);
+    const QString Helpers::toHexWeiStr(quint64 val) {
+        BigInt::Vin vinVal(val);
         return QString(vinVal.toStr0xHex().data());
     }
 

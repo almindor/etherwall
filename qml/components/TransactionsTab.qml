@@ -143,7 +143,7 @@ Tab {
                         }
 
                         result.txtVal = valueField.text.trim() || ""
-                        result.value = txt.length > 0 ? Number(txt) : NaN
+                        result.value = result.txtVal.length > 0 ? Number(result.txtVal) : NaN
                         if ( isNaN(result.value) || result.value <= 0.0 ) {
                             result.error = qsTr("Invalid value")
                             return result

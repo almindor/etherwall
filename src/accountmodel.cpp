@@ -240,4 +240,15 @@ namespace Etherwall {
         return getAccountHash(fSelectedAccountRow);
     }
 
+    const QJsonArray AccountModel::getAccountsJsonArray() const {
+        QJsonArray result;
+
+        foreach ( const AccountInfo ai, fAccountList ) {
+            const QString hash = ai.value(HashRole).toString();
+            result.append(hash);
+        }
+
+        return result;
+    }
+
 }

@@ -140,6 +140,7 @@ namespace Etherwall {
     public:
         TransactionInfo();
         TransactionInfo(const QJsonObject& source);
+        TransactionInfo(const QString& hash, quint64 blockNum); // for storing from server reply
 
         const QVariant value(const int role) const;
         void setBlockNumber(quint64 num);

@@ -22,12 +22,14 @@
 #include <QDebug>
 #include <QJsonArray>
 #include <QJsonValue>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QSettings>
 
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fGasEstimate("unknown")
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
@@ -37,6 +39,8 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
+
+        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadHistoryDone(QNetworkReply*)));
     }
 
     quint64 TransactionModel::getBlockNumber() const {
@@ -109,6 +113,7 @@ namespace Etherwall {
 
     void TransactionModel::getAccountsDone(const AccountList& list __attribute__((unused))) {
         refresh();
+        loadHistory();
     }
 
     void TransactionModel::getBlockNumberDone(quint64 num) {
@@ -277,7 +282,63 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistory() {
+        // get historical transactions from etherdata
+        QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QJsonObject objectJson;
+        objectJson["accounts"] = fAccountModel.getAccountsJsonArray();
+        const QByteArray data = QJsonDocument(objectJson).toJson();
 
+        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+
+        fNetManager.post(request, data);
+    }
+
+    void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
+        if ( reply == NULL ) {
+            return EtherLog::logMsg("Undefined history reply", LS_Error);
+        }
+
+        const QByteArray data = reply->readAll();
+        EtherLog::logMsg("HTTP Post reply: " + data, LS_Debug);
+
+        QJsonParseError parseError;
+        const QJsonDocument resDoc = QJsonDocument::fromJson(data, &parseError);
+
+        if ( parseError.error != QJsonParseError::NoError ) {
+            return EtherLog::logMsg("Response parse error: " + parseError.errorString(), LS_Error);
+        }
+
+        const QJsonObject resObj = resDoc.object();
+        const bool success = resObj.value("success").toBool();
+
+        if ( !success ) {
+            const QString error = resObj.value("error").toString("unknown error");
+            return EtherLog::logMsg("Response error: " + error, LS_Error);
+        }
+        const QJsonArray result = resObj.value("result").toArray();
+
+        int stored = 0;
+        foreach ( const QJsonValue jv, result ) {
+            const QJsonObject jo = jv.toObject();
+            const QString hash = jo.value("hash").toString("bogus");
+            const QString blockNumStr = jo.value("blocknumber").toString("0");
+
+            if ( hash == "bogus" || blockNumStr == "0" ) {
+                return EtherLog::logMsg("Response hash or blocknumber missing", LS_Error);
+            }
+
+            const quint64 blockNum = blockNumStr.toULongLong();
+            const TransactionInfo trans(hash, blockNum);
+            storeTransaction(trans);
+            stored++;
+        }
+
+        EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
+
+        reply->close();
+
+        refresh();
     }
 
 }

@@ -130,7 +130,10 @@ namespace Etherwall {
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("gasPrice").toString("invalid");
+    }
 
+    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
+    {
     }
 
     const QVariant TransactionInfo::value(const int role) const {

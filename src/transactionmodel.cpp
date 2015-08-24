@@ -260,6 +260,22 @@ namespace Etherwall {
         return Helpers::weiStrToEtherStr(wei);
     }
 
+    const QString TransactionModel::getSender(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(SenderRole).toString();
+        }
+
+        return QString();
+    }
+
+    const QString TransactionModel::getReceiver(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(ReceiverRole).toString();
+        }
+
+        return QString();
+    }
+
     void TransactionModel::loadHistory() {
 
     }

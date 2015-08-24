@@ -58,9 +58,10 @@ namespace Etherwall {
         void unlockAccountDone(bool result, int index);
         void accountChanged(const AccountInfo& info);
         void newBlock(const QJsonObject& block);
+        void checkAccountLocks();
     signals:
         void accountSelectionChanged(int);
-        void accountUnlocked(int);
+        void accountLockedChanged(int);
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;

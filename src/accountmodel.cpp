@@ -106,7 +106,7 @@ namespace Etherwall {
             return true;
         }
 
-        return fAccountList.at(index).value(LockedRole).toBool();
+        return fAccountList.at(index).isLocked();
     }
 
     const QString AccountModel::getAccountHash(int index) const {
@@ -148,13 +148,28 @@ namespace Etherwall {
             QSettings settings;
             qint64 diff = settings.value("/ipc/accounts/lockduration", 300).toInt() * 1000;
 
+            QTimer::singleShot(diff + 200, this, SLOT(checkAccountLocks()));
             fAccountList[index].unlock(QDateTime::currentMSecsSinceEpoch() + diff);
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
             emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
-            emit accountUnlocked(index);
+            emit accountLockedChanged(index);
+
             EtherLog::logMsg("Account unlocked");
         } else {
             EtherLog::logMsg("Account unlock failure");
+        }
+    }
+
+    void AccountModel::checkAccountLocks() {
+        int index = 0;
+        foreach ( AccountInfo i, fAccountList ) {
+            if ( i.value(LockedRole).toBool() != i.isLocked(true) ) {
+                i.lock();
+                const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
+                emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
+                emit accountLockedChanged(index);
+            }
+            index++;
         }
     }
 

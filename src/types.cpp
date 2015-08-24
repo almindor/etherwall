@@ -181,8 +181,11 @@ namespace Etherwall {
     const QString Helpers::toHexWeiStr(const QString& val) {
         QString decStr = val;
 
+        int diff = 18;
         int n = decStr.indexOf('.');
-        int diff = 19 - (decStr.length() - n);
+        if ( n >= 0 ) {
+            diff = 19 - (decStr.length() - n);
+        }
 
         for ( int i = 0; i < diff; i++ ) {
             decStr.append('0');

@@ -31,6 +31,7 @@
 #include <QTimer>
 #include <QThread>
 #include "types.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 
@@ -92,10 +93,10 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, double value, double gas = -1);
+        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas = QString());
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
-        void estimateGas(const QString& from, const QString& to, double value);
+        void estimateGas(const QString& from, const QString& to, const QString& value);
         void getTransactionByHash(const QString& hash);
         void getBlockByHash(const QString& hash);
         void getBlockByNumber(quint64 blockNum);
@@ -165,6 +166,7 @@ namespace Etherwall {
         quint64 peerCount() const;
         void abort();
         void bail(bool soft = false);
+        void setError(const QString& error);
         void errorOut();
         void done();
         void newFilter();

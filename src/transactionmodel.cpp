@@ -136,15 +136,15 @@ namespace Etherwall {
         emit gasEstimateChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& from, const QString& to, double value, double gas) {
+    void TransactionModel::sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fIpc.sendTransaction(from, to, value, gas);
         fQueuedTransaction.init(from, to, value, gas);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
         fQueuedTransaction.setHash(hash);
-        qDebug() << "sent hash: " << hash << "\n";
         addTransaction(fQueuedTransaction);
+        EtherLog::logMsg("Transaction sent hash: " + hash);
     }
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {
@@ -244,6 +244,20 @@ namespace Etherwall {
             }
         }
         settings.endGroup();
+    }
+
+    const QString TransactionModel::estimateTotal(const QString& value, const QString& gas) const {
+        BigInt::Rossi valRossi = Helpers::etherStrToRossi(value);
+        BigInt::Rossi valGas = Helpers::decStrToRossi(gas);
+        BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(fGasPrice);
+
+        if ( valRossi == BigInt::Rossi(0) ) {
+            return "0";
+        }
+
+        const QString wei = QString((valRossi + valGas * valGasPrice).toStrDec().data());
+
+        return Helpers::weiStrToEtherStr(wei);
     }
 
     void TransactionModel::loadHistory() {

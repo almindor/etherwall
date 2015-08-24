@@ -1,0 +1,6 @@
+ether 4 to weihex: 0x3782dace9d900000
+ether 213987325409 to weihex: 0x2b36e2abaa3d84c12d2e40000
+ether 0 to weiHex: 0x0
+ether 0.1 to weiHex: 0x16345785d8a0000
+ether 0.000000000000000001 to weiHex: 0x1
+ether 8.3 to weiHex: 0x732f860653be0000

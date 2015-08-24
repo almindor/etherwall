@@ -21,8 +21,37 @@
 #include "types.h"
 #include <QSettings>
 #include <QDateTime>
+#include <QDebug>
 
 namespace Etherwall {
+
+// ***************************** LogInfo ***************************** //
+
+    LogInfo::LogInfo(const QString& info, LogSeverity sev) : fMsg(info), fDate(QDateTime::currentDateTime()), fSeverity(sev)
+    {
+
+    }
+
+    const QVariant LogInfo::value(int role) const {
+        switch ( role ) {
+            case MsgRole: return QVariant(fMsg);
+            case DateRole: return QVariant(fDate);
+            case SeverityRole: return QVariant(getSeverityString());
+        }
+
+        return QVariant();
+    }
+
+    const QString LogInfo::getSeverityString() const {
+        switch ( fSeverity ) {
+            case LS_Debug: return QString("Debug");
+            case LS_Info: return QString("Info");
+            case LS_Warning: return QString("Warning");
+            case LS_Error: return QString("Error");
+        }
+
+        return QString("Unknown");
+    }
 
 // ***************************** TransactionInfo ***************************** //
 
@@ -34,10 +63,10 @@ namespace Etherwall {
     const QVariant AccountInfo::value(const int role) const {
         switch ( role ) {
         case HashRole: return QVariant(fHash);
-        case BalanceRole: return QVariant(fBalance.toDouble());
+        case BalanceRole: return QVariant(fBalance);
         case TransCountRole: return QVariant(fTransCount);
         case LockedRole: return QVariant(QSettings().value("accounts/" + fHash, 0).toLongLong() < QDateTime::currentMSecsSinceEpoch());
-        case SummaryRole: return QVariant(fHash + (fBalance.toDouble() > 0 ? " [> 0 Ether]" : " [empty]") );
+        case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
         }
 
         return QVariant();
@@ -77,7 +106,7 @@ namespace Etherwall {
         fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
         fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
-        fGasPrice = Helpers::toDecStr(source.value("gasPrice"));
+        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("gasPrice").toString("invalid");
 
     }
@@ -88,7 +117,7 @@ namespace Etherwall {
             case NonceRole: return QVariant(fNonce);
             case SenderRole: return QVariant(fSender);
             case ReceiverRole: return QVariant(fReceiver);
-            case ValueRole: return QVariant(fValue.toDouble());
+            case ValueRole: return QVariant(fValue);
             case BlockNumberRole: return QVariant(fBlockNumber);
             case BlockHashRole: return QVariant(fBlockHash);
             case TransactionIndexRole: return QVariant(fTransactionIndex);
@@ -108,11 +137,11 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, double value, double gas) {
+    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fSender = from;
         fReceiver = to;
-        fValue = QString::number(value);
-        if ( gas > 0 ) {
+        fValue = Helpers::formatEtherStr(value);
+        if ( !gas.isEmpty() ) {
             fGas = gas;
         }
     }
@@ -149,9 +178,89 @@ namespace Etherwall {
         return QString(vinVal.toStr0xHex().data());
     }
 
-    const QString Helpers::toHexWeiStr(double val) {
-        BigInt::Vin vinVal = BigInt::Vin::fromDouble(val * 1000000000000000000);
+    const QString Helpers::toHexWeiStr(const QString& val) {
+        QString decStr = val;
+
+        int diff = 18;
+        int n = decStr.indexOf('.');
+        if ( n >= 0 ) {
+            decStr.replace(".", "");
+            diff = 18 - (decStr.length() - n);
+        }
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+
+        BigInt::Vin vinVal(decStr.toUtf8().data(), 10);
+        QString res = QString(vinVal.toStr0xHex().data());
+
         return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QString Helpers::toHexWeiStr(quint64 val) {
+        BigInt::Vin vinVal(val);
+        return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QString Helpers::decStrToHexStr(const QString &dec) {
+        BigInt::Vin vinVal(dec.toStdString(), 10);
+        return QString(vinVal.toStrDec().data());
+    }
+
+    const QString Helpers::weiStrToEtherStr(const QString& wei) {
+        QString weiStr = wei;
+        const int l = weiStr.length();
+        if ( l < 18 ) {
+            for ( int i = 0; i < 18 - l; i++ ) {
+                weiStr.insert(0, '0');
+            }
+        }
+
+        QString result = wei;
+        result.insert(weiStr.length() - 18, '.');
+        return result;
+    }
+
+    BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {
+        return BigInt::Rossi(dec.toStdString(), 10);
+    }
+
+    BigInt::Rossi Helpers::etherStrToRossi(const QString& dec) {
+        QString decStr = dec;
+
+        int diff = 18;
+        int n = decStr.indexOf('.');
+        if ( n >= 0 ) {
+            decStr.replace(".", "");
+            diff = 18 - (decStr.length() - n);
+        }
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+
+        return decStrToRossi(decStr);
+    }
+
+    const QString Helpers::formatEtherStr(const QString& ether) {
+        QString decStr = ether;
+
+        int n = decStr.indexOf('.');
+        int diff;
+        if ( n < 0 ) {
+            decStr.append('.');
+            n = decStr.indexOf('.');
+            diff = 18;
+        } else {
+            diff = 18 - (decStr.length() - n - 1);
+        }
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+
+        return decStr;
     }
 
     const QJsonArray Helpers::toQJsonArray(const AccountList& list) {
@@ -172,3 +281,4 @@ namespace Etherwall {
     }
 
 }
+

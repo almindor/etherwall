@@ -28,6 +28,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QJsonArray>
+#include <QDateTime>
 #include "bigint.h"
 
 namespace Etherwall {
@@ -41,6 +42,34 @@ namespace Etherwall {
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/geth.ipc";
     #endif
 #endif
+
+    enum LogRoles {
+        MsgRole = Qt::UserRole + 1,
+        DateRole,
+        SeverityRole
+    };
+
+    enum LogSeverity {
+        LS_Debug,
+        LS_Info,
+        LS_Warning,
+        LS_Error
+    };
+
+    class LogInfo
+    {
+    public:
+        LogInfo(const QString& info, LogSeverity sev);
+        const QVariant value(int role) const;
+    private:
+        QString fMsg;
+        QDateTime fDate;
+        LogSeverity fSeverity;
+
+        const QString getSeverityString() const;
+    };
+
+    typedef QList<LogInfo> LogList;
 
     enum RequestTypes {
         NoRequest,
@@ -112,7 +141,7 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBlockNumber(quint64 num);
         void setHash(const QString& hash);
-        void init(const QString& from, const QString& to, double value, double gas = -1.0);
+        void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
     private:
         QString fHash;
         quint64 fNonce;
@@ -135,7 +164,13 @@ namespace Etherwall {
         static const QString toDecStrEther(const QJsonValue &jv);
         static const QString toDecStr(quint64 val);
         static const QString toHexStr(quint64 val);
-        static const QString toHexWeiStr(double val);
+        static const QString toHexWeiStr(const QString& val);
+        static const QString toHexWeiStr(quint64 val);
+        static const QString decStrToHexStr(const QString& dec);
+        static const QString weiStrToEtherStr(const QString& wei);
+        static BigInt::Rossi decStrToRossi(const QString& dec);
+        static BigInt::Rossi etherStrToRossi(const QString& dec);
+        static const QString formatEtherStr(const QString& ether);
         static const QJsonArray toQJsonArray(const AccountList& list);
         static quint64 toQUInt64(const QJsonValue& jv);
     };

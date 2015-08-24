@@ -24,6 +24,7 @@
 #include <QIcon>
 #include <QPixmap>
 #include <QDebug>
+#include "etherlog.h"
 #include "settings.h"
 #include "clipboard.h"
 #include "accountmodel.h"
@@ -38,11 +39,12 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdiene");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("0.8.1");
+    QCoreApplication::setApplicationVersion("0.9.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     Settings settings;
     ClipboardAdapter clipboard;
+    EtherLog log;
     EtherIPC ipc;
 
     const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
@@ -61,8 +63,12 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
+    engine.rootContext()->setContextProperty("log", &log);
+
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
+
+    log.log("Etherwall started");
 
     ipc.connectToServer(ipcPath);
 

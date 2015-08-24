@@ -131,11 +131,13 @@ namespace Etherwall {
         emit busyChanged(getBusy());
         fPath = path;
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
-            fError = "Already connected";
+            setError("Already connected");
             return bail();
         }
 
         fSocket.connectToServer(path);
+        EtherLog::logMsg("Connecting to IPC socket");
+
         QTimer::singleShot(2000, this, SLOT(connectionTimeout()));
     }
 
@@ -146,6 +148,7 @@ namespace Etherwall {
         getBlockNumber(); // initial
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
 
+        EtherLog::logMsg("Connected to IPC socket");
         emit connectToServerDone();
         emit connectionStateChanged();
     }
@@ -153,7 +156,7 @@ namespace Etherwall {
     void EtherIPC::connectionTimeout() {
         if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
-            fError = tr("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
+            setError("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
             bail();
         }
     }
@@ -327,21 +330,17 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, double value, double gas) {
-        if ( value <= 0 ) {
-            fError = "Invalid transaction value";
-            return errorOut(); // softbail
-        }
-
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas) {
         QJsonArray params;
-        const QString valHex = Helpers::toHexWeiStr(value);
-        const QString gasHex = Helpers::toHexWeiStr(value);
+        const QString valHex = Helpers::toHexWeiStr(valStr);
+        EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
 
         QJsonObject p;
         p["from"] = from;
         p["to"] = to;
         p["value"] = valHex;
-        if ( gas > 0 ) {
+        if ( !gas.isEmpty() ) {
+            const QString gasHex = Helpers::decStrToHexStr(gas);
             p["gas"] = gasHex;
         }
 
@@ -355,7 +354,7 @@ namespace Etherwall {
     void EtherIPC::handleSendTransaction() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            return bail();
+            return bail(true); // softbail
         }
 
         const QString hash = jv.toString();
@@ -394,7 +393,7 @@ namespace Etherwall {
         const bool result = jv.toBool(false);
 
         if ( !result ) {
-            fError = "Unlock account failure";
+            setError("Unlock account failure");
             if ( parseVersionNum() == 100002 ) {
                 fError += " Geth v1.0.2 has a bug with unlocking empty password accounts! Consider updating";
             }
@@ -426,7 +425,7 @@ namespace Etherwall {
         return fPeerCount;
     }
 
-    void EtherIPC::estimateGas(const QString& from, const QString& to, double value) {
+    void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& value) {
         QJsonArray params;
         QJsonObject o;
         o["to"] = to;
@@ -468,7 +467,7 @@ namespace Etherwall {
         fFilterID = strDec.toInt();
 
         if ( fFilterID < 0 ) {
-            fError = "Filter ID invalid";
+            setError("Filter ID invalid");
             return bail();
         }
 
@@ -608,7 +607,7 @@ namespace Etherwall {
 
         const int vn = parseVersionNum();
         if ( vn > 0 && vn < 100002 ) {
-            fError = "Geth version 1.0.1 and older contain a critical bug! Please update immediately.";
+            setError("Geth version 1.0.1 and older contain a critical bug! Please update immediately.");
             emit error();
         }
 
@@ -633,6 +632,11 @@ namespace Etherwall {
 
         fActiveRequest = RequestIPC(None);
         errorOut();
+    }
+
+    void EtherIPC::setError(const QString& error) {
+        fError = error;
+        EtherLog::logMsg(error, LS_Error);
     }
 
     void EtherIPC::errorOut() {
@@ -682,16 +686,17 @@ namespace Etherwall {
         const QString msg(doc.toJson());
 
         if ( !fSocket.isWritable() ) {
-            fError = "Socket not writeable";
+            setError("Socket not writeable");
             fCode = 0;
             return false;
         }
 
         const QByteArray sendBuf = msg.toUtf8();
+        EtherLog::logMsg("Sent: " + msg, LS_Debug);
         const int sent = fSocket.write(sendBuf);
 
         if ( sent <= 0 ) {
-            fError = "Error on socket write: " + fSocket.errorString();
+            setError("Error on socket write: " + fSocket.errorString());
             fCode = 0;
             return false;
         }
@@ -703,6 +708,7 @@ namespace Etherwall {
         fReadBuffer += QString(fSocket.readAll());
 
         if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' && fReadBuffer.count('{') == fReadBuffer.count('}') ) {
+            EtherLog::logMsg("Received: " + fReadBuffer, LS_Debug);
             return true;
         }
 
@@ -714,7 +720,7 @@ namespace Etherwall {
         fReadBuffer.clear();
 
         if ( data.isEmpty() ) {
-            fError = "Error on socket read: " + fSocket.errorString();
+            setError("Error on socket read: " + fSocket.errorString());
             fCode = 0;
             return false;
         }
@@ -724,7 +730,7 @@ namespace Etherwall {
 
         if ( parseError.error != QJsonParseError::NoError ) {
             qDebug() << data << "\n";
-            fError = "Response parse error: " + parseError.errorString();
+            setError("Response parse error: " + parseError.errorString());
             fCode = 0;
             return false;
         }
@@ -733,7 +739,7 @@ namespace Etherwall {
         const int objID = obj["id"].toInt(-1);
 
         if ( objID != fActiveRequest.getCallID() ) { // TODO
-            fError = "Call number mismatch " + QString::number(objID) + " != " + QString::number(fActiveRequest.getCallID());
+            setError("Call number mismatch " + QString::number(objID) + " != " + QString::number(fActiveRequest.getCallID()));
             fCode = 0;
             return false;
         }
@@ -753,7 +759,7 @@ namespace Etherwall {
                 return false;
             }
 
-            fError = "Result object undefined in IPC response";
+            setError("Result object undefined in IPC response");
             qDebug() << data << "\n";
             return false;
         }

@@ -8,6 +8,7 @@
         <file>components/SettingsTab.qml</file>
         <file>components/ConfirmDialog.qml</file>
         <file>components/BaseDialog.qml</file>
+        <file>components/LogTab.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

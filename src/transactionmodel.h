@@ -27,6 +27,7 @@
 #include "types.h"
 #include "etheripc.h"
 #include "accountmodel.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 
@@ -45,6 +46,7 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         int containsTransaction(const QString& hash);
+        Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas) const;
         Q_INVOKABLE void loadHistory();
         double getHistoryProgress() const;
     public slots:
@@ -54,7 +56,7 @@ namespace Etherwall {
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
-        void sendTransaction(const QString& from, const QString& to, double value, double gas = -1.0);
+        void sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();

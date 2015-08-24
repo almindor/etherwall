@@ -44,6 +44,7 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
+        const QJsonArray getAccountsJsonArray() const;
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
@@ -58,9 +59,10 @@ namespace Etherwall {
         void unlockAccountDone(bool result, int index);
         void accountChanged(const AccountInfo& info);
         void newBlock(const QJsonObject& block);
+        void checkAccountLocks();
     signals:
         void accountSelectionChanged(int);
-        void accountUnlocked(int);
+        void accountLockedChanged(int);
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;

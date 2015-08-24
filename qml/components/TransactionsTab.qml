@@ -63,7 +63,7 @@ Tab {
 
                     Connections {
                         target: accountModel
-                        onAccountUnlocked: {
+                        onAccountLockedChanged: {
                             lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
                             transactionWarning.refresh()
                         }
@@ -288,6 +288,52 @@ Tab {
                 width: 70
             }
             model: transactionModel
+
+            Menu {
+                id: rowMenu
+
+                MenuItem {
+                    text: qsTr("Copy Sender")
+                    onTriggered: {
+                        clipboard.setText(transactionModel.getSender(transactionView.currentRow))
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Copy Receiver")
+                    onTriggered: {
+                        clipboard.setText(transactionModel.getReceiver(transactionView.currentRow))
+                    }
+                }
+            }
+
+            rowDelegate: Item {
+                SystemPalette {
+                    id: osPalette
+                    colorGroup: SystemPalette.Active
+                }
+
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                    }
+                    height: parent.height
+                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
+                    MouseArea {
+                        anchors.fill: parent
+                        propagateComposedEvents: true
+                        acceptedButtons: Qt.RightButton
+
+                        onReleased: {
+                            if ( transactionView.currentRow >= 0 ) {
+                                rowMenu.popup()
+                            }
+                        }
+                    }
+                }
+            }
         }
 
     }

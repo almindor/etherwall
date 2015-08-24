@@ -21,6 +21,7 @@
 #include "types.h"
 #include <QSettings>
 #include <QDateTime>
+#include <QTimer>
 #include <QDebug>
 
 namespace Etherwall {
@@ -56,7 +57,7 @@ namespace Etherwall {
 // ***************************** TransactionInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fHash(hash), fBalance(balance), fTransCount(transCount)
+        fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
     {
     }
 
@@ -65,7 +66,7 @@ namespace Etherwall {
         case HashRole: return QVariant(fHash);
         case BalanceRole: return QVariant(fBalance);
         case TransCountRole: return QVariant(fTransCount);
-        case LockedRole: return QVariant(QSettings().value("accounts/" + fHash, 0).toLongLong() < QDateTime::currentMSecsSinceEpoch());
+        case LockedRole: return QVariant(isLocked());
         case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
         }
 
@@ -84,6 +85,27 @@ namespace Etherwall {
         if ( fHash.length() > 0 ) {
             QSettings settings;
             settings.setValue("accounts/" + fHash, toTime);
+            fLocked = false;
+        }
+    }
+
+    void AccountInfo::lock() {
+        fLocked = true;
+    }
+
+    bool AccountInfo::isLocked(bool internal) const {
+        if ( internal ) {
+            return fLocked;
+        }
+
+        if ( fHash.length() > 0 ) {
+            QSettings settings;
+            const qint64 toTime = settings.value("accounts/" + fHash, 0).toLongLong();
+            if ( toTime <= QDateTime::currentMSecsSinceEpoch() ) {
+                return true;
+            }
+
+            return false;
         }
     }
 
@@ -108,7 +130,10 @@ namespace Etherwall {
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("gasPrice").toString("invalid");
+    }
 
+    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
+    {
     }
 
     const QVariant TransactionInfo::value(const int role) const {

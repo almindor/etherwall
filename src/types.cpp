@@ -63,7 +63,7 @@ namespace Etherwall {
     const QVariant AccountInfo::value(const int role) const {
         switch ( role ) {
         case HashRole: return QVariant(fHash);
-        case BalanceRole: return QVariant(fBalance.toDouble());
+        case BalanceRole: return QVariant(fBalance);
         case TransCountRole: return QVariant(fTransCount);
         case LockedRole: return QVariant(QSettings().value("accounts/" + fHash, 0).toLongLong() < QDateTime::currentMSecsSinceEpoch());
         case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
@@ -117,7 +117,7 @@ namespace Etherwall {
             case NonceRole: return QVariant(fNonce);
             case SenderRole: return QVariant(fSender);
             case ReceiverRole: return QVariant(fReceiver);
-            case ValueRole: return QVariant(fValue.toDouble());
+            case ValueRole: return QVariant(fValue);
             case BlockNumberRole: return QVariant(fBlockNumber);
             case BlockHashRole: return QVariant(fBlockHash);
             case TransactionIndexRole: return QVariant(fTransactionIndex);
@@ -140,7 +140,7 @@ namespace Etherwall {
     void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fSender = from;
         fReceiver = to;
-        fValue = value;
+        fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
             fGas = gas;
         }
@@ -241,6 +241,26 @@ namespace Etherwall {
         }
 
         return decStrToRossi(decStr);
+    }
+
+    const QString Helpers::formatEtherStr(const QString& ether) {
+        QString decStr = ether;
+
+        int n = decStr.indexOf('.');
+        int diff;
+        if ( n < 0 ) {
+            decStr.append('.');
+            n = decStr.indexOf('.');
+            diff = 18;
+        } else {
+            diff = 18 - (decStr.length() - n - 1);
+        }
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+
+        return decStr;
     }
 
     const QJsonArray Helpers::toQJsonArray(const AccountList& list) {

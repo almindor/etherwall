@@ -170,6 +170,7 @@ namespace Etherwall {
         static const QString weiStrToEtherStr(const QString& wei);
         static BigInt::Rossi decStrToRossi(const QString& dec);
         static BigInt::Rossi etherStrToRossi(const QString& dec);
+        static const QString formatEtherStr(const QString& ether);
         static const QJsonArray toQJsonArray(const AccountList& list);
         static quint64 toQUInt64(const QJsonValue& jv);
     };

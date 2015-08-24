@@ -354,7 +354,7 @@ namespace Etherwall {
     void EtherIPC::handleSendTransaction() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            return bail();
+            return bail(true); // softbail
         }
 
         const QString hash = jv.toString();

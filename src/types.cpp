@@ -107,6 +107,8 @@ namespace Etherwall {
 
             return false;
         }
+
+        return true;
     }
 
 // ***************************** TransactionInfo ***************************** //

@@ -27,8 +27,6 @@ Tab {
     enabled: !ipc.busy && (ipc.connectionState > 0)
     title: qsTr("Transactions")
 
-    //onActiveChanged:
-
     Column {
         anchors.fill: parent
         anchors.margins: 20
@@ -149,6 +147,8 @@ Tab {
                             return result
                         }
 
+                        result.txtGas = gasField.text
+
                         return result;
                     }
 
@@ -183,7 +183,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal)
+                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
                     }
                 }
             }
@@ -214,31 +214,40 @@ Tab {
                 Layout.columnSpan: 2
                 Layout.minimumWidth: 450
 
-                Button {
-                    text: qsTr("Estimate total")
-                    onClicked: {
-                        var result = transactionWarning.check()
-                        if ( result.error !== null ) {
-                            errorDialog.msg = result.error
-                            errorDialog.open()
-                            return
-                        }
+                Label {
+                    text: qsTr("Gas: ")
+                }
 
-                        ipc.estimateGas(result.from, result.to, result.value)
+                TextField {
+                    id: gasField
+                    width: 80
+                    text: settings.value("gas", "90000")
+                    validator: IntValidator {
+                        bottom: 0
+                        locale: "en_US"
                     }
+
+                    onTextChanged: {
+                        settings.setValue("gas", text)
+                    }
+                }
+
+                Label {
+                    text: qsTr("Total: ")
                 }
 
                 TextField {
                     id: valueTotalField
                     readOnly: true
                     maximumLength: 50
-                    width: 300
+                    width: 280
                     validator: DoubleValidator {
                         bottom: 0.000000000000000001 // should be 1 wei
                         decimals: 18
+                        locale: "en_US"
                     }
 
-                    text: Number(valueField.text) > 0 ? Number(valueField.text) + Number(transactionModel.gasPrice) * Number(transactionModel.gasEstimate) : ""
+                    text: transactionModel.estimateTotal(valueField.text, gasField.text)
                 }
             }
 

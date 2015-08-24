@@ -340,7 +340,7 @@ namespace Etherwall {
         p["to"] = to;
         p["value"] = valHex;
         if ( !gas.isEmpty() ) {
-            const QString gasHex = Helpers::toHexWeiStr(gas);
+            const QString gasHex = Helpers::decStrToHexStr(gas);
             p["gas"] = gasHex;
         }
 

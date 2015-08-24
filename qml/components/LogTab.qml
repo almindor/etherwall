@@ -33,6 +33,10 @@ Tab {
         Row {
             id: logControlRow
 
+            Label {
+                text: qsTr("Log level: ")
+            }
+
             ComboBox {
                 id: logLevelCombo
                 currentIndex: log.logLevel
@@ -79,6 +83,29 @@ Tab {
                 width: 600
             }
             model: log
+
+            rowDelegate: Item {
+                height: 70
+                SystemPalette {
+                    id: osPalette
+                    colorGroup: SystemPalette.Active
+                }
+
+                Rectangle {
+                    anchors {
+                        left: parent.left
+                        right: parent.right
+                        verticalCenter: parent.verticalCenter
+                    }
+                    height: parent.height
+                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
+                }
+            }
+
+            itemDelegate: TextArea {
+                readOnly: true
+                text: styleData.value
+            }
         }
     }
 }

@@ -66,7 +66,7 @@ namespace Etherwall {
         case BalanceRole: return QVariant(fBalance.toDouble());
         case TransCountRole: return QVariant(fTransCount);
         case LockedRole: return QVariant(QSettings().value("accounts/" + fHash, 0).toLongLong() < QDateTime::currentMSecsSinceEpoch());
-        case SummaryRole: return QVariant(fHash + (fBalance.toDouble() > 0 ? " [> 0 Ether]" : " [empty]") );
+        case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
         }
 
         return QVariant();
@@ -184,13 +184,13 @@ namespace Etherwall {
         int diff = 18;
         int n = decStr.indexOf('.');
         if ( n >= 0 ) {
-            diff = 19 - (decStr.length() - n);
+            decStr.replace(".", "");
+            diff = 18 - (decStr.length() - n);
         }
 
         for ( int i = 0; i < diff; i++ ) {
             decStr.append('0');
         }
-        decStr.replace(".", "");
 
         BigInt::Vin vinVal(decStr.toUtf8().data(), 10);
         QString res = QString(vinVal.toStr0xHex().data());
@@ -201,6 +201,46 @@ namespace Etherwall {
     const QString Helpers::toHexWeiStr(quint64 val) {
         BigInt::Vin vinVal(val);
         return QString(vinVal.toStr0xHex().data());
+    }
+
+    const QString Helpers::decStrToHexStr(const QString &dec) {
+        BigInt::Vin vinVal(dec.toStdString(), 10);
+        return QString(vinVal.toStrDec().data());
+    }
+
+    const QString Helpers::weiStrToEtherStr(const QString& wei) {
+        QString weiStr = wei;
+        const int l = weiStr.length();
+        if ( l < 18 ) {
+            for ( int i = 0; i < 18 - l; i++ ) {
+                weiStr.insert(0, '0');
+            }
+        }
+
+        QString result = wei;
+        result.insert(weiStr.length() - 18, '.');
+        return result;
+    }
+
+    BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {
+        return BigInt::Rossi(dec.toStdString(), 10);
+    }
+
+    BigInt::Rossi Helpers::etherStrToRossi(const QString& dec) {
+        QString decStr = dec;
+
+        int diff = 18;
+        int n = decStr.indexOf('.');
+        if ( n >= 0 ) {
+            decStr.replace(".", "");
+            diff = 18 - (decStr.length() - n);
+        }
+
+        for ( int i = 0; i < diff; i++ ) {
+            decStr.append('0');
+        }
+
+        return decStrToRossi(decStr);
     }
 
     const QJsonArray Helpers::toQJsonArray(const AccountList& list) {

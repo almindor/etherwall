@@ -53,7 +53,7 @@ namespace Etherwall {
         }
 
         beginInsertRows(QModelIndex(), 0, 0);
-        fList.insert(0, LogInfo(msg.replace("\n", ""), sev));
+        fList.insert(0, LogInfo(msg, sev));
         endInsertRows();
     }
 

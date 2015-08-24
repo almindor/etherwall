@@ -246,6 +246,20 @@ namespace Etherwall {
         settings.endGroup();
     }
 
+    const QString TransactionModel::estimateTotal(const QString& value, const QString& gas) const {
+        BigInt::Rossi valRossi = Helpers::etherStrToRossi(value);
+        BigInt::Rossi valGas = Helpers::decStrToRossi(gas);
+        BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(fGasPrice);
+
+        if ( valRossi == BigInt::Rossi(0) ) {
+            return "0";
+        }
+
+        const QString wei = QString((valRossi + valGas * valGasPrice).toStrDec().data());
+
+        return Helpers::weiStrToEtherStr(wei);
+    }
+
     void TransactionModel::loadHistory() {
 
     }

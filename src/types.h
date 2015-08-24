@@ -108,11 +108,14 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
         void setTransactionCount(quint64 count);
+        void lock();
         void unlock(qint64 toTime);
+        bool isLocked(bool internal = false) const;
     private:
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;
+        bool fLocked;
     };
 
     typedef QList<AccountInfo> AccountList;
@@ -137,6 +140,7 @@ namespace Etherwall {
     public:
         TransactionInfo();
         TransactionInfo(const QJsonObject& source);
+        TransactionInfo(const QString& hash, quint64 blockNum); // for storing from server reply
 
         const QVariant value(const int role) const;
         void setBlockNumber(quint64 num);

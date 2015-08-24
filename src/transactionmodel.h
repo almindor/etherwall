@@ -24,6 +24,9 @@
 
 
 #include <QAbstractListModel>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 #include "types.h"
 #include "etheripc.h"
 #include "accountmodel.h"
@@ -48,6 +51,8 @@ namespace Etherwall {
         int containsTransaction(const QString& hash);
         Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas) const;
         Q_INVOKABLE void loadHistory();
+        Q_INVOKABLE const QString getSender(int index) const;
+        Q_INVOKABLE const QString getReceiver(int index) const;
         double getHistoryProgress() const;
     public slots:
         void connectToServerDone();
@@ -60,6 +65,7 @@ namespace Etherwall {
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();
+        void loadHistoryDone(QNetworkReply* reply);
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
@@ -73,6 +79,7 @@ namespace Etherwall {
         QString fGasPrice;
         QString fGasEstimate;
         TransactionInfo fQueuedTransaction;
+        QNetworkAccessManager fNetManager;
 
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);

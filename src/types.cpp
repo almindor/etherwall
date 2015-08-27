@@ -113,7 +113,8 @@ namespace Etherwall {
 
 // ***************************** TransactionInfo ***************************** //
 
-    TransactionInfo::TransactionInfo() {
+    TransactionInfo::TransactionInfo()
+    {
         fValue = "0x0";
         fBlockNumber = 0;
         fTransactionIndex = 0;
@@ -171,6 +172,22 @@ namespace Etherwall {
         if ( !gas.isEmpty() ) {
             fGas = gas;
         }
+    }
+
+    const QJsonObject TransactionInfo::toJSON() const {
+        QJsonObject result;
+        result["hash"] = fHash;
+        result["sender"] = fSender;
+        result["receiver"] = fReceiver;
+        result["value"] = fValue;
+        result["gas"] = fGas;
+        result["gasprice"] = fGasPrice;
+        result["blocknumber"] = (qint64) fBlockNumber;
+        result["blockhash"] = fBlockHash;
+        result["transactionindex"] = (qint64) fTransactionIndex;
+        result["nonce"] = (qint64) fNonce;
+
+        return result;
     }
 
 // ***************************** Helpers ***************************** //

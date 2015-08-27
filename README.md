@@ -6,13 +6,13 @@ Etherwall is a free software wallet/front-end for Ethereum Geth*.
 
 ## Usage
 
-Geth 1.0.0+ is required to be running for Etherwall to work.
+Geth 1.0.2+ is required to be running for Etherwall to work.
 
 Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
 
 If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
 
-Do not run Ethwerwall while geth is syncing unless you really need the old transactions listed. See caveats for more info.
+Do not run Ethwerwall while geth is syncing, it will just lock down processing all the blocks until syncing is done.
 
 ## License
 
@@ -36,7 +36,7 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ### Requirements
 
-Geth 1.0.0+ (eth and others might be supported)
+Geth 1.0.2+ (eth and others might be supported)
 
 Qt5.2+ with qmake
 
@@ -48,11 +48,9 @@ qmake -config release && make
 
 - 1.1+ add eth support
 - 1.0 add geth account backup and restore
-- 0.9 add transaction history support
+- 0.9 add transaction history support [done]
 - 0.8 initial release [done]
 
 ### Caveats & bugs
 
 Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.
-Currently doesn't support getting transaction history. If someone knows how to get it for an account from block #0 I'm all ears.
-Do not run while geth is synchronizing a big number of blocks, might slow down to a crawl.

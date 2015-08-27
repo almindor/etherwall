@@ -253,6 +253,10 @@ Tab {
 
         }
 
+        TransactionDetails {
+            id: details
+        }
+
         TableView {
             id: transactionView
             anchors.left: parent.left
@@ -291,6 +295,13 @@ Tab {
 
             Menu {
                 id: rowMenu
+
+                MenuItem {
+                    text: qsTr("Details")
+                    onTriggered: {
+                        details.open(transactionModel.getJSON(transactionView.currentRow))
+                    }
+                }
 
                 MenuItem {
                     text: qsTr("Copy Sender")

@@ -65,7 +65,6 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
 
-
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     log.log("Etherwall started");

@@ -281,6 +281,14 @@ namespace Etherwall {
         return QString();
     }
 
+    const QJsonObject TransactionModel::getJSON(int index) const {
+        if ( index < 0 || index >= fTransactionList.length() ) {
+            return QJsonObject();
+        }
+
+        return fTransactionList.at(index).toJSON();
+    }
+
     void TransactionModel::loadHistory() {
         // get historical transactions from etherdata
         QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));

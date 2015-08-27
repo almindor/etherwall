@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdiene");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("0.9.0");
+    QCoreApplication::setApplicationVersion("0.9.1");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     Settings settings;

@@ -32,11 +32,27 @@ BaseDialog {
         accountPW.focus = true
     }
 
+    function doAccept() {
+        if ( !acceptEmpty && password.length == 0 ) {
+            return;
+        }
+
+        close()
+        accepted()
+        accountPW.text = ""
+        password = ""
+    }
+
     Row {
         anchors.centerIn: parent
         Keys.onEscapePressed: {
             close()
+            accountPW.text = ""
+            password = ""
         }
+
+        Keys.onEnterPressed: doAccept()
+        Keys.onReturnPressed: doAccept()
 
         Label {
             text: qsTr("Password: ")
@@ -56,12 +72,7 @@ BaseDialog {
         Button {
             text: "OK"
             onClicked: {
-               if ( !acceptEmpty && password.length == 0 ) {
-                   return;
-               }
-
-               close()
-               accepted()
+                doAccept()
             }
         }
     }

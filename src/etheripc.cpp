@@ -759,9 +759,11 @@ namespace Etherwall {
                 return false;
             }
 
-            setError("Result object undefined in IPC response");
-            qDebug() << data << "\n";
-            return false;
+            if ( fActiveRequest.getType() != GetTransactionByHash ) { // this can happen if out of sync, it's not fatal for transaction get
+                setError("Result object undefined in IPC response for request: " + fActiveRequest.getMethod());
+                qDebug() << data << "\n";
+                return false;
+            }
         }
 
         return true;

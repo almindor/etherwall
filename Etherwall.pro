@@ -23,6 +23,15 @@ QML_IMPORT_PATH = qml
 # Default rules for deployment.
 include(deployment.pri)
 
+TRANSLATIONS += \
+    i18n/etherwall.ts
+
+lupdate_only {
+    SOURCES += \
+        qml/*.qml \
+        qml/components/*.qml
+}
+
 HEADERS += \
     src/accountmodel.h \
     src/types.h \

@@ -19,6 +19,7 @@
  */
 
 #include <QApplication>
+#include <QTranslator>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
@@ -41,6 +42,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("Etherwall");
     QCoreApplication::setApplicationVersion("0.9.1");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
+
+    QTranslator translator;
+    translator.load("i18n/etherwall_" + QLocale::system().name());
+    app.installTranslator(&translator);
 
     Settings settings;
     ClipboardAdapter clipboard;

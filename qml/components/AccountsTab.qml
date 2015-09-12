@@ -20,6 +20,7 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import QtQuick.Layouts 1.0
 
 Tab {
     id: accountsTab
@@ -31,10 +32,7 @@ Tab {
         anchors.margins: 20
         anchors.fill: parent
 
-        Row {
-            id: row
-            width: parent.width
-
+        RowLayout {
             Button {
                 id: newAccountButton
                 text: qsTr("New account")
@@ -52,6 +50,25 @@ Tab {
                     accountModel.selectedAccountRow = accountView.currentRow
                     accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
                 }
+            }
+        }
+
+        Item {
+            anchors.right: parent.right
+            width: totalLabel.width + totalField.width
+
+            Label {
+                id: totalLabel
+                text: qsTr("Wallet total (ether): ")
+            }
+
+            TextField {
+                anchors.left: totalLabel.right
+                width: 200
+                horizontalAlignment: TextInput.AlignRight
+                id: totalField
+                readOnly: true
+                text: accountModel.total
             }
         }
 

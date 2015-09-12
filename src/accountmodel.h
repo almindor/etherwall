@@ -37,6 +37,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(int selectedAccountRow READ getSelectedAccountRow WRITE setSelectedAccountRow NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
+        Q_PROPERTY(QString total READ getTotal NOTIFY totalChanged)
     public:
         AccountModel(EtherIPC& ipc);
         QString getError() const;
@@ -45,6 +46,7 @@ namespace Etherwall {
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
         const QJsonArray getAccountsJsonArray() const;
+        const QString getTotal() const;
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
@@ -63,6 +65,7 @@ namespace Etherwall {
     signals:
         void accountSelectionChanged(int);
         void accountLockedChanged(int);
+        void totalChanged();
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;

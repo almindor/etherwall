@@ -78,6 +78,18 @@ namespace Etherwall {
         return (i1 >= 0 || i2 >= 0);
     }
 
+    const QString AccountModel::getTotal() const {
+        BigInt::Rossi total;
+
+        foreach ( const AccountInfo& info, fAccountList ) {
+            const QString strVal = info.value(BalanceRole).toString();
+            total += Helpers::etherStrToRossi(strVal);
+        }
+
+        const QString weiStr = QString(total.toStrDec().data());
+        return Helpers::weiStrToEtherStr(weiStr);
+    }
+
     void AccountModel::newAccount(const QString& pw) {
         const int index = fAccountList.size();
         fIpc.newAccount(pw, index);
@@ -183,6 +195,8 @@ namespace Etherwall {
             const QString& hash = info.value(HashRole).toString();
             fIpc.refreshAccount(hash, i++);
         }
+
+        emit totalChanged();
     }
 
     void AccountModel::accountChanged(const AccountInfo& info) {
@@ -194,6 +208,7 @@ namespace Etherwall {
                 const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
                 const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
                 emit dataChanged(leftIndex, rightIndex);
+                emit totalChanged();
                 return;
             }
             index++;
@@ -203,6 +218,8 @@ namespace Etherwall {
         beginInsertRows(QModelIndex(), len, len);
         fAccountList.append(info);
         endInsertRows();
+
+        emit totalChanged();
     }
 
     void AccountModel::newBlock(const QJsonObject& block) {
@@ -229,6 +246,8 @@ namespace Etherwall {
                 }
             }
         }
+
+        emit totalChanged();
     }
 
     int AccountModel::getSelectedAccountRow() const {

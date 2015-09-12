@@ -45,3 +45,7 @@ HEADERS += \
 macx {
     ICON=qml/images/icon.icns
 }
+
+win32 {
+    RC_ICONS = icon.ico
+}

@@ -315,8 +315,6 @@ namespace Etherwall {
         }
         const BigInt::Rossi resultWeiRossi = (balanceWeiRossi - gasTotalRossi);
 
-        qDebug() << "Result WEI: " << resultWeiRossi.toStrDec().data() << "\n";
-
         const QString resultWei = QString(resultWeiRossi.toStrDec().data());
 
         return Helpers::weiStrToEtherStr(resultWei);

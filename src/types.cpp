@@ -254,16 +254,15 @@ namespace Etherwall {
 
     const QString Helpers::weiStrToEtherStr(const QString& wei) {
         QString weiStr = wei;
-        const int l = weiStr.length();
-        if ( l < 18 ) {
-            for ( int i = 0; i < 18 - l; i++ ) {
-                weiStr.insert(0, '0');
-            }
+        while ( weiStr.length() < 18 ) {
+            weiStr.insert(0, '0');
         }
 
-        QString result = wei;
-        result.insert(weiStr.length() - 18, '.');
-        return result;
+        weiStr.insert(weiStr.length() - 18, '.');
+        if ( weiStr.at(0) == '.' ) {
+            weiStr.insert(0, '0');
+        }
+        return weiStr;
     }
 
     BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {

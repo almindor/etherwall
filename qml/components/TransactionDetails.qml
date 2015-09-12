@@ -24,7 +24,7 @@ import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
 
 Window {
-    property var transaction : new Object({ hash: "", sender: "", receiver: "", value: "", gas: "", gasprice: "", blocknumber: "", blockhash: "", transactionindex: "", nonce: "" });
+    property var transaction : new Object({ hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "" });
 
     modality: Qt.NonModal
     visible: false
@@ -65,7 +65,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.sender
+            text: transaction.from
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 
@@ -75,7 +75,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.receiver
+            text: transaction.to
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 
@@ -105,7 +105,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.gasprice
+            text: transaction.gasPrice
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 
@@ -115,7 +115,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.blocknumber
+            text: transaction.blockNumber
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 
@@ -125,7 +125,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.blockhash
+            text: transaction.blockHash
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 
@@ -135,7 +135,7 @@ Window {
 
         TextField {
             readOnly: true
-            text: transaction.transactionindex
+            text: transaction.transactionIndex
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 

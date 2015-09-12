@@ -229,11 +229,10 @@ namespace Etherwall {
 
     void TransactionModel::storeTransaction(const TransactionInfo& info) {
         // save to persistent memory for re-run
-        const QString hash = info.value(THashRole).toString();
         const quint64 blockNum = info.value(BlockNumberRole).toULongLong();
         QSettings settings;
         settings.beginGroup("transactions");
-        settings.setValue(Helpers::toDecStr(blockNum), hash);
+        settings.setValue(Helpers::toDecStr(blockNum) + "_" + info.value(TransactionIndexRole).toString(), info.toJsonString());
         settings.endGroup();
     }
 
@@ -243,9 +242,21 @@ namespace Etherwall {
         QStringList list = settings.allKeys();
 
         foreach ( const QString bns, list ) {
-            const QString hash = settings.value(bns, "bogus").toString();
-            if ( hash != "bogus" ) {
-                fIpc.getTransactionByHash(hash);
+            const QString val = settings.value(bns, "bogus").toString();
+            if ( val.contains("{") ) { // new format, get data and reload only recent transactions
+                QJsonParseError parseError;
+                const QJsonDocument jsonDoc = QJsonDocument::fromJson(val.toUtf8(), &parseError);
+
+                if ( parseError.error != QJsonParseError::NoError ) {
+                    EtherLog::logMsg("Error parsing stored transaction: " + parseError.errorString(), LS_Error);
+                } else {
+                    const TransactionInfo info(jsonDoc.object());
+                    newTransaction(info);
+                }
+                // TODO: reload recent transactions from geth
+            } else if ( val != "bogus" ) { // old format, re-get and store full data
+                fIpc.getTransactionByHash(val);
+                settings.remove(bns);
             }
         }
         settings.endGroup();
@@ -281,25 +292,12 @@ namespace Etherwall {
         return QString();
     }
 
-    const QJsonObject TransactionModel::getJSON(int index) const {
+    const QJsonObject TransactionModel::getJson(int index, bool decimal) const {
         if ( index < 0 || index >= fTransactionList.length() ) {
             return QJsonObject();
         }
 
-        return fTransactionList.at(index).toJSON();
-    }
-
-    void TransactionModel::loadHistory() {
-        // get historical transactions from etherdata
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-        QJsonObject objectJson;
-        objectJson["accounts"] = fAccountModel.getAccountsJsonArray();
-        const QByteArray data = QJsonDocument(objectJson).toJson();
-
-        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
-
-        fNetManager.post(request, data);
+        return fTransactionList.at(index).toJson(decimal);
     }
 
     const QString TransactionModel::getMaxValue(int row, const QString& gas) const {
@@ -318,6 +316,19 @@ namespace Etherwall {
         const QString resultWei = QString(resultWeiRossi.toStrDec().data());
 
         return Helpers::weiStrToEtherStr(resultWei);
+    }
+
+    void TransactionModel::loadHistory() {
+        // get historical transactions from etherdata
+        QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QJsonObject objectJson;
+        objectJson["accounts"] = fAccountModel.getAccountsJsonArray();
+        const QByteArray data = QJsonDocument(objectJson).toJson();
+
+        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+
+        fNetManager.post(request, data);
     }
 
     void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
@@ -348,23 +359,22 @@ namespace Etherwall {
         foreach ( const QJsonValue jv, result ) {
             const QJsonObject jo = jv.toObject();
             const QString hash = jo.value("hash").toString("bogus");
-            const QString blockNumStr = jo.value("blocknumber").toString("0");
 
-            if ( hash == "bogus" || blockNumStr == "0" ) {
-                return EtherLog::logMsg("Response hash or blocknumber missing", LS_Error);
+            if ( hash == "bogus" ) {
+                return EtherLog::logMsg("Response hash missing", LS_Error);
             }
 
-            const quint64 blockNum = blockNumStr.toULongLong();
-            const TransactionInfo trans(hash, blockNum);
-            storeTransaction(trans);
-            stored++;
+            if ( containsTransaction(hash) < 0 ) {
+                fIpc.getTransactionByHash(hash);
+                stored++;
+            }
         }
 
-        EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
+        if ( stored > 0 ) {
+            EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
+        }
 
         reply->close();
-
-        refresh();
     }
 
 }

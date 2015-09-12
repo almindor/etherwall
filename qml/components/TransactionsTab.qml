@@ -308,7 +308,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Details")
                     onTriggered: {
-                        details.open(transactionModel.getJSON(transactionView.currentRow))
+                        details.open(transactionModel.getJson(transactionView.currentRow, true))
                     }
                 }
 

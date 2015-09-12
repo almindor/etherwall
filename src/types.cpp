@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QDateTime>
 #include <QTimer>
+#include <QJsonDocument>
 #include <QDebug>
 
 namespace Etherwall {
@@ -132,7 +133,7 @@ namespace Etherwall {
         fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
-        fInput = source.value("gasPrice").toString("invalid");
+        fInput = source.value("input").toString("invalid");
     }
 
     TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
@@ -174,20 +175,36 @@ namespace Etherwall {
         }
     }
 
-    const QJsonObject TransactionInfo::toJSON() const {
+    const QJsonObject TransactionInfo::toJson(bool decimal) const {
         QJsonObject result;
         result["hash"] = fHash;
-        result["sender"] = fSender;
-        result["receiver"] = fReceiver;
-        result["value"] = fValue;
-        result["gas"] = fGas;
-        result["gasprice"] = fGasPrice;
-        result["blocknumber"] = (qint64) fBlockNumber;
-        result["blockhash"] = fBlockHash;
-        result["transactionindex"] = (qint64) fTransactionIndex;
-        result["nonce"] = (qint64) fNonce;
+        result["from"] = fSender;
+        result["to"] = fReceiver;
+        result["blockHash"] = fBlockHash;
+        result["input"] = fInput;
+
+        if ( decimal ) {
+            result["value"] = fValue;
+            result["gas"] = fGas;
+            result["gasPrice"] = fGasPrice;
+            result["blockNumber"] = (qint64) fBlockNumber;
+            result["transactionIndex"] = (qint64) fTransactionIndex;
+            result["nonce"] = (qint64) fNonce;
+        } else { // hex
+            result["value"] = Helpers::toHexWeiStr(fValue);
+            result["gas"] = Helpers::decStrToHexStr(fGas);
+            result["gasPrice"] = Helpers::toHexWeiStr(fGasPrice);
+            result["blockNumber"] = Helpers::toHexStr(fBlockNumber);
+            result["transactionIndex"] = Helpers::toHexStr(fTransactionIndex);
+            result["nonce"] = Helpers::toHexStr(fNonce);
+        }
 
         return result;
+    }
+
+    const QString TransactionInfo::toJsonString(bool decimal) const {
+        const QJsonDocument doc(toJson(decimal));
+        return doc.toJson();
     }
 
 // ***************************** Helpers ***************************** //

@@ -146,7 +146,8 @@ namespace Etherwall {
         void setBlockNumber(quint64 num);
         void setHash(const QString& hash);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
-        const QJsonObject toJSON() const;
+        const QJsonObject toJson(bool decimal = false) const;
+        const QString toJsonString(bool decimal = false) const;
     private:
         QString fHash;
         quint64 fNonce;

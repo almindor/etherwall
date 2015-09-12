@@ -252,8 +252,11 @@ namespace Etherwall {
                 } else {
                     const TransactionInfo info(jsonDoc.object());
                     newTransaction(info);
+                    // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
+                    if ( fBlockNumber - info.getBlockNumber() < 5400 ) {
+                        fIpc.getTransactionByHash(info.getHash());
+                    }
                 }
-                // TODO: reload recent transactions from geth
             } else if ( val != "bogus" ) { // old format, re-get and store full data
                 fIpc.getTransactionByHash(val);
                 settings.remove(bns);

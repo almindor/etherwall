@@ -158,8 +158,16 @@ namespace Etherwall {
         return QVariant();
     }
 
+    quint64 TransactionInfo::getBlockNumber() const {
+        return fBlockNumber;
+    }
+
     void TransactionInfo::setBlockNumber(quint64 num) {
         fBlockNumber = num;
+    }
+
+    const QString TransactionInfo::getHash() const {
+        return fHash;
     }
 
     void TransactionInfo::setHash(const QString& hash) {

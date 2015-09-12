@@ -302,6 +302,26 @@ namespace Etherwall {
         fNetManager.post(request, data);
     }
 
+    const QString TransactionModel::getMaxValue(int row, const QString& gas) const {
+        const QModelIndex index = QAbstractListModel::createIndex(row, 2);
+
+        BigInt::Rossi balanceWeiRossi = Helpers::etherStrToRossi( fAccountModel.data(index, BalanceRole).toString() );
+        const BigInt::Rossi gasRossi = Helpers::decStrToRossi(gas);
+        const BigInt::Rossi gasPriceRossi = Helpers::etherStrToRossi(fGasPrice);
+        const BigInt::Rossi gasTotalRossi = gasRossi * gasPriceRossi;
+
+        if ( balanceWeiRossi < gasTotalRossi ) {
+            return "0";
+        }
+        const BigInt::Rossi resultWeiRossi = (balanceWeiRossi - gasTotalRossi);
+
+        qDebug() << "Result WEI: " << resultWeiRossi.toStrDec().data() << "\n";
+
+        const QString resultWei = QString(resultWeiRossi.toStrDec().data());
+
+        return Helpers::weiStrToEtherStr(resultWei);
+    }
+
     void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
         if ( reply == NULL ) {
             return EtherLog::logMsg("Undefined history reply", LS_Error);

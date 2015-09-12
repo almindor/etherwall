@@ -207,6 +207,13 @@ Tab {
                     Layout.minimumWidth: 250
                     onTextChanged: transactionWarning.refresh()
                 }
+
+                ToolButton {
+                    text: "ALL"
+                    onClicked: {
+                        valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text)
+                    }
+                }
             }
 
             // -- estimate is broken in geth 1.0.1- must wait for later release

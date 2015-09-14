@@ -106,6 +106,7 @@ Tab {
                 ToolButton {
                     id: transactionWarning
                     iconSource: "/images/warning"
+                    tooltip: qsTr("Sending checks", "before sending a transaction")
                     width: sendButton.height
                     height: sendButton.height
 
@@ -171,6 +172,22 @@ Tab {
                     }
                 }
 
+                ConfirmDialog {
+                    id: confirmDialog
+                    msg: qsTr("Confirm transaction send?")
+
+                    onYes: {
+                        var result = transactionWarning.check()
+                        if ( result.error !== null ) {
+                            errorDialog.msg = result.error
+                            errorDialog.open()
+                            return
+                        }
+
+                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                    }
+                }
+
                 Button {
                     id: sendButton
                     text: "Send"
@@ -183,7 +200,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                        confirmDialog.open()
                     }
                 }
             }
@@ -204,8 +221,18 @@ Tab {
                     }
 
                     maximumLength: 50
-                    Layout.minimumWidth: 250
+                    width: 200
                     onTextChanged: transactionWarning.refresh()
+                }
+
+                ToolButton {
+                    iconSource: "/images/all"
+                    width: sendButton.height
+                    height: sendButton.height
+                    tooltip: qsTr("Send all", "send all ether from account")
+                    onClicked: {
+                        valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text)
+                    }
                 }
             }
 
@@ -240,7 +267,7 @@ Tab {
                     id: valueTotalField
                     readOnly: true
                     maximumLength: 50
-                    width: 280
+                    width: 200
                     validator: DoubleValidator {
                         bottom: 0.000000000000000001 // should be 1 wei
                         decimals: 18
@@ -299,7 +326,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Details")
                     onTriggered: {
-                        details.open(transactionModel.getJSON(transactionView.currentRow))
+                        details.open(transactionModel.getJson(transactionView.currentRow, true))
                     }
                 }
 

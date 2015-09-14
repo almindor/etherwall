@@ -92,7 +92,7 @@ ApplicationWindow {
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 iconSource: "/images/block"
-                tooltip: "Block number: " + transactionModel.blockNumber
+                tooltip: qsTr("Block number: ") + transactionModel.blockNumber
                 onClicked: {
                     blockField.visible = !blockField.visible
 
@@ -117,7 +117,7 @@ ApplicationWindow {
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 iconSource: "/images/gas"
-                tooltip: "Gas price: " + transactionModel.gasPrice
+                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
                 onClicked: {
                     gasField.visible = !gasField.visible
 
@@ -157,7 +157,7 @@ ApplicationWindow {
                 iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
                 height: 32
                 width: 32
-                tooltip: "Connection state: " + (ipc.connectionState > 0 ? ("connected with " + ipc.peerCount + " peers") : "disconnected")
+                tooltip: qsTr("Connection state: ") + (ipc.connectionState > 0 ? (qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")) : qsTr("disconnected", "connection state"))
                 onClicked: {
                     ipc.connectToServer(settings.value("ipc/path", "bogus"))
                 }

@@ -53,7 +53,8 @@ namespace Etherwall {
         Q_INVOKABLE void loadHistory();
         Q_INVOKABLE const QString getSender(int index) const;
         Q_INVOKABLE const QString getReceiver(int index) const;
-        Q_INVOKABLE const QJsonObject getJSON(int index) const;
+        Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
+        Q_INVOKABLE const QString getMaxValue(int row, const QString& gas) const;
         double getHistoryProgress() const;
     public slots:
         void connectToServerDone();

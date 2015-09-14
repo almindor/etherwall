@@ -143,10 +143,13 @@ namespace Etherwall {
         TransactionInfo(const QString& hash, quint64 blockNum); // for storing from server reply
 
         const QVariant value(const int role) const;
+        quint64 getBlockNumber() const;
         void setBlockNumber(quint64 num);
+        const QString getHash() const;
         void setHash(const QString& hash);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
-        const QJsonObject toJSON() const;
+        const QJsonObject toJson(bool decimal = false) const;
+        const QString toJsonString(bool decimal = false) const;
     private:
         QString fHash;
         quint64 fNonce;

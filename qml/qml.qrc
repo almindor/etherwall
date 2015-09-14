@@ -22,5 +22,6 @@
         <file alias="locked">images/locked.png</file>
         <file alias="unlocked">images/unlocked.png</file>
         <file alias="gas">images/gas.png</file>
+        <file alias="all">images/all.png</file>
     </qresource>
 </RCC>

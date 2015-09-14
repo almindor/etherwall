@@ -172,6 +172,22 @@ Tab {
                     }
                 }
 
+                ConfirmDialog {
+                    id: confirmDialog
+                    msg: qsTr("Confirm transaction send?")
+
+                    onYes: {
+                        var result = transactionWarning.check()
+                        if ( result.error !== null ) {
+                            errorDialog.msg = result.error
+                            errorDialog.open()
+                            return
+                        }
+
+                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                    }
+                }
+
                 Button {
                     id: sendButton
                     text: "Send"
@@ -184,7 +200,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                        confirmDialog.open()
                     }
                 }
             }

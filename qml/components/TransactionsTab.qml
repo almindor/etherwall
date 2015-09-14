@@ -211,6 +211,8 @@ Tab {
 
                 ToolButton {
                     iconSource: "/images/all"
+                    width: sendButton.height
+                    height: sendButton.height
                     tooltip: qsTr("Send all", "send all ether from account")
                     onClicked: {
                         valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text)

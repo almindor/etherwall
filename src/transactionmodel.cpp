@@ -187,7 +187,7 @@ namespace Etherwall {
 
             const int n = containsTransaction(thash);
             if ( n >= 0 ) {
-                fTransactionList[n].setBlockNumber(blockNum);
+                fTransactionList[n].init(to);
                 const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
                 const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 12);
                 QVector<int> roles(2);

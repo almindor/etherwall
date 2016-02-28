@@ -148,6 +148,7 @@ namespace Etherwall {
         const QString getHash() const;
         void setHash(const QString& hash);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
+        void init(const QJsonObject source);
         const QJsonObject toJson(bool decimal = false) const;
         const QString toJsonString(bool decimal = false) const;
     private:

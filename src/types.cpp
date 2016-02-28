@@ -123,7 +123,8 @@ namespace Etherwall {
 
     TransactionInfo::TransactionInfo(const QJsonObject& source)
     {
-        fHash = source.value("hash").toString("invalid");
+        init(source);
+        /*fHash = source.value("hash").toString("invalid");
         fNonce = Helpers::toQUInt64(source.value("nonce"));
         fSender = source.value("from").toString("invalid");
         fReceiver = source.value("to").toString("invalid");
@@ -133,7 +134,7 @@ namespace Etherwall {
         fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
-        fInput = source.value("input").toString("invalid");
+        fInput = source.value("input").toString("invalid");*/
     }
 
     TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
@@ -177,10 +178,25 @@ namespace Etherwall {
     void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fSender = from;
         fReceiver = to;
+        fNonce = 0;
         fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
             fGas = gas;
         }
+    }
+
+    void TransactionInfo::init(const QJsonObject source) {
+        fHash = source.value("hash").toString("invalid");
+        fNonce = Helpers::toQUInt64(source.value("nonce"));
+        fSender = source.value("from").toString("invalid");
+        fReceiver = source.value("to").toString("invalid");
+        fBlockHash = source.value("blockHash").toString("invalid");
+        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
+        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
+        fValue = Helpers::toDecStrEther(source.value("value"));
+        fGas = Helpers::toDecStr(source.value("gas"));
+        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
+        fInput = source.value("input").toString("invalid");
     }
 
     const QJsonObject TransactionInfo::toJson(bool decimal) const {

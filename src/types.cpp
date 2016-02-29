@@ -60,6 +60,11 @@ namespace Etherwall {
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
         fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
     {
+        const QSettings settings;
+
+        if ( settings.contains("alias/" + hash) ) {
+            fAlias = settings.value("alias/" + hash, QString()).toString();
+        }
     }
 
     const QVariant AccountInfo::value(const int role) const {
@@ -68,7 +73,8 @@ namespace Etherwall {
         case BalanceRole: return QVariant(fBalance);
         case TransCountRole: return QVariant(fTransCount);
         case LockedRole: return QVariant(isLocked());
-        case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
+        case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
+        case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
         }
 
         return QVariant();
@@ -112,32 +118,28 @@ namespace Etherwall {
         return true;
     }
 
+    void AccountInfo::alias(const QString& name) {
+        QSettings settings;
+
+        settings.setValue("alias/" + fHash, name);
+        fAlias = name;
+    }
+
 // ***************************** TransactionInfo ***************************** //
 
-    TransactionInfo::TransactionInfo()
+    TransactionInfo::TransactionInfo() : fSenderAlias(), fReceiverAlias()
     {
         fValue = "0x0";
         fBlockNumber = 0;
         fTransactionIndex = 0;
     }
 
-    TransactionInfo::TransactionInfo(const QJsonObject& source)
+    TransactionInfo::TransactionInfo(const QJsonObject& source) : fSenderAlias(), fReceiverAlias()
     {
         init(source);
-        /*fHash = source.value("hash").toString("invalid");
-        fNonce = Helpers::toQUInt64(source.value("nonce"));
-        fSender = source.value("from").toString("invalid");
-        fReceiver = source.value("to").toString("invalid");
-        fBlockHash = source.value("blockHash").toString("invalid");
-        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
-        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
-        fValue = Helpers::toDecStrEther(source.value("value"));
-        fGas = Helpers::toDecStr(source.value("gas"));
-        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
-        fInput = source.value("input").toString("invalid");*/
     }
 
-    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
+    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum), fSenderAlias(), fReceiverAlias()
     {
     }
 
@@ -154,6 +156,8 @@ namespace Etherwall {
             case GasRole: return QVariant(fGas);
             case GasPriceRole: return QVariant(fGasPrice);
             case InputRole: return QVariant(fInput);
+            case SenderAliasRole: return QVariant(fSenderAlias.isEmpty() ? fSender : fSenderAlias);
+            case ReceiverAliasRole: return QVariant(fReceiverAlias.isEmpty() ? fReceiver : fReceiverAlias);
         }
 
         return QVariant();
@@ -183,6 +187,8 @@ namespace Etherwall {
         if ( !gas.isEmpty() ) {
             fGas = gas;
         }
+
+        lookupAccountAliases();
     }
 
     void TransactionInfo::init(const QJsonObject source) {
@@ -197,6 +203,20 @@ namespace Etherwall {
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("input").toString("invalid");
+
+        lookupAccountAliases();
+    }
+
+    void TransactionInfo::lookupAccountAliases() {
+        const QSettings settings;
+
+        if ( settings.contains("alias/" + fSender) ) {
+            fSenderAlias = settings.value("alias/" + fSender, QString()).toString();
+        }
+
+        if ( settings.contains("alias/" + fReceiver) ) {
+            fReceiverAlias = settings.value("alias/" + fReceiver, QString()).toString();
+        }
     }
 
     const QJsonObject TransactionInfo::toJson(bool decimal) const {

@@ -297,12 +297,12 @@ Tab {
                 width: 70
             }
             TableViewColumn {
-                role: "sender"
+                role: "senderalias"
                 title: qsTr("Sender")
                 width: 200
             }
             TableViewColumn {
-                role: "receiver"
+                role: "receiveralias"
                 title: qsTr("Receiver")
                 width: 200
             }

@@ -49,6 +49,7 @@ namespace Etherwall {
         const QString getTotal() const;
 
         Q_INVOKABLE void newAccount(const QString& pw);
+        Q_INVOKABLE void renameAccount(const QString& name, int index);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
         Q_INVOKABLE void unlockAccount(const QString& pw, int duration, int index);
         Q_INVOKABLE bool isLocked(int index) const;

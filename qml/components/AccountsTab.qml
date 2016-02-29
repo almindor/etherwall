@@ -41,6 +41,7 @@ Tab {
                 }
             }
 
+            /*
             Button {
                 id: deleteAccountButton
                 text: qsTr("Delete account")
@@ -50,7 +51,7 @@ Tab {
                     accountModel.selectedAccountRow = accountView.currentRow
                     accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
                 }
-            }
+            }*/
         }
 
         Item {
@@ -78,6 +79,17 @@ Tab {
 
             onAccepted: {
                 accountModel.newAccount(password)
+            }
+        }
+
+        InputDialog {
+            id: accountRenameDialog
+            query: qsTr("Account Alias: ")
+            //standardButtons: StandardButton.Ok | StandardButton.Cancel
+
+            onAccepted: {
+                accountModel.renameAccount(value, accountView.currentRow);
+                transactionModel.lookupAccountsAliases();
             }
         }
 
@@ -123,8 +135,8 @@ Tab {
                 }
             }
             TableViewColumn {
-                role: "hash"
-                title: qsTr("Hash")
+                role: "alias"
+                title: qsTr("Account")
                 width: 400
             }
             TableViewColumn {
@@ -145,18 +157,25 @@ Tab {
                 id: rowMenu
 
                 MenuItem {
+                    text: qsTr("Alias Account Name")
+                    onTriggered: {
+                        accountRenameDialog.openFocused("Rename " + accountModel.selectedAccount)
+                    }
+                }
+
+                MenuItem {
                     text: qsTr("Copy")
                     onTriggered: {
                         clipboard.setText(accountModel.selectedAccount)
                     }
                 }
 
-                MenuItem {
+                /*MenuItem {
                     text: qsTr("Delete")
                     onTriggered: {
                         accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
                     }
-                }
+                }*/
             }
 
             rowDelegate: Item {

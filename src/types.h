@@ -97,7 +97,8 @@ namespace Etherwall {
         HashRole,
         BalanceRole,
         TransCountRole,
-        SummaryRole
+        SummaryRole,
+        AliasRole
     };
 
     class AccountInfo
@@ -111,10 +112,12 @@ namespace Etherwall {
         void lock();
         void unlock(qint64 toTime);
         bool isLocked(bool internal = false) const;
+        void alias(const QString& name);
     private:
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;
+        QString fAlias;
         bool fLocked;
     };
 
@@ -132,7 +135,9 @@ namespace Etherwall {
         GasRole,
         GasPriceRole,
         InputRole,
-        DepthRole
+        DepthRole,
+        SenderAliasRole,
+        ReceiverAliasRole
     };
 
     class TransactionInfo
@@ -151,6 +156,7 @@ namespace Etherwall {
         void init(const QJsonObject source);
         const QJsonObject toJson(bool decimal = false) const;
         const QString toJsonString(bool decimal = false) const;
+        void lookupAccountAliases();
     private:
         QString fHash;
         quint64 fNonce;
@@ -163,6 +169,8 @@ namespace Etherwall {
         QString fGas;
         QString fGasPrice;
         QString fInput;
+        QString fSenderAlias;
+        QString fReceiverAlias;
     };
 
     typedef QList<TransactionInfo> TransactionList;

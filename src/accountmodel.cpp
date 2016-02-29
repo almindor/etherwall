@@ -45,6 +45,7 @@ namespace Etherwall {
         roles[TransCountRole] = "transactions";
         roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
+        roles[AliasRole] = "alias";
         return roles;
     }
 
@@ -93,6 +94,21 @@ namespace Etherwall {
     void AccountModel::newAccount(const QString& pw) {
         const int index = fAccountList.size();
         fIpc.newAccount(pw, index);
+    }
+
+    void AccountModel::renameAccount(const QString& name, int index) {
+        if ( index >= 0 && index < fAccountList.size() ) {
+            fAccountList[index].alias(name);
+
+            QVector<int> roles(2);
+            roles[0] = AliasRole;
+            roles[1] = SummaryRole;
+            const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
+
+            emit dataChanged(modelIndex, modelIndex, roles);
+        } else {
+            EtherLog::logMsg("Invalid account selection for rename", LS_Error);
+        }
     }
 
     void AccountModel::deleteAccount(const QString& pw, int index) {

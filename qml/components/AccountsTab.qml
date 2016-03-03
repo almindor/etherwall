@@ -69,7 +69,7 @@ Tab {
             Label {
                 id: currencyLabel
                 anchors.rightMargin: 5
-                anchors.right: currencyCombo.right
+                anchors.right: currencyCombo.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Currency")
             }

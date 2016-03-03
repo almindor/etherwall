@@ -26,62 +26,80 @@ Tab {
     id: accountsTab
     enabled: !ipc.busy && (ipc.connectionState > 0)
     title: qsTr("Accounts")
+    property bool show_hashes: false
 
     Column {
         id: col
         anchors.margins: 20
         anchors.fill: parent
 
-        RowLayout {
+        Item {
+            id: rowHeader
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: newAccountButton.height
             Button {
                 id: newAccountButton
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.left: parent.left
                 text: qsTr("New account")
                 onClicked: {
                     accountNewDialog.openFocused("New account password")
                 }
             }
 
-            /*
-            Button {
-                id: deleteAccountButton
-                text: qsTr("Delete account")
-                enabled: (accountView.currentRow >= 0 && accountView.currentRow < accountView.rowCount)
-
+            Switch {
+                id: showHashButton
+                anchors.left: newAccountButton.right
+                anchors.leftMargin: 5
+                anchors.verticalCenter: parent.verticalCenter
                 onClicked: {
-                    accountModel.selectedAccountRow = accountView.currentRow
-                    accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
+                    show_hashes = !show_hashes
                 }
-            }*/
-        }
+            }
 
-        Item {
-            anchors.right: parent.right
-            width: totalLabel.width + totalField.width + currencyCombo.width + currencyLabel.width
+            Label {
+                id: labelHashes
+                anchors.leftMargin: 5
+                anchors.left: showHashButton.right
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("Show hashes")
+            }
 
             Label {
                 id: currencyLabel
+                anchors.rightMargin: 5
+                anchors.right: currencyCombo.right
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Currency")
             }
 
-
             ComboBox {
                 id: currencyCombo
-                anchors.left: currencyLabel.right
+                width: 70
+                anchors.right: totalLabel.left
+                anchors.rightMargin: 5
+                anchors.verticalCenter: parent.verticalCenter
+                height: newAccountButton.height
                 model: ["ETH", "USD", "CAD", "EUR", "GBP"]
                 onCurrentIndexChanged: {} // TODO
             }
 
             Label {
                 id: totalLabel
-                anchors.left: currencyCombo.right
+                anchors.right: totalField.left
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: 5
                 text: qsTr("Wallet total ")
             }
 
             TextField {
-                anchors.left: totalLabel.right
-                width: 200
-                horizontalAlignment: TextInput.AlignRight
                 id: totalField
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                height: newAccountButton.height
+                width: 210
+                horizontalAlignment: TextInput.AlignRight
                 readOnly: true
                 text: accountModel.total
             }
@@ -149,7 +167,7 @@ Tab {
                 }
             }
             TableViewColumn {
-                role: "alias"
+                role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
                 width: 400
             }

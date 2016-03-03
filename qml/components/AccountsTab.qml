@@ -56,11 +56,25 @@ Tab {
 
         Item {
             anchors.right: parent.right
-            width: totalLabel.width + totalField.width
+            width: totalLabel.width + totalField.width + currencyCombo.width + currencyLabel.width
+
+            Label {
+                id: currencyLabel
+                text: qsTr("Currency")
+            }
+
+
+            ComboBox {
+                id: currencyCombo
+                anchors.left: currencyLabel.right
+                model: ["ETH", "USD", "CAD", "EUR", "GBP"]
+                onCurrentIndexChanged: {} // TODO
+            }
 
             Label {
                 id: totalLabel
-                text: qsTr("Wallet total (ether): ")
+                anchors.left: currencyCombo.right
+                text: qsTr("Wallet total ")
             }
 
             TextField {

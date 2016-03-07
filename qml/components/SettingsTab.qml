@@ -27,9 +27,9 @@ Tab {
 
     Column {
         id: col
-        anchors.margins: 20
+        anchors.margins: 0.2 * dpi
         anchors.fill: parent
-        spacing: 15
+        spacing: 0.1 * dpi
 
         Row {
             id: rowIPCPath
@@ -136,7 +136,7 @@ Tab {
 
             SpinBox {
                 id: intervalSpinBox
-                width: 100
+                width: 1 * dpi
                 minimumValue: 5
                 maximumValue: 60
 

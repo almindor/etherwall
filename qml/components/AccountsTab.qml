@@ -30,7 +30,7 @@ Tab {
 
     Column {
         id: col
-        anchors.margins: 20
+        anchors.margins: 0.05 * dpi
         anchors.fill: parent
 
         Item {
@@ -51,7 +51,7 @@ Tab {
             CheckBox {
                 id: showHashButton
                 anchors.left: newAccountButton.right
-                anchors.leftMargin: 5
+                anchors.leftMargin: 0.01 * dpi
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Show Hashes")
                 onClicked: {
@@ -61,7 +61,7 @@ Tab {
 
             Label {
                 id: currencyLabel
-                anchors.rightMargin: 5
+                anchors.rightMargin: 0.01 * dpi
                 anchors.right: currencyCombo.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Currency")
@@ -69,9 +69,9 @@ Tab {
 
             ComboBox {
                 id: currencyCombo
-                width: 70
+                width: 1 * dpi
                 anchors.right: totalLabel.left
-                anchors.rightMargin: 5
+                anchors.rightMargin: 0.01 * dpi
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
                 model: currencyModel
@@ -85,7 +85,7 @@ Tab {
                 id: totalLabel
                 anchors.right: totalField.left
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: 5
+                anchors.rightMargin: 0.01 * dpi
                 text: qsTr("Wallet total ")
             }
 
@@ -94,7 +94,7 @@ Tab {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
-                width: 210
+                width: 2 * dpi
                 horizontalAlignment: TextInput.AlignRight
                 readOnly: true
                 text: accountModel.total
@@ -149,7 +149,7 @@ Tab {
                 horizontalAlignment: Text.AlignHCenter
                 role: "locked"
                 title: qsTr("Locked")
-                width: 70
+                width: 1 * dpi
                 delegate: ToolButton {
                     iconSource: (styleData.value === true) ? "/images/locked" : "/images/unlocked"
                     enabled: (styleData.value === true)
@@ -165,19 +165,19 @@ Tab {
             TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
-                width: 400
+                width: 3 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
-                width: 150
+                width: 1.5 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "transactions"
                 title: qsTr("Sent Trans.")
-                width: 100
+                width: 1 * dpi
             }
             model: accountModel
 
@@ -211,6 +211,8 @@ Tab {
                     id: osPalette
                     colorGroup: SystemPalette.Active
                 }
+
+                height: 0.3 * dpi
 
                 Rectangle {
                     anchors {

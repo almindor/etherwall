@@ -20,15 +20,19 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import QtQuick.Window 2.0
 import "components"
 
 ApplicationWindow {
+    property int dpi: Screen.pixelDensity * 25.4;
+
     id: appWindow
     visible: true
-    width: 800
-    height: 600
-    minimumWidth: 800
-    minimumHeight: 600
+    width: 8 * dpi
+    height: 6 * dpi
+    minimumWidth: 8 * dpi
+    minimumHeight: 6 * dpi
+
     title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {

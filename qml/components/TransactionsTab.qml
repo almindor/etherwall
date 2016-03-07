@@ -29,8 +29,8 @@ Tab {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
+        anchors.margins: 0.15 * dpi
+        spacing: 0.1 * dpi
 
         GridLayout {
             id: gridLayout
@@ -44,7 +44,7 @@ Tab {
 
             Row {
                 Layout.columnSpan: 3
-                Layout.minimumWidth: 600
+                Layout.minimumWidth: 6 * dpi
 
                 PasswordDialog {
                     id: accountUnlockDialog
@@ -58,8 +58,8 @@ Tab {
                 ToolButton {
                     id: lockTool
                     iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                    width: 24
-                    height: 24
+                    width: 0.1 * dpi
+                    height: 0.1 * dpi
 
                     Connections {
                         target: accountModel
@@ -96,7 +96,7 @@ Tab {
                 }
 
                 maximumLength: 42
-                Layout.minimumWidth: 600
+                Layout.minimumWidth: 6 * dpi
                 Layout.columnSpan: 3
 
                 onTextChanged: transactionWarning.refresh()
@@ -221,7 +221,7 @@ Tab {
                     }
 
                     maximumLength: 50
-                    width: 200
+                    width: 2 * dpi
                     onTextChanged: transactionWarning.refresh()
                 }
 
@@ -239,7 +239,7 @@ Tab {
             // -- estimate is broken in geth 1.0.1- must wait for later release
             Row {
                 Layout.columnSpan: 2
-                Layout.minimumWidth: 450
+                Layout.minimumWidth: 4.5 * dpi
 
                 Label {
                     text: qsTr("Gas: ")
@@ -267,7 +267,7 @@ Tab {
                     id: valueTotalField
                     readOnly: true
                     maximumLength: 50
-                    width: 200
+                    width: 2 * dpi
                     validator: DoubleValidator {
                         bottom: 0.000000000000000001 // should be 1 wei
                         decimals: 18
@@ -294,29 +294,29 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
-                width: 70
+                width: 0.6 * dpi
             }
             TableViewColumn {
                 role: "senderalias"
                 title: qsTr("Sender")
-                width: 200
+                width: 2.5 * dpi
             }
             TableViewColumn {
                 role: "receiveralias"
                 title: qsTr("Receiver")
-                width: 200
+                width: 2.5 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "value"
                 title: qsTr("Value (Ether)")
-                width: 150
+                width: 1.4 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
-                width: 70
+                width: 0.6 * dpi
             }
             model: transactionModel
 
@@ -350,6 +350,8 @@ Tab {
                     id: osPalette
                     colorGroup: SystemPalette.Active
                 }
+
+                height: 0.2 * dpi
 
                 Rectangle {
                     anchors {

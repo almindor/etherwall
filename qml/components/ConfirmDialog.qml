@@ -27,7 +27,7 @@ BaseDialog {
     Row {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 10
+        anchors.margins: 0.1 * dpi
 
         Button {
             text: "Yes"

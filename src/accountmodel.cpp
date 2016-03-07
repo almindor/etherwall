@@ -26,8 +26,8 @@
 
 namespace Etherwall {
 
-    AccountModel::AccountModel(EtherIPC& ipc) :
-        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1)
+    AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel) :
+        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1), fCurrencyModel(currencyModel)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
@@ -36,6 +36,8 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::unlockAccountDone, this, &AccountModel::unlockAccountDone);
         connect(&ipc, &EtherIPC::accountChanged, this, &AccountModel::accountChanged);
         connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
+
+        connect(&currencyModel, &CurrencyModel::currencyChanged, this, &AccountModel::currencyChanged);
     }
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
@@ -45,6 +47,7 @@ namespace Etherwall {
         roles[TransCountRole] = "transactions";
         roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
+        roles[AliasRole] = "alias";
         return roles;
     }
 
@@ -55,7 +58,12 @@ namespace Etherwall {
     QVariant AccountModel::data(const QModelIndex & index, int role) const {
         const int row = index.row();
 
-        return fAccountList.at(row).value(role);
+        QVariant result = fAccountList.at(row).value(role);
+        if ( role == BalanceRole ) {
+            return fCurrencyModel.recalculate(result);
+        }
+
+        return result;
     }
 
     // TODO: optimize with hashmap
@@ -82,7 +90,7 @@ namespace Etherwall {
         BigInt::Rossi total;
 
         foreach ( const AccountInfo& info, fAccountList ) {
-            const QString strVal = info.value(BalanceRole).toString();
+            const QString strVal = fCurrencyModel.recalculate(info.value(BalanceRole)).toString();
             total += Helpers::etherStrToRossi(strVal);
         }
 
@@ -93,6 +101,21 @@ namespace Etherwall {
     void AccountModel::newAccount(const QString& pw) {
         const int index = fAccountList.size();
         fIpc.newAccount(pw, index);
+    }
+
+    void AccountModel::renameAccount(const QString& name, int index) {
+        if ( index >= 0 && index < fAccountList.size() ) {
+            fAccountList[index].alias(name);
+
+            QVector<int> roles(2);
+            roles[0] = AliasRole;
+            roles[1] = SummaryRole;
+            const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
+
+            emit dataChanged(modelIndex, modelIndex, roles);
+        } else {
+            EtherLog::logMsg("Invalid account selection for rename", LS_Error);
+        }
     }
 
     void AccountModel::deleteAccount(const QString& pw, int index) {
@@ -183,6 +206,16 @@ namespace Etherwall {
             }
             index++;
         }
+    }
+
+    void AccountModel::currencyChanged() {
+        QVector<int> roles(1);
+        roles[0] = BalanceRole;
+
+        const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 0);
+        const QModelIndex& rightIndex = QAbstractListModel::createIndex(fAccountList.size() - 1, 4);
+        emit dataChanged(leftIndex, rightIndex, roles);
+        emit totalChanged();
     }
 
     void AccountModel::getAccountsDone(const AccountList& list) {

@@ -492,6 +492,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::getFilterChanges(int filterID) {
+        if ( filterID < 0 ) {
+            setError("Filter ID invalid");
+            return bail();
+        }
+
         QJsonArray params;
         BigInt::Vin vinVal(filterID);
         QString strHex = QString(vinVal.toStr0xHex().data());

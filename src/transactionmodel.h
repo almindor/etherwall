@@ -55,6 +55,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getReceiver(int index) const;
         Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
         Q_INVOKABLE const QString getMaxValue(int row, const QString& gas) const;
+        Q_INVOKABLE void lookupAccountsAliases();
         double getHistoryProgress() const;
     public slots:
         void connectToServerDone();

@@ -71,6 +71,24 @@ namespace Etherwall {
 
     typedef QList<LogInfo> LogList;
 
+    enum CurrencyRoles {
+        NameRole = Qt::UserRole + 1,
+        PriceRole
+    };
+
+    class CurrencyInfo
+    {
+    public:
+        CurrencyInfo( const QString name, const float price );
+        const QVariant value(const int role) const;
+        float recalculate(const float ether) const;
+    private:
+        QString fName;
+        float fPrice;
+    };
+
+    typedef QList<CurrencyInfo> CurrencyInfos;
+
     enum RequestTypes {
         NoRequest,
         NewAccount,
@@ -97,7 +115,8 @@ namespace Etherwall {
         HashRole,
         BalanceRole,
         TransCountRole,
-        SummaryRole
+        SummaryRole,
+        AliasRole
     };
 
     class AccountInfo
@@ -111,10 +130,12 @@ namespace Etherwall {
         void lock();
         void unlock(qint64 toTime);
         bool isLocked(bool internal = false) const;
+        void alias(const QString& name);
     private:
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;
+        QString fAlias;
         bool fLocked;
     };
 
@@ -132,7 +153,9 @@ namespace Etherwall {
         GasRole,
         GasPriceRole,
         InputRole,
-        DepthRole
+        DepthRole,
+        SenderAliasRole,
+        ReceiverAliasRole
     };
 
     class TransactionInfo
@@ -148,8 +171,10 @@ namespace Etherwall {
         const QString getHash() const;
         void setHash(const QString& hash);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
+        void init(const QJsonObject source);
         const QJsonObject toJson(bool decimal = false) const;
         const QString toJsonString(bool decimal = false) const;
+        void lookupAccountAliases();
     private:
         QString fHash;
         quint64 fNonce;
@@ -162,6 +187,8 @@ namespace Etherwall {
         QString fGas;
         QString fGasPrice;
         QString fInput;
+        QString fSenderAlias;
+        QString fReceiverAlias;
     };
 
     typedef QList<TransactionInfo> TransactionList;

@@ -69,6 +69,8 @@ namespace Etherwall {
         roles[GasPriceRole] = "gasprice";
         roles[InputRole] = "input";
         roles[DepthRole] = "depth";
+        roles[SenderAliasRole] = "senderalias";
+        roles[ReceiverAliasRole] = "receiveralias";
 
         return roles;
     }
@@ -161,7 +163,7 @@ namespace Etherwall {
             if ( n >= 0 ) { // ours
                 fTransactionList[n] = info;
                 const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 12);
+                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 14);
                 emit dataChanged(leftIndex, rightIndex);
                 storeTransaction(fTransactionList.at(n));
             } else { // external from someone to us
@@ -187,9 +189,9 @@ namespace Etherwall {
 
             const int n = containsTransaction(thash);
             if ( n >= 0 ) {
-                fTransactionList[n].setBlockNumber(blockNum);
+                fTransactionList[n].init(to);
                 const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 12);
+                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 14);
                 QVector<int> roles(2);
                 roles[0] = BlockNumberRole;
                 roles[1] = DepthRole;
@@ -319,6 +321,20 @@ namespace Etherwall {
         const QString resultWei = QString(resultWeiRossi.toStrDec().data());
 
         return Helpers::weiStrToEtherStr(resultWei);
+    }
+
+    void TransactionModel::lookupAccountsAliases() {
+        for ( int n = 0; n < fTransactionList.size(); n++ ) {
+            fTransactionList[n].lookupAccountAliases();
+        }
+
+        QVector<int> roles(2);
+        roles[0] = SenderRole;
+        roles[1] = ReceiverRole;
+        const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 0);
+        const QModelIndex& rightIndex = QAbstractListModel::createIndex(fTransactionList.size(), 0);
+
+        emit dataChanged(leftIndex, rightIndex, roles);
     }
 
     void TransactionModel::loadHistory() {

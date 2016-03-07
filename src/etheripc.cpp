@@ -616,6 +616,11 @@ namespace Etherwall {
             emit error();
         }
 
+        if ( vn > 0 && vn < 103005 ) {
+            setError("Geth version 1.3.4 and older are Frontier versions. Please update to Homestead (1.3.5+)");
+            emit error();
+        }
+
         emit clientVersionChanged(fClientVersion);
         done();
     }

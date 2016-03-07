@@ -27,6 +27,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include "types.h"
+#include "currencymodel.h"
 #include "etheripc.h"
 #include "etherlog.h"
 
@@ -39,7 +40,7 @@ namespace Etherwall {
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString total READ getTotal NOTIFY totalChanged)
     public:
-        AccountModel(EtherIPC& ipc);
+        AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel);
         QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -63,6 +64,7 @@ namespace Etherwall {
         void accountChanged(const AccountInfo& info);
         void newBlock(const QJsonObject& block);
         void checkAccountLocks();
+        void currencyChanged();
     signals:
         void accountSelectionChanged(int);
         void accountLockedChanged(int);
@@ -72,6 +74,7 @@ namespace Etherwall {
         AccountList fAccountList;
         int fSelectedAccountRow;
         QString fSelectedAccount;
+        const CurrencyModel& fCurrencyModel;
 
         int getSelectedAccountRow() const;
         void setSelectedAccountRow(int row);

@@ -30,6 +30,7 @@
 #include "clipboard.h"
 #include "accountmodel.h"
 #include "transactionmodel.h"
+#include "currencymodel.h"
 
 using namespace Etherwall;
 
@@ -58,7 +59,8 @@ int main(int argc, char *argv[])
         settings.setValue("ipc/path", ipcPath);
     }
 
-    AccountModel accountModel(ipc);
+    CurrencyModel currencyModel;
+    AccountModel accountModel(ipc, currencyModel);
     TransactionModel transactionModel(ipc, accountModel);
 
     QQmlApplicationEngine engine;
@@ -67,6 +69,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
+    engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
 

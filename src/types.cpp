@@ -55,6 +55,25 @@ namespace Etherwall {
         return QString("Unknown");
     }
 
+    // ***************************** Denomination ***************************** //
+
+    CurrencyInfo::CurrencyInfo( const QString name, const float price ) : fName(name), fPrice(price) {
+    }
+
+    const QVariant CurrencyInfo::value(const int role) const {
+        switch ( role ) {
+        case NameRole: return QVariant(fName);
+        case PriceRole: return QVariant(fPrice);
+        }
+
+        return QVariant();
+    }
+
+    float CurrencyInfo::recalculate(const float ether) const {
+        return ether * fPrice;
+    }
+
+
 // ***************************** TransactionInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :

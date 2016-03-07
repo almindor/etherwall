@@ -71,6 +71,24 @@ namespace Etherwall {
 
     typedef QList<LogInfo> LogList;
 
+    enum CurrencyRoles {
+        NameRole = Qt::UserRole + 1,
+        PriceRole
+    };
+
+    class CurrencyInfo
+    {
+    public:
+        CurrencyInfo( const QString name, const float price );
+        const QVariant value(const int role) const;
+        float recalculate(const float ether) const;
+    private:
+        QString fName;
+        float fPrice;
+    };
+
+    typedef QList<CurrencyInfo> CurrencyInfos;
+
     enum RequestTypes {
         NoRequest,
         NewAccount,

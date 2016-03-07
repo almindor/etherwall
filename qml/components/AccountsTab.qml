@@ -81,8 +81,11 @@ Tab {
                 anchors.rightMargin: 5
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
-                model: ["ETH", "USD", "CAD", "EUR", "GBP"]
-                onCurrentIndexChanged: {} // TODO
+                model: currencyModel
+                textRole: "name"
+                onCurrentIndexChanged: {
+                    currencyModel.setCurrencyIndex(currentIndex);
+                }
             }
 
             Label {
@@ -174,7 +177,7 @@ Tab {
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
-                title: qsTr("Balance (Ether)")
+                title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
                 width: 150
             }
             TableViewColumn {

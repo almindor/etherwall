@@ -338,6 +338,10 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistory() {
+        if ( fAccountModel.rowCount() == 0 ) {
+            return; // don't try with empty request
+        }
+
         // get historical transactions from etherdata
         QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");

@@ -73,10 +73,10 @@ namespace Etherwall {
 
         QJsonObject objectJson;
         QJsonArray currencies;
-        currencies.append(QJsonValue("EUR"));
-        currencies.append(QJsonValue("CAD"));
-        currencies.append(QJsonValue("USD"));
-        currencies.append(QJsonValue("GBP"));
+        currencies.append(QJsonValue(QString("EUR")));
+        currencies.append(QJsonValue(QString("CAD")));
+        currencies.append(QJsonValue(QString("USD")));
+        currencies.append(QJsonValue(QString("GBP")));
         objectJson["currencies"] = currencies;
         const QByteArray data = QJsonDocument(objectJson).toJson();
 

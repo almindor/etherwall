@@ -48,22 +48,15 @@ Tab {
                 }
             }
 
-            Switch {
+            CheckBox {
                 id: showHashButton
                 anchors.left: newAccountButton.right
                 anchors.leftMargin: 5
                 anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("Show Hashes")
                 onClicked: {
                     show_hashes = !show_hashes
                 }
-            }
-
-            Label {
-                id: labelHashes
-                anchors.leftMargin: 5
-                anchors.left: showHashButton.right
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Show hashes")
             }
 
             Label {

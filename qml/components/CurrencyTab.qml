@@ -27,34 +27,70 @@ Tab {
     title: qsTr("Currencies")
     enabled: !ipc.busy && (ipc.connectionState > 0)
 
-    Row {
-        spacing: 0.5 * dpi
+    Column {
         anchors.margins: 0.2 * dpi
-        anchors.fill: parent
+        anchors.top: parent.top
+        spacing: 0.1 * dpi
 
-        CurrencyRow {
-            anchors.verticalCenter: parent.verticalCenter
-            leftText: "1"
-            rightText: ""
-            currency: "ETH"
-            heightInches: 1.7
-        }
+        Row {
+            spacing: 0.5 * dpi
+            anchors.margins: 0.2 * dpi
 
-        Column {
-            spacing: 0.3 * dpi
-            anchors.verticalCenter: parent.verticalCenter
+            CurrencyRow {
+                anchors.verticalCenter: parent.verticalCenter
+                leftText: "1"
+                rightText: ""
+                currency: "ETH"
+                heightInches: 1.7
+            }
 
-            Repeater {
-                model: currencyModel
+            Column {
+                spacing: 0.3 * dpi
+                anchors.verticalCenter: parent.verticalCenter
 
-                delegate: CurrencyRow {
-                    visible: index > 0
-                    heightInches: 2.5 / currencyModel.count
-                    leftText: "="
-                    currency: currencyModel.getCurrencyName(index)
-                    rightText: Number(currencyModel.getCurrencyPrice(index)).toFixed(5)
+                Repeater {
+                    model: currencyModel
+
+                    delegate: CurrencyRow {
+                        visible: index > 0
+                        heightInches: 2.5 / currencyModel.count
+                        leftText: "="
+                        currency: currencyModel.getCurrencyName(index)
+                        rightText: Number(currencyModel.getCurrencyPrice(index)).toFixed(5)
+                    }
                 }
             }
         }
+
+        Item {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: ccText.width + ccImg.width
+            height: Math.max(ccImg.height, ccText.height)
+
+            Text {
+                id: ccText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.margins: 0.2 * dpi
+                textFormat: Text.RichText
+                text: qsTr('Prices courtesy of ')
+            }
+
+            Image {
+                id: ccImg
+                anchors.left: ccText.right
+                sourceSize.height: 0.5 * dpi
+                source: "/images/cc"
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.OpenHandCursor
+                onClicked: {
+                    Qt.openUrlExternally("http://cryptocompare.com")
+                }
+            }
+        }
+
     }
+
 }

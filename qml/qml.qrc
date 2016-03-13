@@ -28,6 +28,7 @@
         <file alias="unlocked">images/unlocked.png</file>
         <file alias="gas">images/gas.png</file>
         <file alias="all">images/all.png</file>
+        <file alias="cc">images/cryptocompare.png</file>
         <file alias="btc">images/btc.png</file>
         <file alias="cad">images/cad.png</file>
         <file alias="eth">images/eth.png</file>

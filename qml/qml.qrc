@@ -14,6 +14,7 @@
         <file>components/SyncDialog.qml</file>
         <file>components/CurrencyTab.qml</file>
         <file>components/CurrencyRow.qml</file>
+        <file>components/ToolTip.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

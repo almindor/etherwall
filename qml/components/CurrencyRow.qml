@@ -8,6 +8,13 @@ Item {
     width: itemRow.width
     height: itemRow.height
 
+    ToolTip {
+        id: toolTipCurrency
+        width: 1 * dpi
+        target: parent
+        text: currency
+    }
+
     Row {
         id: itemRow
         spacing: heightInches / 5.0 * dpi
@@ -18,7 +25,8 @@ Item {
         }
 
         Image {
-            id: img
+            id: rowImg
+
             anchors.verticalCenter: parent.verticalCenter
             sourceSize.height: heightInches * dpi
             source: "/images/" + currency.toLowerCase()

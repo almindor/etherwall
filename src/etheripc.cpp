@@ -66,7 +66,7 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None)
+    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -83,6 +83,10 @@ namespace Etherwall {
         return (fActiveRequest.burden() != None);
     }
 
+    bool EtherIPC::getSyncing() const {
+        return fSyncing;
+    }
+
     const QString& EtherIPC::getError() const {
         return fError;
     }
@@ -90,6 +94,39 @@ namespace Etherwall {
     int EtherIPC::getCode() const {
         return fCode;
     }
+
+    float EtherIPC::syncDone() {
+        fSyncing = false;
+
+        emit syncingChanged(fSyncing);
+
+        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+            return -1.0;
+        }
+
+        if ( fFilterID >= 0 ) {
+            return -1.0;
+        }
+
+        newFilter();
+
+        return -1.0;
+    }
+
+    void EtherIPC::syncStart() {
+        fSyncing = true;
+
+        emit syncingChanged(fSyncing);
+
+        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+            return;
+        }
+
+        if ( fFilterID >= 0 ) {
+            uninstallFilter();
+        }
+    }
+
 
     void EtherIPC::setInterval(int interval) {
         fTimer.setInterval(interval);
@@ -453,6 +490,15 @@ namespace Etherwall {
     }
 
     void EtherIPC::newFilter() {
+        if ( fSyncing ) {
+            return; // silent
+        }
+
+        if ( fFilterID >= 0 ) {
+            setError("Filter already set");
+            return bail(true);
+        }
+
         if ( !queueRequest(RequestIPC(NewFilter, "eth_newBlockFilter")) ) {
             return bail();
         }
@@ -472,11 +518,20 @@ namespace Etherwall {
         }
 
         done();
+
+        if ( fSyncing ) {
+            uninstallFilter();
+        }
     }
 
     void EtherIPC::onTimer() {
         getPeerCount();
-        getFilterChanges(fFilterID);
+
+        if ( fFilterID >= 0 ) {
+            getFilterChanges(fFilterID);
+        } else {
+            getBlockNumber();
+        }
     }
 
     int EtherIPC::parseVersionNum() const {
@@ -493,6 +548,10 @@ namespace Etherwall {
 
     void EtherIPC::getFilterChanges(int filterID) {
         if ( filterID < 0 ) {
+            if ( fSyncing ) {
+                return; // silent
+            }
+
             setError("Filter ID invalid");
             return bail();
         }
@@ -503,12 +562,6 @@ namespace Etherwall {
         params.append(strHex);
 
         if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, filterID)) ) {
-            return bail();
-        }
-    }
-
-    void EtherIPC::getClientVersion() {
-        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
             return bail();
         }
     }
@@ -529,6 +582,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::uninstallFilter() {
+        if ( fFilterID < 0 ) {
+            setError("Filter not set");
+            return bail(true);
+        }
+
         QJsonArray params;
         BigInt::Vin vinVal(fFilterID);
         QString strHex = QString(vinVal.toStr0xHex().data());
@@ -548,6 +606,12 @@ namespace Etherwall {
         fFilterID = -1;
 
         done();
+    }
+
+    void EtherIPC::getClientVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
+            return bail();
+        }
     }
 
     void EtherIPC::getTransactionByHash(const QString& hash) {

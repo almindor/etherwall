@@ -43,6 +43,8 @@ namespace Etherwall {
     #endif
 #endif
 
+    static const quint64 SYNC_DEPTH = 10;
+
     enum LogRoles {
         MsgRole = Qt::UserRole + 1,
         DateRole,
@@ -81,7 +83,7 @@ namespace Etherwall {
     public:
         CurrencyInfo( const QString name, const float price );
         const QVariant value(const int role) const;
-        float recalculate(const float ether) const;
+        double recalculate(const float ether) const;
     private:
         QString fName;
         float fPrice;

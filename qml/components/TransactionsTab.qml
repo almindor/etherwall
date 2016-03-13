@@ -58,8 +58,8 @@ Tab {
                 ToolButton {
                     id: lockTool
                     iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                    width: 0.1 * dpi
-                    height: 0.1 * dpi
+                    width: fromField.height
+                    height: fromField.height
 
                     Connections {
                         target: accountModel

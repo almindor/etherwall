@@ -32,6 +32,8 @@ ApplicationWindow {
     height: 6 * dpi
     minimumWidth: 8 * dpi
     minimumHeight: 6 * dpi
+    x: Screen.width / 2.0 - width / 2.0
+    y: Screen.height / 2.0 - height / 2.0
 
     title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
@@ -55,7 +57,7 @@ ApplicationWindow {
 
     ErrorDialog {
         id: errorDialog
-        width: 500
+        width: 5 * dpi
 
         Connections {
             target: ipc
@@ -69,7 +71,14 @@ ApplicationWindow {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.busy
+        running: ipc.busy || ipc.syncing
+    }
+
+    SyncDialog {
+        visible: ipc.syncing
+        first: transactionModel.firstBlock
+        last: transactionModel.lastBlock
+        current: transactionModel.blockNumber
     }
 
     TabView {
@@ -79,6 +88,8 @@ ApplicationWindow {
         AccountsTab {}
 
         TransactionsTab {}
+
+        CurrencyTab {}
 
         SettingsTab {}
 

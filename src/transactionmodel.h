@@ -37,6 +37,8 @@ namespace Etherwall {
     class TransactionModel : public QAbstractListModel
     {
         Q_OBJECT
+        Q_PROPERTY(quint64 firstBlock READ getFirstBlock NOTIFY blockNumberChanged)
+        Q_PROPERTY(quint64 lastBlock READ getLastBlock NOTIFY blockNumberChanged)
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
         Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
         Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
@@ -57,8 +59,11 @@ namespace Etherwall {
         Q_INVOKABLE const QString getMaxValue(int row, const QString& gas) const;
         Q_INVOKABLE void lookupAccountsAliases();
         double getHistoryProgress() const;
+        quint64 getFirstBlock() const;
+        quint64 getLastBlock() const;
     public slots:
         void connectToServerDone();
+        void loadLastBlock();
         void getAccountsDone(const AccountList& list);
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
@@ -68,7 +73,7 @@ namespace Etherwall {
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();
-        void loadHistoryDone(QNetworkReply* reply);
+        void loadRequestDone(QNetworkReply* reply);
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
@@ -79,6 +84,8 @@ namespace Etherwall {
         const AccountModel& fAccountModel;
         TransactionList fTransactionList;
         quint64 fBlockNumber;
+        quint64 fLastBlock;
+        quint64 fFirstBlock;
         QString fGasPrice;
         QString fGasEstimate;
         TransactionInfo fQueuedTransaction;

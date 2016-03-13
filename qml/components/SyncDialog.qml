@@ -11,11 +11,11 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file BaseDialog.qml
+/** @file ConfirmDialog.qml
  * @author Ales Katona <almindor@gmail.com>
- * @date 2015
+ * @date 2016
  *
- * Base dialog
+ * Sync dialog
  */
 
 import QtQuick 2.0
@@ -23,36 +23,25 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 
 Window {
-    signal accepted
-    signal yes
-
-    property string msg
+    title: Math.max(0, last - current) + " out of " + Math.max(0, last - first) + " blocks remaining to synchronize. "
+    property int first
+    property int last
+    property int current
 
     modality: Qt.ApplicationModal
     visible: false
+    minimumWidth: 6 * dpi
+    minimumHeight: 1 * dpi
+    maximumWidth: 6 * dpi
+    maximumHeight: 1 * dpi
     width: 6 * dpi
     height: 1 * dpi
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
+    flags: Qt.WindowCloseButtonHint
 
-    function open() {
-        visible = true;
-    }
-
-    function close() {
-        visible = false;
-    }
-
-    Label {
-        id: contentLabel
-        y: 0.1 * dpi
-        x: 0.1 * dpi
-        text: msg
-        wrapMode: Text.Wrap
-        width: parent.width
-
-        Keys.onEscapePressed: {
-            close()
-        }
+    ProgressBar {
+        anchors.fill: parent
+        value: (current - first) / (last - first)
     }
 }

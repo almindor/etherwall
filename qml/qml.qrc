@@ -11,6 +11,9 @@
         <file>components/LogTab.qml</file>
         <file>components/TransactionDetails.qml</file>
         <file>components/InputDialog.qml</file>
+        <file>components/SyncDialog.qml</file>
+        <file>components/CurrencyTab.qml</file>
+        <file>components/CurrencyRow.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>
@@ -24,5 +27,11 @@
         <file alias="unlocked">images/unlocked.png</file>
         <file alias="gas">images/gas.png</file>
         <file alias="all">images/all.png</file>
+        <file alias="btc">images/btc.png</file>
+        <file alias="cad">images/cad.png</file>
+        <file alias="eth">images/eth.png</file>
+        <file alias="eur">images/eur.png</file>
+        <file alias="gbp">images/gbp.png</file>
+        <file alias="usd">images/usd.png</file>
     </qresource>
 </RCC>

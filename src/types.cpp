@@ -69,7 +69,7 @@ namespace Etherwall {
         return QVariant();
     }
 
-    float CurrencyInfo::recalculate(const float ether) const {
+    double CurrencyInfo::recalculate(const float ether) const {
         return ether * fPrice;
     }
 

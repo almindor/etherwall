@@ -71,6 +71,7 @@ namespace Etherwall {
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
+        Q_PROPERTY(bool syncing READ getSyncing NOTIFY syncingChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
@@ -78,8 +79,11 @@ namespace Etherwall {
         EtherIPC();
         void setWorker(QThread* worker);
         bool getBusy() const;
+        bool getSyncing() const;
         const QString& getError() const;
         int getCode() const;
+        float syncDone();
+        void syncStart();
     public slots:
         void connectToServer(const QString& path);
         void connectedToServer();
@@ -120,6 +124,7 @@ namespace Etherwall {
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
+        void syncingChanged(bool syncing);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
         void error();
@@ -139,6 +144,7 @@ namespace Etherwall {
         RequestIPC fActiveRequest;
         QTimer fTimer;
         QString fClientVersion;
+        bool fSyncing;
 
         void handleNewAccount();
         void handleDeleteAccount();

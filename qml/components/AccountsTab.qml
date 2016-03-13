@@ -86,7 +86,7 @@ Tab {
                 anchors.right: totalField.left
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.rightMargin: 0.01 * dpi
-                text: qsTr("Wallet total ")
+                text: qsTr("Wallet total: ")
             }
 
             TextField {
@@ -94,10 +94,10 @@ Tab {
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
-                width: 2 * dpi
+                width: 1 * dpi
                 horizontalAlignment: TextInput.AlignRight
                 readOnly: true
-                text: accountModel.total
+                text: Number(accountModel.total).toFixed(2)
             }
         }
 
@@ -171,7 +171,7 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
-                width: 1.5 * dpi
+                width: 2.5 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight

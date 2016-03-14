@@ -22,6 +22,7 @@
 #include <QTranslator>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QtQml/qqml.h>
 #include <QIcon>
 #include <QPixmap>
 #include <QDebug>
@@ -29,6 +30,7 @@
 #include "settings.h"
 #include "clipboard.h"
 #include "accountmodel.h"
+#include "accountproxymodel.h"
 #include "transactionmodel.h"
 #include "currencymodel.h"
 
@@ -37,6 +39,8 @@ using namespace Etherwall;
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+
+    qmlRegisterType<AccountProxyModel>("AccountProxyModel", 0, 1, "AccountProxyModel");
 
     QCoreApplication::setOrganizationName("Etherdiene");
     QCoreApplication::setOrganizationDomain("etherwall.com");

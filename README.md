@@ -12,7 +12,7 @@ Etherwall should auto-detect geth's IPC file/name and work "out of the box" as l
 
 If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
 
-Do not run Ethwerwall while geth is syncing, it will just lock down processing all the blocks until syncing is done.
+Ethwerwall will show geth's syncing progress and only process blocks after it's done.
 
 ## License
 

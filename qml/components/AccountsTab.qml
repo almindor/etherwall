@@ -21,6 +21,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.0
+import AccountProxyModel 0.1
 
 Tab {
     id: accountsTab
@@ -179,7 +180,22 @@ Tab {
                 title: qsTr("Sent Trans.")
                 width: 1 * dpi
             }
-            model: accountModel
+
+            sortIndicatorVisible: true
+            //onSortIndicatorColumnChanged: model.qml_sort(sortIndicatorColumn, sortIndicatorOrder)
+            //onSortIndicatorOrderChanged: model.qml_sort(sortIndicatorColumn, sortIndicatorOrder)
+            model: AccountProxyModel {
+                   id: proxyModel
+                   source: accountModel
+
+                   sortOrder: accountView.sortIndicatorOrder
+                   sortCaseSensitivity: Qt.CaseInsensitive
+                   sortRole: accountView.getColumn(accountView.sortIndicatorColumn).role
+
+                   filterString: "*"
+                   filterSyntax: AccountProxyModel.Wildcard
+                   filterCaseSensitivity: Qt.CaseInsensitive
+               }
 
             Menu {
                 id: rowMenu

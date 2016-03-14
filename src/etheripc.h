@@ -79,6 +79,7 @@ namespace Etherwall {
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
     public:
         EtherIPC(const QString& ipcPath);
+        virtual ~EtherIPC();
         void init();
         void setWorker(QThread* worker);
         bool getBusy() const;

@@ -80,6 +80,10 @@ namespace Etherwall {
         connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
     }
 
+    EtherIPC::~EtherIPC() {
+        fGeth.kill();
+    }
+
     void EtherIPC::init() {
         const QSettings settings;
 

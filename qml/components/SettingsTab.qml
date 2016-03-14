@@ -62,7 +62,7 @@ Tab {
 
             Label {
                 id: gethArgsLabel
-                text: "Geth path: "
+                text: "Geth args: "
             }
 
             TextField {

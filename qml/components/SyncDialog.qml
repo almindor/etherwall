@@ -23,7 +23,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 
 Window {
-    title: Math.max(0, last - current) + " out of " + Math.max(0, last - first) + " blocks remaining to synchronize. "
+    title: qsTr("Geth synchronizing blocks")
     property int first
     property int last
     property int current
@@ -38,10 +38,22 @@ Window {
     height: 1 * dpi
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
-    flags: Qt.WindowCloseButtonHint
+    flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
 
-    ProgressBar {
+    Column {
+        anchors.margins: 0.1 * dpi
         anchors.fill: parent
-        value: Math.max(0, current - first) / Math.max(1, last - first)
+        spacing: 0.25 * dpi
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text: Math.max(0, last - current) + " out of " + Math.max(0, last - first) + " blocks remaining to synchronize. "
+        }
+
+        ProgressBar {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            value: Math.max(0, current - first) / Math.max(1, last - first)
+        }
     }
 }

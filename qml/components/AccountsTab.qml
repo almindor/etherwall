@@ -25,7 +25,7 @@ import AccountProxyModel 0.1
 
 Tab {
     id: accountsTab
-    enabled: !ipc.busy && (ipc.connectionState > 0)
+    enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
     title: qsTr("Accounts")
     property bool show_hashes: false
 

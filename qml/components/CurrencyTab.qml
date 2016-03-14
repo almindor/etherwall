@@ -25,7 +25,7 @@ import QtQuick.Layouts 1.0
 Tab {
     id: logTab
     title: qsTr("Currencies")
-    enabled: !ipc.busy && (ipc.connectionState > 0)
+    enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {
         anchors.margins: 0.2 * dpi

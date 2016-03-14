@@ -32,6 +32,56 @@ Tab {
         spacing: 0.1 * dpi
 
         Row {
+            id: rowGethPath
+            width: parent.width
+
+            Label {
+                id: gethPathLabel
+                text: "Geth path: "
+            }
+
+            TextField {
+                id: gethPathField
+                width: parent.width - gethSaveButton.width - gethPathLabel.width
+                text: settings.value("/geth/path", "")
+            }
+
+            Button {
+                id: gethSaveButton
+                text: qsTr("Set")
+
+                onClicked: {
+                    settings.setValue("/geth/path", gethPathField.text)
+                }
+            }
+        }
+
+        Row {
+            id: rowGethArgs
+            width: parent.width
+
+            Label {
+                id: gethArgsLabel
+                text: "Geth path: "
+            }
+
+            TextField {
+                id: gethArgsField
+                width: parent.width - gethArgsButton.width - gethArgsLabel.width
+                text: settings.value("/geth/args", "--fast --cache 512")
+            }
+
+            Button {
+                id: gethArgsButton
+                text: qsTr("Set")
+
+                onClicked: {
+                    settings.setValue("/geth/args", gethArgsField.text)
+                }
+            }
+        }
+
+        Row {
             id: rowIPCPath
             width: parent.width
 

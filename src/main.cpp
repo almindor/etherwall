@@ -53,15 +53,21 @@ int main(int argc, char *argv[])
     app.installTranslator(&translator);
 
     Settings settings;
-    ClipboardAdapter clipboard;
-    EtherLog log;
-    EtherIPC ipc;
 
     const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
+    const QString gethPath = settings.value("geth/path", DefaultGethPath).toString();
 
     if ( !settings.contains("ipc/path") ) {
         settings.setValue("ipc/path", ipcPath);
     }
+
+    if ( !settings.contains("geth/path") ) {
+        settings.setValue("geth/path", gethPath);
+    }
+
+    ClipboardAdapter clipboard;
+    EtherLog log;
+    EtherIPC ipc(ipcPath);
 
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
@@ -79,9 +85,9 @@ int main(int argc, char *argv[])
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    log.log("Etherwall started");
+    log.log("Etherwall starting");
 
-    ipc.connectToServer(ipcPath);
+    ipc.init();
 
     return app.exec();
 }

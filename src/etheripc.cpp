@@ -66,12 +66,13 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false)
+    EtherIPC::EtherIPC(const QString& ipcPath) : fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false), fGeth(), fStarting(true)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
         connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
+        connect(&fGeth, &QProcess::started, this, &EtherIPC::waitConnect);
 
         const QSettings settings;
 
@@ -79,8 +80,24 @@ namespace Etherwall {
         connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
     }
 
+    void EtherIPC::init() {
+        const QSettings settings;
+
+        const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
+        const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
+        const QStringList args = argStr.split(' ', QString::SkipEmptyParts);
+
+        EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
+
+        fGeth.start(progStr, args);
+    }
+
     bool EtherIPC::getBusy() const {
         return (fActiveRequest.burden() != None);
+    }
+
+    bool EtherIPC::getStarting() const {
+        return fStarting;
     }
 
     bool EtherIPC::getSyncing() const {
@@ -132,12 +149,19 @@ namespace Etherwall {
         fTimer.setInterval(interval);
     }
 
+    bool EtherIPC::killGeth() {
+        fGeth.terminate();
+        fGeth.waitForFinished(5000);
+
+        return true;
+    }
+
     bool EtherIPC::closeApp() {
         fClosingApp = true;
         fTimer.stop();
 
         if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
-            return true;
+            return killGeth();
         }
 
         if ( fSocket.state() == QLocalSocket::ConnectedState && getBusy() ) { // wait for operation first if we're still connected
@@ -155,10 +179,14 @@ namespace Etherwall {
             return false;
         }
 
-        return true;
+        return killGeth();
     }
 
-    void EtherIPC::connectToServer(const QString& path) {
+    void EtherIPC::waitConnect() {
+        QTimer::singleShot(5000, this, SLOT(connectToServer()));
+    }
+
+    void EtherIPC::connectToServer() {
         if ( fAborted ) {
             bail();
             return;
@@ -166,13 +194,12 @@ namespace Etherwall {
 
         fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
-        fPath = path;
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
             setError("Already connected");
             return bail();
         }
 
-        fSocket.connectToServer(path);
+        fSocket.connectToServer(fPath);
         EtherLog::logMsg("Connecting to IPC socket");
 
         QTimer::singleShot(2000, this, SLOT(connectionTimeout()));
@@ -184,8 +211,10 @@ namespace Etherwall {
         getClientVersion();
         getBlockNumber(); // initial
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        fStarting = false;
 
         EtherLog::logMsg("Connected to IPC socket");
+        emit startingChanged(fStarting);
         emit connectToServerDone();
         emit connectionStateChanged();
     }
@@ -193,7 +222,7 @@ namespace Etherwall {
     void EtherIPC::connectionTimeout() {
         if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
-            setError("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
+            setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
             bail();
         }
     }

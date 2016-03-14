@@ -71,7 +71,7 @@ ApplicationWindow {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.busy || ipc.syncing
+        running: ipc.starting || ipc.busy || ipc.syncing
     }
 
     SyncDialog {
@@ -150,6 +150,11 @@ ApplicationWindow {
                 readOnly: true
                 text: transactionModel.gasPrice
             }
+        }
+
+        Text {
+            anchors.centerIn: parent
+            text: ipc.starting ? "Starting Geth..." : (ipc.syncing ? "Synchronizing blocks" : "Ready")
         }
 
         Row {

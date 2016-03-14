@@ -30,6 +30,7 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QThread>
+#include <QProcess>
 #include "types.h"
 #include "etherlog.h"
 
@@ -71,21 +72,25 @@ namespace Etherwall {
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
+        Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
         Q_PROPERTY(bool syncing READ getSyncing NOTIFY syncingChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
     public:
-        EtherIPC();
+        EtherIPC(const QString& ipcPath);
+        void init();
         void setWorker(QThread* worker);
         bool getBusy() const;
+        bool getStarting() const;
         bool getSyncing() const;
         const QString& getError() const;
         int getCode() const;
         float syncDone();
         void syncStart();
     public slots:
-        void connectToServer(const QString& path);
+        void waitConnect();
+        void connectToServer();
         void connectedToServer();
         void connectionTimeout();
         void disconnectedFromServer();
@@ -124,11 +129,13 @@ namespace Etherwall {
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
+        void startingChanged(bool starting);
         void syncingChanged(bool syncing);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
         void error();
     private:
+        QString fPath;
         QLocalSocket fSocket;
         int fFilterID;
         bool fClosingApp;
@@ -137,7 +144,6 @@ namespace Etherwall {
         QString fReadBuffer;
         QString fError;
         int fCode;
-        QString fPath;
         AccountList fAccountList;
         TransactionList fTransactionList;
         RequestList fRequestQueue;
@@ -145,6 +151,8 @@ namespace Etherwall {
         QTimer fTimer;
         QString fClientVersion;
         bool fSyncing;
+        QProcess fGeth;
+        bool fStarting;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -165,6 +173,7 @@ namespace Etherwall {
         void handleGetClientVersion();
 
         void onTimer();
+        bool killGeth();
         int parseVersionNum() const;
         void getFilterChanges(int filterID);
         void getClientVersion();

@@ -35,15 +35,19 @@ namespace Etherwall {
 
 #ifdef Q_OS_WIN32
     static const QString DefaultIPCPath = "\\\\.\\pipe\\geth.ipc";
+    static const QString DefaultGethPath = "./geth.exe";
 #else
     #ifdef Q_OS_MACX
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum/geth.ipc";
+    static const QString DefaultGethPath = "./geth";
     #else
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/geth.ipc";
+    static const QString DefaultGethPath = "/usr/bin/geth";
     #endif
 #endif
 
     static const quint64 SYNC_DEPTH = 10;
+    static const QString DefaultGethArgs = "--fast --cache 512";
 
     enum LogRoles {
         MsgRole = Qt::UserRole + 1,

@@ -42,6 +42,6 @@ Window {
 
     ProgressBar {
         anchors.fill: parent
-        value: (current - first) / (last - first)
+        value: Math.max(0, current - first) / Math.max(1, last - first)
     }
 }

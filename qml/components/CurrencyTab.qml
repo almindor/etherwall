@@ -32,6 +32,36 @@ Tab {
         anchors.top: parent.top
         spacing: 0.1 * dpi
 
+        Item {
+            anchors.left: parent.left
+            anchors.margins: 0.1 * dpi
+            width: ccText.width + ccImg.width
+            height: Math.max(ccImg.height, ccText.height)
+
+            Text {
+                id: ccText
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.margins: 0.2 * dpi
+                textFormat: Text.RichText
+                text: qsTr('Prices courtesy of ')
+            }
+
+            Image {
+                id: ccImg
+                anchors.left: ccText.right
+                sourceSize.height: 0.5 * dpi
+                source: "/images/cc"
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                cursorShape: Qt.OpenHandCursor
+                onClicked: {
+                    Qt.openUrlExternally("http://cryptocompare.com")
+                }
+            }
+        }
+
         Row {
             spacing: 0.5 * dpi
             anchors.margins: 0.2 * dpi
@@ -58,35 +88,6 @@ Tab {
                         currency: currencyModel.getCurrencyName(index)
                         rightText: Number(currencyModel.getCurrencyPrice(index)).toFixed(5)
                     }
-                }
-            }
-        }
-
-        Item {
-            anchors.horizontalCenter: parent.horizontalCenter
-            width: ccText.width + ccImg.width
-            height: Math.max(ccImg.height, ccText.height)
-
-            Text {
-                id: ccText
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.margins: 0.2 * dpi
-                textFormat: Text.RichText
-                text: qsTr('Prices courtesy of ')
-            }
-
-            Image {
-                id: ccImg
-                anchors.left: ccText.right
-                sourceSize.height: 0.5 * dpi
-                source: "/images/cc"
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.OpenHandCursor
-                onClicked: {
-                    Qt.openUrlExternally("http://cryptocompare.com")
                 }
             }
         }

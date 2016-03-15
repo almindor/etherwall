@@ -23,6 +23,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 
 Window {
+    id: syncWindow
     title: qsTr("Geth synchronizing blocks")
     property int first
     property int last
@@ -31,14 +32,14 @@ Window {
     modality: Qt.ApplicationModal
     visible: false
     minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 6 * dpi
-    maximumHeight: 1 * dpi
+    minimumHeight: 1.5 * dpi
+    maximumWidth: 8 * dpi
+    maximumHeight: 3 * dpi
     width: 6 * dpi
-    height: 1 * dpi
+    height: 1.5 * dpi
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
-    flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
+    //flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
 
     Column {
         anchors.margins: 0.1 * dpi
@@ -54,6 +55,15 @@ Window {
             anchors.left: parent.left
             anchors.right: parent.right
             value: Math.max(0, current - first) / Math.max(1, last - first)
+        }
+
+        Button {
+            id: quitButton
+            text: qsTr("Close", "Syncing dialog")
+            anchors.right: parent.right
+            onClicked: {
+                syncWindow.close()
+            }
         }
     }
 }

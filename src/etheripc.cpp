@@ -20,6 +20,7 @@
 
 #include "etheripc.h"
 #include <QSettings>
+#include <QFileInfo>
 
 namespace Etherwall {
 
@@ -90,6 +91,13 @@ namespace Etherwall {
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
         const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
         const QStringList args = argStr.split(' ', QString::SkipEmptyParts);
+
+        QFileInfo info(progStr);
+        if ( !info.exists() || !info.isExecutable() ) {
+            fStarting = false;
+            setError("Could not find Geth. Please check Geth path and try again.");
+            return bail();
+        }
 
         EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
 

@@ -24,15 +24,18 @@ import QtQuick.Controls 1.1
 Tab {
     title: qsTr("Geth")
 
-    ListView {
-        anchors.fill: parent
-        anchors.margins: 0.2 * dpi
-        model: geth
-        delegate: Text {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            text: msg
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+    ScrollView {
+        ListView {
+            anchors.fill: parent
+            anchors.margins: 0.2 * dpi
+            model: geth
+
+            delegate: Text {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                text: msg
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
         }
     }
 }

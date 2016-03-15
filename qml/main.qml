@@ -72,6 +72,7 @@ ApplicationWindow {
         anchors.centerIn: parent
         z: 10
         running: ipc.starting || ipc.busy || ipc.syncing
+
     }
 
     SyncDialog {
@@ -181,7 +182,7 @@ ApplicationWindow {
                 width: 32
                 tooltip: qsTr("Connection state: ") + (ipc.connectionState > 0 ? (qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")) : qsTr("disconnected", "connection state"))
                 onClicked: {
-                    ipc.connectToServer(settings.value("ipc/path", "bogus"))
+                    ipc.init()
                 }
             }
         }

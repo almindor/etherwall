@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     ClipboardAdapter clipboard;
     EtherLog log;
     GethLog gethLog;
-    EtherIPC ipc(ipcPath);
+    EtherIPC ipc(ipcPath, gethLog);
 
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 
     log.log("Etherwall starting");
 
-    ipc.init(gethLog);
+    ipc.init();
 
     return app.exec();
 }

@@ -79,9 +79,8 @@ namespace Etherwall {
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
     public:
-        EtherIPC(const QString& ipcPath);
+        EtherIPC(const QString& ipcPath, GethLog& gethLog);
         virtual ~EtherIPC();
-        void init(GethLog& gethLog);
         void setWorker(QThread* worker);
         bool getBusy() const;
         bool getStarting() const;
@@ -91,6 +90,7 @@ namespace Etherwall {
         float syncDone();
         void syncStart();
     public slots:
+        void init();
         void waitConnect();
         void connectToServer();
         void connectedToServer();
@@ -154,7 +154,8 @@ namespace Etherwall {
         QString fClientVersion;
         bool fSyncing;
         QProcess fGeth;
-        bool fStarting;
+        int fStarting;
+        GethLog& fGethLog;
 
         void handleNewAccount();
         void handleDeleteAccount();

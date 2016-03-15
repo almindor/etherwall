@@ -67,7 +67,8 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC(const QString& ipcPath) : fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false), fGeth(), fStarting(true)
+    EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
+        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false), fGeth(), fStarting(0), fGethLog(gethLog)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -85,7 +86,11 @@ namespace Etherwall {
         fGeth.kill();
     }
 
-    void EtherIPC::init(GethLog& gethLog) {
+    void EtherIPC::init() {
+        if ( fStarting > 0 ) {
+            return;
+        }
+
         const QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
@@ -94,15 +99,18 @@ namespace Etherwall {
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
-            fStarting = false;
+            fStarting = -1;
+            emit startingChanged(-1);
             setError("Could not find Geth. Please check Geth path and try again.");
             return bail();
         }
 
         EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
 
-        gethLog.attach(&fGeth);
+        fGethLog.attach(&fGeth);
         fGeth.start(progStr, args);
+        fStarting = 0;
+        emit startingChanged(0);
     }
 
     bool EtherIPC::getBusy() const {
@@ -110,7 +118,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::getStarting() const {
-        return fStarting;
+        return (fStarting == 0);
     }
 
     bool EtherIPC::getSyncing() const {
@@ -224,7 +232,7 @@ namespace Etherwall {
         getClientVersion();
         getBlockNumber(); // initial
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
-        fStarting = false;
+        fStarting = 1;
 
         EtherLog::logMsg("Connected to IPC socket");
         emit startingChanged(fStarting);

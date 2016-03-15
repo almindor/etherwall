@@ -61,7 +61,7 @@ namespace Etherwall {
     }
 
     void GethLog::overflowCheck() {
-        if ( fList.length() > 10 ) {
+        if ( fList.length() > 100 ) {
             beginRemoveRows(QModelIndex(), 0, 0);
             fList.removeAt(0);
             endRemoveRows();

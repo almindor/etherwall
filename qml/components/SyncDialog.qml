@@ -47,7 +47,7 @@ Window {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: Math.max(0, last - current) + " out of " + Math.max(0, last - first) + " blocks remaining to synchronize. "
+            text: qsTr("Synchronized ") + Math.max(0, current - first) + qsTr(" out of ") + Math.max(0, last - first) + qsTr(" blocks")
         }
 
         ProgressBar {

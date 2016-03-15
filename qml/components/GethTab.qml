@@ -25,9 +25,9 @@ Tab {
     title: qsTr("Geth")
 
     ScrollView {
+        anchors.margins: 0.2 * dpi
         ListView {
             anchors.fill: parent
-            anchors.margins: 0.2 * dpi
             model: geth
 
             delegate: Text {

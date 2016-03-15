@@ -189,9 +189,8 @@ Tab {
                 width: 1 * dpi
             }
 
-            sortIndicatorVisible: true
-            //onSortIndicatorColumnChanged: model.qml_sort(sortIndicatorColumn, sortIndicatorOrder)
-            //onSortIndicatorOrderChanged: model.qml_sort(sortIndicatorColumn, sortIndicatorOrder)
+            // TODO: fix selection for active row first
+            /*sortIndicatorVisible: true
             model: AccountProxyModel {
                    id: proxyModel
                    source: accountModel
@@ -203,7 +202,8 @@ Tab {
                    filterString: "*"
                    filterSyntax: AccountProxyModel.Wildcard
                    filterCaseSensitivity: Qt.CaseInsensitive
-               }
+               }*/
+            model: accountModel
 
             Menu {
                 id: rowMenu

@@ -33,6 +33,7 @@
 #include "accountproxymodel.h"
 #include "transactionmodel.h"
 #include "currencymodel.h"
+#include "gethlog.h"
 
 using namespace Etherwall;
 
@@ -42,10 +43,10 @@ int main(int argc, char *argv[])
 
     qmlRegisterType<AccountProxyModel>("AccountProxyModel", 0, 1, "AccountProxyModel");
 
-    QCoreApplication::setOrganizationName("Etherdiene");
+    QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("0.9.3");
+    QCoreApplication::setApplicationVersion("1.0.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -67,6 +68,7 @@ int main(int argc, char *argv[])
 
     ClipboardAdapter clipboard;
     EtherLog log;
+    GethLog gethLog;
     EtherIPC ipc(ipcPath);
 
     CurrencyModel currencyModel;
@@ -82,12 +84,13 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
+    engine.rootContext()->setContextProperty("geth", &gethLog);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     log.log("Etherwall starting");
 
-    ipc.init();
+    ipc.init(gethLog);
 
     return app.exec();
 }

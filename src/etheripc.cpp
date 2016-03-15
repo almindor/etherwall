@@ -84,7 +84,7 @@ namespace Etherwall {
         fGeth.kill();
     }
 
-    void EtherIPC::init() {
+    void EtherIPC::init(GethLog& gethLog) {
         const QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
@@ -93,6 +93,7 @@ namespace Etherwall {
 
         EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
 
+        gethLog.attach(&fGeth);
         fGeth.start(progStr, args);
     }
 

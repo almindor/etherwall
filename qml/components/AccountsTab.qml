@@ -147,27 +147,35 @@ Tab {
             height: parent.height - newAccountButton.height - parent.spacing
 
             TableViewColumn {
+                role: "index"
+                title: qsTr("#")
+                width: 0.3 * dpi
+            }
+
+            TableViewColumn {
                 horizontalAlignment: Text.AlignHCenter
                 role: "locked"
                 title: qsTr("Locked")
-                width: 1 * dpi
+                width: 0.7 * dpi
                 delegate: ToolButton {
                     iconSource: (styleData.value === true) ? "/images/locked" : "/images/unlocked"
                     enabled: (styleData.value === true)
                     onClicked: {
                         if ( styleData.value === true ) {
                             accountView.currentRow = styleData.row
-                            accountModel.selectedAccountRow = accountView.currentRow
+                            accountModel.selectedAccountRow = styleData.row
                             accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
                         }
                     }
                 }
             }
+
             TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
                 width: 3 * dpi
             }
+
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"

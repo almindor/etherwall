@@ -35,7 +35,7 @@ ApplicationWindow {
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
 
-    title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
+    title: qsTr("Etherdyne Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {
         id: closeTimer
@@ -94,6 +94,8 @@ ApplicationWindow {
         SettingsTab {}
 
         LogTab {}
+
+        GethTab {}
     }
 
     statusBar: StatusBar {

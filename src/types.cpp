@@ -76,8 +76,10 @@ namespace Etherwall {
 
 // ***************************** TransactionInfo ***************************** //
 
+    static int ACC_INDEX = 0;
+
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
+        fIndex(ACC_INDEX++), fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
     {
         const QSettings settings;
 
@@ -94,6 +96,7 @@ namespace Etherwall {
         case LockedRole: return QVariant(isLocked());
         case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
         case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
+        case IndexRole: return QVariant(fIndex);
         }
 
         return QVariant();

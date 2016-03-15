@@ -48,6 +48,8 @@ namespace Etherwall {
         roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
         roles[AliasRole] = "alias";
+        roles[IndexRole] = "index";
+
         return roles;
     }
 

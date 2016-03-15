@@ -33,6 +33,7 @@
 #include <QProcess>
 #include "types.h"
 #include "etherlog.h"
+#include "gethlog.h"
 
 namespace Etherwall {
 
@@ -80,7 +81,7 @@ namespace Etherwall {
     public:
         EtherIPC(const QString& ipcPath);
         virtual ~EtherIPC();
-        void init();
+        void init(GethLog& gethLog);
         void setWorker(QThread* worker);
         bool getBusy() const;
         bool getStarting() const;

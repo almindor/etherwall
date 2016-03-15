@@ -122,7 +122,8 @@ namespace Etherwall {
         BalanceRole,
         TransCountRole,
         SummaryRole,
-        AliasRole
+        AliasRole,
+        IndexRole
     };
 
     class AccountInfo
@@ -138,6 +139,7 @@ namespace Etherwall {
         bool isLocked(bool internal = false) const;
         void alias(const QString& name);
     private:
+        int fIndex;
         QString fHash;
         QString fBalance; // in ether
         quint64 fTransCount;

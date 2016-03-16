@@ -43,7 +43,7 @@ Tab {
             TextField {
                 id: gethPathField
                 width: parent.width - gethSaveButton.width - gethPathLabel.width
-                text: settings.value("/geth/path", "")
+                text: settings.value("geth/path", "")
             }
 
             Button {
@@ -51,7 +51,7 @@ Tab {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/geth/path", gethPathField.text)
+                    settings.setValue("geth/path", gethPathField.text)
                 }
             }
         }
@@ -68,7 +68,7 @@ Tab {
             TextField {
                 id: gethArgsField
                 width: parent.width - gethArgsButton.width - gethArgsLabel.width
-                text: settings.value("/geth/args", "--fast --cache 512")
+                text: settings.value("geth/args", "--fast --cache 512")
             }
 
             Button {
@@ -76,7 +76,7 @@ Tab {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/geth/args", gethArgsField.text)
+                    settings.setValue("geth/args", gethArgsField.text)
                 }
             }
         }
@@ -111,7 +111,7 @@ Tab {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/ipc/path", ipcPathField.text)
+                    settings.setValue("ipc/path", ipcPathField.text)
                 }
             }
 
@@ -139,7 +139,7 @@ Tab {
             TextField {
                 id: argsField
                 width: parent.width - argsButton.width - argsLabel.width
-                text: settings.value("/geth/args", "")
+                text: settings.value("geth/args", "")
             }
 
             Button {
@@ -147,7 +147,7 @@ Tab {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/geth/args", argsField.text)
+                    settings.setValue("geth/args", argsField.text)
                 }
             }
         }*/
@@ -165,14 +165,14 @@ Tab {
                 minimumValue: 10
                 maximumValue: 3600
 
-                value: settings.value("/ipc/accounts/lockduration", 300)
+                value: settings.value("ipc/accounts/lockduration", 300)
             }
 
             Button {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/ipc/accounts/lockduration", unlockDurSpinBox.value)
+                    settings.setValue("ipc/accounts/lockduration", unlockDurSpinBox.value)
                 }
             }
         }
@@ -190,14 +190,14 @@ Tab {
                 minimumValue: 5
                 maximumValue: 60
 
-                value: settings.value("/ipc/interval", 10)
+                value: settings.value("ipc/interval", 10)
             }
 
             Button {
                 text: qsTr("Set")
 
                 onClicked: {
-                    settings.setValue("/ipc/interval", intervalSpinBox.value)
+                    settings.setValue("ipc/interval", intervalSpinBox.value)
                     ipc.setInterval(intervalSpinBox.value * 1000)
                 }
             }

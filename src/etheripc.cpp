@@ -91,6 +91,8 @@ namespace Etherwall {
             return;
         }
 
+        EtherLog::logMsg("Etherwall starting", LS_Info);
+
         const QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
@@ -123,6 +125,10 @@ namespace Etherwall {
 
     bool EtherIPC::getSyncing() const {
         return fSyncing;
+    }
+
+    bool EtherIPC::getClosing() const {
+        return fClosingApp;
     }
 
     const QString& EtherIPC::getError() const {
@@ -180,6 +186,7 @@ namespace Etherwall {
     bool EtherIPC::closeApp() {
         fClosingApp = true;
         fTimer.stop();
+        emit closingChanged(true);
 
         if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
             return killGeth();

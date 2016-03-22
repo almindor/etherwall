@@ -31,20 +31,21 @@ Window {
 
     modality: Qt.ApplicationModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1.5 * dpi
+    minimumWidth: 4 * dpi
+    minimumHeight: 0.5 * dpi
     maximumWidth: 8 * dpi
-    maximumHeight: 3 * dpi
-    width: 6 * dpi
-    height: 1.5 * dpi
+    maximumHeight: 4 * dpi
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
     //flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
+    width: 5 * dpi
+    height: 1 * dpi
 
     Column {
+        id: syncCol
         anchors.margins: 0.1 * dpi
         anchors.fill: parent
-        spacing: 0.25 * dpi
+        //spacing: 0 * dpi
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
@@ -59,10 +60,11 @@ Window {
 
         Button {
             id: quitButton
-            text: qsTr("Close", "Syncing dialog")
+            text: qsTr("Quit", "Syncing dialog - quit app")
             anchors.right: parent.right
             onClicked: {
                 syncWindow.close()
+                appWindow.close()
             }
         }
     }

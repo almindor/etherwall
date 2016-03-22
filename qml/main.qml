@@ -82,6 +82,10 @@ ApplicationWindow {
         current: transactionModel.blockNumber
     }
 
+    FirstTimeDialog {
+        visible: !settings.contains("program/firstrun")
+    }
+
     TabView {
         id: tabView
         anchors.fill: parent
@@ -157,7 +161,7 @@ ApplicationWindow {
 
         Text {
             anchors.centerIn: parent
-            text: ipc.starting ? "Starting Geth..." : (ipc.syncing ? "Synchronizing blocks" : "Ready")
+            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : (ipc.syncing ? qsTr("Synchronizing blocks") : qsTr("Ready")))
         }
 
         Row {

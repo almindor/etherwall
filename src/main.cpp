@@ -88,9 +88,9 @@ int main(int argc, char *argv[])
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    log.log("Etherwall starting");
-
-    ipc.init();
+    if ( settings.contains("program/firstrun") ) {
+        ipc.init();
+    }
 
     return app.exec();
 }

@@ -75,6 +75,7 @@ namespace Etherwall {
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
         Q_PROPERTY(bool syncing READ getSyncing NOTIFY syncingChanged)
+        Q_PROPERTY(bool closing READ getClosing NOTIFY closingChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
@@ -85,6 +86,7 @@ namespace Etherwall {
         bool getBusy() const;
         bool getStarting() const;
         bool getSyncing() const;
+        bool getClosing() const;
         const QString& getError() const;
         int getCode() const;
         float syncDone();
@@ -133,6 +135,7 @@ namespace Etherwall {
         void busyChanged(bool busy);
         void startingChanged(bool starting);
         void syncingChanged(bool syncing);
+        void closingChanged(bool closing);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
         void error();

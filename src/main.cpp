@@ -57,13 +57,17 @@ int main(int argc, char *argv[])
 
     const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
     const QString gethPath = settings.value("geth/path", DefaultGethPath).toString();
+    const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
 
+    // set defaults
     if ( !settings.contains("ipc/path") ) {
         settings.setValue("ipc/path", ipcPath);
     }
-
     if ( !settings.contains("geth/path") ) {
         settings.setValue("geth/path", gethPath);
+    }
+    if ( !settings.contains("geth/datadir") ) {
+        settings.setValue("geth/datadir", dataPath);
     }
 
     ClipboardAdapter clipboard;

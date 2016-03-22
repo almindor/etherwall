@@ -34,13 +34,16 @@
 namespace Etherwall {
 
 #ifdef Q_OS_WIN32
+    static const QString DefaultDataDir = "";
     static const QString DefaultIPCPath = "\\\\.\\pipe\\geth.ipc";
     static const QString DefaultGethPath = "./geth.exe";
 #else
     #ifdef Q_OS_MACX
+    static const QString DefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum";
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum/geth.ipc";
     static const QString DefaultGethPath = "./geth";
     #else
+    static const QString DefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum";
     static const QString DefaultIPCPath = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/geth.ipc";
     static const QString DefaultGethPath = "/usr/bin/geth";
     #endif

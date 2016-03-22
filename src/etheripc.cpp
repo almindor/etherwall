@@ -97,7 +97,8 @@ namespace Etherwall {
 
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
         const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
-        const QStringList args = argStr.split(' ', QString::SkipEmptyParts);
+        const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
+        const QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {

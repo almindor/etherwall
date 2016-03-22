@@ -31,10 +31,13 @@ Window {
     minimumWidth: 6 * dpi
     minimumHeight: 1 * dpi
     maximumWidth: 10 * dpi
-    maximumHeight: 7 * dpi
+    maximumHeight: 8 * dpi
     width: 7 * dpi
+    height: 5 * dpi
     x: Screen.width / 2.0 - width / 2.0
     y: Screen.height / 2.0 - height / 2.0
+
+    property bool done: false
 
     Column {
         anchors.margins: 0.1 * dpi
@@ -42,43 +45,59 @@ Window {
         spacing: 0.25 * dpi
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.2 * dpi
+            font.pixelSize: 0.2 * dpi
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             text: qsTr("Please confirm options for Geth before running for the first time")
         }
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.2 * dpi
+            font.pixelSize: 0.2 * dpi
+            font.bold: true
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("NOTE: the --datadir option might be needed if your main drive has less than 40GB of free space")
+            text: qsTr("Ethereum blockchain grows rapidly and requires at least 20GB of space. Make sure to choose an appropriate data directory with enough space left.")
+        }
+
+        SettingsContent {
+            anchors.left: parent.left
+            anchors.right: parent.right
         }
 
         Row {
-            id: rowGethArgs
-            width: parent.width
-
-            Label {
-                id: gethArgsLabel
-                text: "Geth args: "
-            }
-
-            TextField {
-                id: gethArgsField
-                width: parent.width - gethArgsLabel.width
-                text: settings.value("geth/args", "--fast --cache 512")
-            }
-        }
-
-        Button {
-            id: quitButton
-            text: qsTr("Continue", "First time dialog")
             anchors.right: parent.right
-            onClicked: {
-                settings.setValue("geth/args", gethArgsField.text)
-                settings.setValue("program/firstrun", new Date())
-                ftWindow.close()
-                ipc.init();
+
+            Button {
+                id: continueButton
+                text: qsTr("Continue", "First time dialog")
+                anchors.margins: 0.1 * dpi
+                width: 1 * dpi
+                height: 0.6 * dpi
+
+                onClicked: {
+                    ipc.init();
+                    settings.setValue("program/firstrun", new Date())
+                    ftWindow.close()
+                }
+            }
+
+            Button {
+                id: quitButton
+                text: qsTr("Quit", "First time dialog")
+                anchors.margins: 0.1 * dpi
+                width: 1 * dpi
+                height: 0.6 * dpi
+
+                onClicked: {
+                    ftWindow.close()
+                    appWindow.close()
+                }
             }
         }
+
     }
 }

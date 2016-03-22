@@ -17,6 +17,7 @@
         <file>components/ToolTip.qml</file>
         <file>components/GethTab.qml</file>
         <file>components/FirstTimeDialog.qml</file>
+        <file>components/SettingsContent.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

@@ -24,13 +24,14 @@ import QtQuick.Layouts 1.0
 
 Tab {
     id: transactionsTab
-    enabled: !ipc.busy && (ipc.connectionState > 0)
+    enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
     title: qsTr("Transactions")
 
     Column {
         anchors.fill: parent
-        anchors.margins: 20
-        spacing: 15
+        anchors.margins: 0.05 * dpi
+        anchors.topMargin: 0.1 * dpi
+        spacing: 0.1 * dpi
 
         GridLayout {
             id: gridLayout
@@ -44,7 +45,7 @@ Tab {
 
             Row {
                 Layout.columnSpan: 3
-                Layout.minimumWidth: 600
+                Layout.minimumWidth: 6 * dpi
 
                 PasswordDialog {
                     id: accountUnlockDialog
@@ -58,8 +59,8 @@ Tab {
                 ToolButton {
                     id: lockTool
                     iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                    width: 24
-                    height: 24
+                    width: fromField.height
+                    height: fromField.height
 
                     Connections {
                         target: accountModel
@@ -96,7 +97,7 @@ Tab {
                 }
 
                 maximumLength: 42
-                Layout.minimumWidth: 600
+                Layout.minimumWidth: 6 * dpi
                 Layout.columnSpan: 3
 
                 onTextChanged: transactionWarning.refresh()
@@ -106,6 +107,7 @@ Tab {
                 ToolButton {
                     id: transactionWarning
                     iconSource: "/images/warning"
+                    tooltip: qsTr("Sending checks", "before sending a transaction")
                     width: sendButton.height
                     height: sendButton.height
 
@@ -171,6 +173,22 @@ Tab {
                     }
                 }
 
+                ConfirmDialog {
+                    id: confirmDialog
+                    msg: qsTr("Confirm transaction send?")
+
+                    onYes: {
+                        var result = transactionWarning.check()
+                        if ( result.error !== null ) {
+                            errorDialog.msg = result.error
+                            errorDialog.open()
+                            return
+                        }
+
+                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                    }
+                }
+
                 Button {
                     id: sendButton
                     text: "Send"
@@ -183,7 +201,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                        confirmDialog.open()
                     }
                 }
             }
@@ -204,15 +222,25 @@ Tab {
                     }
 
                     maximumLength: 50
-                    Layout.minimumWidth: 250
+                    width: 2 * dpi
                     onTextChanged: transactionWarning.refresh()
+                }
+
+                ToolButton {
+                    iconSource: "/images/all"
+                    width: sendButton.height
+                    height: sendButton.height
+                    tooltip: qsTr("Send all", "send all ether from account")
+                    onClicked: {
+                        valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text)
+                    }
                 }
             }
 
             // -- estimate is broken in geth 1.0.1- must wait for later release
             Row {
                 Layout.columnSpan: 2
-                Layout.minimumWidth: 450
+                Layout.minimumWidth: 4.5 * dpi
 
                 Label {
                     text: qsTr("Gas: ")
@@ -240,7 +268,7 @@ Tab {
                     id: valueTotalField
                     readOnly: true
                     maximumLength: 50
-                    width: 280
+                    width: 2 * dpi
                     validator: DoubleValidator {
                         bottom: 0.000000000000000001 // should be 1 wei
                         decimals: 18
@@ -267,29 +295,29 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
-                width: 70
+                width: 0.75 * dpi
             }
             TableViewColumn {
-                role: "sender"
+                role: "senderalias"
                 title: qsTr("Sender")
-                width: 200
+                width: 2.25 * dpi
             }
             TableViewColumn {
-                role: "receiver"
+                role: "receiveralias"
                 title: qsTr("Receiver")
-                width: 200
+                width: 2.25 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "value"
                 title: qsTr("Value (Ether)")
-                width: 150
+                width: 1.4 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
-                width: 70
+                width: 0.75 * dpi
             }
             model: transactionModel
 
@@ -299,7 +327,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Details")
                     onTriggered: {
-                        details.open(transactionModel.getJSON(transactionView.currentRow))
+                        details.open(transactionModel.getJson(transactionView.currentRow, true))
                     }
                 }
 
@@ -323,6 +351,8 @@ Tab {
                     id: osPalette
                     colorGroup: SystemPalette.Active
                 }
+
+                height: 0.2 * dpi
 
                 Rectangle {
                     anchors {

@@ -22,6 +22,7 @@
 #include <QSettings>
 #include <QDateTime>
 #include <QTimer>
+#include <QJsonDocument>
 #include <QDebug>
 
 namespace Etherwall {
@@ -54,11 +55,37 @@ namespace Etherwall {
         return QString("Unknown");
     }
 
+    // ***************************** Denomination ***************************** //
+
+    CurrencyInfo::CurrencyInfo( const QString name, const float price ) : fName(name), fPrice(price) {
+    }
+
+    const QVariant CurrencyInfo::value(const int role) const {
+        switch ( role ) {
+        case NameRole: return QVariant(fName);
+        case PriceRole: return QVariant(fPrice);
+        }
+
+        return QVariant();
+    }
+
+    double CurrencyInfo::recalculate(const float ether) const {
+        return ether * fPrice;
+    }
+
+
 // ***************************** TransactionInfo ***************************** //
 
+    static int ACC_INDEX = 0;
+
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
+        fIndex(ACC_INDEX++), fHash(hash), fBalance(balance), fTransCount(transCount), fLocked(true)
     {
+        const QSettings settings;
+
+        if ( settings.contains("alias/" + hash) ) {
+            fAlias = settings.value("alias/" + hash, QString()).toString();
+        }
     }
 
     const QVariant AccountInfo::value(const int role) const {
@@ -67,7 +94,9 @@ namespace Etherwall {
         case BalanceRole: return QVariant(fBalance);
         case TransCountRole: return QVariant(fTransCount);
         case LockedRole: return QVariant(isLocked());
-        case SummaryRole: return QVariant(fHash + " [" + fBalance + "]" );
+        case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
+        case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
+        case IndexRole: return QVariant(fIndex);
         }
 
         return QVariant();
@@ -111,31 +140,28 @@ namespace Etherwall {
         return true;
     }
 
+    void AccountInfo::alias(const QString& name) {
+        QSettings settings;
+
+        settings.setValue("alias/" + fHash, name);
+        fAlias = name;
+    }
+
 // ***************************** TransactionInfo ***************************** //
 
-    TransactionInfo::TransactionInfo()
+    TransactionInfo::TransactionInfo() : fSenderAlias(), fReceiverAlias()
     {
         fValue = "0x0";
         fBlockNumber = 0;
         fTransactionIndex = 0;
     }
 
-    TransactionInfo::TransactionInfo(const QJsonObject& source)
+    TransactionInfo::TransactionInfo(const QJsonObject& source) : fSenderAlias(), fReceiverAlias()
     {
-        fHash = source.value("hash").toString("invalid");
-        fNonce = Helpers::toQUInt64(source.value("nonce"));
-        fSender = source.value("from").toString("invalid");
-        fReceiver = source.value("to").toString("invalid");
-        fBlockHash = source.value("blockHash").toString("invalid");
-        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
-        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
-        fValue = Helpers::toDecStrEther(source.value("value"));
-        fGas = Helpers::toDecStr(source.value("gas"));
-        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
-        fInput = source.value("gasPrice").toString("invalid");
+        init(source);
     }
 
-    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum)
+    TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum), fSenderAlias(), fReceiverAlias()
     {
     }
 
@@ -152,13 +178,23 @@ namespace Etherwall {
             case GasRole: return QVariant(fGas);
             case GasPriceRole: return QVariant(fGasPrice);
             case InputRole: return QVariant(fInput);
+            case SenderAliasRole: return QVariant(fSenderAlias.isEmpty() ? fSender : fSenderAlias);
+            case ReceiverAliasRole: return QVariant(fReceiverAlias.isEmpty() ? fReceiver : fReceiverAlias);
         }
 
         return QVariant();
     }
 
+    quint64 TransactionInfo::getBlockNumber() const {
+        return fBlockNumber;
+    }
+
     void TransactionInfo::setBlockNumber(quint64 num) {
         fBlockNumber = num;
+    }
+
+    const QString TransactionInfo::getHash() const {
+        return fHash;
     }
 
     void TransactionInfo::setHash(const QString& hash) {
@@ -168,26 +204,73 @@ namespace Etherwall {
     void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
         fSender = from;
         fReceiver = to;
+        fNonce = 0;
         fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
             fGas = gas;
         }
+
+        lookupAccountAliases();
     }
 
-    const QJsonObject TransactionInfo::toJSON() const {
+    void TransactionInfo::init(const QJsonObject source) {
+        fHash = source.value("hash").toString("invalid");
+        fNonce = Helpers::toQUInt64(source.value("nonce"));
+        fSender = source.value("from").toString("invalid");
+        fReceiver = source.value("to").toString("invalid");
+        fBlockHash = source.value("blockHash").toString("invalid");
+        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
+        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
+        fValue = Helpers::toDecStrEther(source.value("value"));
+        fGas = Helpers::toDecStr(source.value("gas"));
+        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
+        fInput = source.value("input").toString("invalid");
+
+        lookupAccountAliases();
+    }
+
+    void TransactionInfo::lookupAccountAliases() {
+        const QSettings settings;
+
+        if ( settings.contains("alias/" + fSender) ) {
+            fSenderAlias = settings.value("alias/" + fSender, QString()).toString();
+        }
+
+        if ( settings.contains("alias/" + fReceiver) ) {
+            fReceiverAlias = settings.value("alias/" + fReceiver, QString()).toString();
+        }
+    }
+
+    const QJsonObject TransactionInfo::toJson(bool decimal) const {
         QJsonObject result;
         result["hash"] = fHash;
-        result["sender"] = fSender;
-        result["receiver"] = fReceiver;
-        result["value"] = fValue;
-        result["gas"] = fGas;
-        result["gasprice"] = fGasPrice;
-        result["blocknumber"] = (qint64) fBlockNumber;
-        result["blockhash"] = fBlockHash;
-        result["transactionindex"] = (qint64) fTransactionIndex;
-        result["nonce"] = (qint64) fNonce;
+        result["from"] = fSender;
+        result["to"] = fReceiver;
+        result["blockHash"] = fBlockHash;
+        result["input"] = fInput;
+
+        if ( decimal ) {
+            result["value"] = fValue;
+            result["gas"] = fGas;
+            result["gasPrice"] = fGasPrice;
+            result["blockNumber"] = (qint64) fBlockNumber;
+            result["transactionIndex"] = (qint64) fTransactionIndex;
+            result["nonce"] = (qint64) fNonce;
+        } else { // hex
+            result["value"] = Helpers::toHexWeiStr(fValue);
+            result["gas"] = Helpers::decStrToHexStr(fGas);
+            result["gasPrice"] = Helpers::toHexWeiStr(fGasPrice);
+            result["blockNumber"] = Helpers::toHexStr(fBlockNumber);
+            result["transactionIndex"] = Helpers::toHexStr(fTransactionIndex);
+            result["nonce"] = Helpers::toHexStr(fNonce);
+        }
 
         return result;
+    }
+
+    const QString TransactionInfo::toJsonString(bool decimal) const {
+        const QJsonDocument doc(toJson(decimal));
+        return doc.toJson();
     }
 
 // ***************************** Helpers ***************************** //
@@ -254,16 +337,15 @@ namespace Etherwall {
 
     const QString Helpers::weiStrToEtherStr(const QString& wei) {
         QString weiStr = wei;
-        const int l = weiStr.length();
-        if ( l < 18 ) {
-            for ( int i = 0; i < 18 - l; i++ ) {
-                weiStr.insert(0, '0');
-            }
+        while ( weiStr.length() < 18 ) {
+            weiStr.insert(0, '0');
         }
 
-        QString result = wei;
-        result.insert(weiStr.length() - 18, '.');
-        return result;
+        weiStr.insert(weiStr.length() - 18, '.');
+        if ( weiStr.at(0) == '.' ) {
+            weiStr.insert(0, '0');
+        }
+        return weiStr;
     }
 
     BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {

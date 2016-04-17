@@ -11,61 +11,60 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file PasswordDialog.qml
+/** @file InputDialog.qml
  * @author Ales Katona <almindor@gmail.com>
- * @date 2015
+ * @date 2016
  *
- * Password dialog
+ * Text input dialog
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
 BaseDialog {
-    width: Math.max(parent.width * 0.6, 6 * dpi)
-    property string password
-    property bool acceptEmpty: true
+    width: Math.max(parent.width * 0.6, 500)
+    property string value
+    property string query: qsTr("Value: ", "Generic query question")
 
     function openFocused(m, ae) {
         title = m || "Confirm operation"
         open()
-        accountPW.focus = true
+        inputField.focus = true
     }
 
     function doAccept() {
-        if ( !acceptEmpty && password.length == 0 ) {
+        if ( value.length == 0 ) {
             return;
         }
 
         close()
         accepted()
-        accountPW.text = ""
-        password = ""
+        inputField.text = ""
+        value = ""
     }
 
     Row {
         anchors.centerIn: parent
         Keys.onEscapePressed: {
             close()
-            accountPW.text = ""
-            password = ""
+            inputField.text = ""
+            value = ""
         }
 
         Keys.onEnterPressed: doAccept()
         Keys.onReturnPressed: doAccept()
 
         Label {
-            text: qsTr("Password: ")
+            text: qsTr(query)
         }
 
         TextField {
-            id: accountPW
-            echoMode: TextInput.Password
+            id: inputField
             width: parent.parent.width * 0.6
             focus: true
 
             onTextChanged: {
-                password = text
+                value = text
             }
         }
 

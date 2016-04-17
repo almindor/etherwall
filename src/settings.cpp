@@ -27,6 +27,11 @@ namespace Etherwall {
     {
     }
 
+    bool Settings::contains(const QString& key) const
+    {
+        return QSettings::contains(key);
+    }
+
     QVariant Settings::value(const QString& key, const QVariant& defaultValue) const
     {
         return QSettings::value(key, defaultValue);

@@ -29,7 +29,8 @@ Tab {
 
     Column {
         anchors.fill: parent
-        anchors.margins: 0.15 * dpi
+        anchors.margins: 0.05 * dpi
+        anchors.topMargin: 0.1 * dpi
         spacing: 0.1 * dpi
 
         GridLayout {
@@ -294,17 +295,17 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
-                width: 0.6 * dpi
+                width: 0.75 * dpi
             }
             TableViewColumn {
                 role: "senderalias"
                 title: qsTr("Sender")
-                width: 2.5 * dpi
+                width: 2.25 * dpi
             }
             TableViewColumn {
                 role: "receiveralias"
                 title: qsTr("Receiver")
-                width: 2.5 * dpi
+                width: 2.25 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
@@ -316,7 +317,7 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
-                width: 0.6 * dpi
+                width: 0.75 * dpi
             }
             model: transactionModel
 

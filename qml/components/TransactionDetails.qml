@@ -29,8 +29,8 @@ Window {
     modality: Qt.NonModal
     visible: false
     title: transaction.hash
-    width: 700
-    height: 350
+    width: 7 * dpi
+    height: 3.5 * dpi
 
     function open( trans ) {
         transaction = trans;

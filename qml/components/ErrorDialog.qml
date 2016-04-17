@@ -28,7 +28,7 @@ BaseDialog {
         text: "OK"
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.margins: 10
+        anchors.margins: 0.1 * dpi
         onClicked: {
            close()
            accepted()

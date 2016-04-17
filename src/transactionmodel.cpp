@@ -20,6 +20,7 @@
 
 #include "transactionmodel.h"
 #include <QDebug>
+#include <QTimer>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QJsonObject>
@@ -29,7 +30,7 @@
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this)
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
@@ -40,11 +41,19 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
 
-        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadHistoryDone(QNetworkReply*)));
+        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadRequestDone(QNetworkReply*)));
     }
 
     quint64 TransactionModel::getBlockNumber() const {
         return fBlockNumber;
+    }
+
+    quint64 TransactionModel::getFirstBlock() const {
+        return fFirstBlock;
+    }
+
+    quint64 TransactionModel::getLastBlock() const {
+        return fLastBlock;
     }
 
     const QString& TransactionModel::getGasPrice() const {
@@ -124,6 +133,10 @@ namespace Etherwall {
         }
 
         fBlockNumber = num;
+        if ( fFirstBlock == 0 ) {
+            fFirstBlock = num;
+        }
+
         emit blockNumberChanged(num);
 
         if ( !fTransactionList.isEmpty() ) { // depth changed for all
@@ -354,7 +367,7 @@ namespace Etherwall {
         fNetManager.post(request, data);
     }
 
-    void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
+    void TransactionModel::loadRequestDone(QNetworkReply *reply) {
         if ( reply == NULL ) {
             return EtherLog::logMsg("Undefined history reply", LS_Error);
         }
@@ -376,7 +389,8 @@ namespace Etherwall {
             const QString error = resObj.value("error").toString("unknown error");
             return EtherLog::logMsg("Response error: " + error, LS_Error);
         }
-        const QJsonArray result = resObj.value("result").toArray();
+        const QJsonValue rv = resObj.value("result");
+        const QJsonArray result = rv.toArray();
 
         int stored = 0;
         foreach ( const QJsonValue jv, result ) {

@@ -11,36 +11,30 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file ConfirmDialog.qml
+/** @file AccountsTab.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *
- * Confirm dialog
+ * Log tab
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-BaseDialog {
-    title: qsTr("Confirm")
+Tab {
+    title: qsTr("Geth")
 
-    Row {
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: 0.1 * dpi
+    ScrollView {
+        anchors.margins: 0.2 * dpi
+        ListView {
+            anchors.fill: parent
+            model: geth
 
-        Button {
-            text: "Yes"
-            onClicked: {
-               close()
-               yes()
-            }
-        }
-
-        Button {
-            text: "No"
-            onClicked: {
-               close()
+            delegate: Text {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                text: msg
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             }
         }
     }

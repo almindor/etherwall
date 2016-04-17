@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick.Controls 1.4
 
 Tab {
     id: logTab
@@ -27,7 +27,7 @@ Tab {
 
     Column {
         id: col
-        anchors.margins: 20
+        anchors.margins: 0.2 * dpi
         anchors.fill: parent
 
         Row {
@@ -70,22 +70,22 @@ Tab {
             TableViewColumn {
                 role: "date"
                 title: qsTr("Date")
-                width: 200
+                width: 2 * dpi
             }
             TableViewColumn {
                 role: "severity"
                 title: qsTr("Severity")
-                width: 100
+                width: 1 * dpi
             }
             TableViewColumn {
                 role: "msg"
                 title: qsTr("Message")
-                width: 600
+                width: 4 * dpi
             }
             model: log
 
             rowDelegate: Item {
-                height: 70
+                height: 1 * dpi
                 SystemPalette {
                     id: osPalette
                     colorGroup: SystemPalette.Active

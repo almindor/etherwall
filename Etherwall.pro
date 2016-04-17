@@ -14,7 +14,9 @@ SOURCES += src/main.cpp \
     src/transactionmodel.cpp \
     src/clipboard.cpp \
     src/etherlog.cpp \
-    src/currencymodel.cpp
+    src/currencymodel.cpp \
+    src/accountproxymodel.cpp \
+    src/gethlog.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -42,7 +44,9 @@ HEADERS += \
     src/transactionmodel.h \
     src/clipboard.h \
     src/etherlog.h \
-    src/currencymodel.h
+    src/currencymodel.h \
+    src/accountproxymodel.h \
+    src/gethlog.h
 
 macx {
     ICON=qml/images/icon.icns

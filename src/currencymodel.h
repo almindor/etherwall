@@ -36,16 +36,19 @@ namespace Etherwall {
     {
         Q_OBJECT
         Q_PROPERTY(QString currencyName READ getCurrencyName() NOTIFY currencyChanged FINAL)
+        Q_PROPERTY(int count READ getCount NOTIFY currencyChanged FINAL)
     public:
         CurrencyModel();
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         QVariant recalculate(const QVariant ether) const;
-        QString getCurrencyName() const;
+        int getCount() const;
+        Q_INVOKABLE QString getCurrencyName(int index = -1) const;
         Q_INVOKABLE void loadCurrencies();
         Q_INVOKABLE void setCurrencyIndex(int index);
         Q_INVOKABLE int getCurrencyIndex() const;
+        Q_INVOKABLE double getCurrencyPrice(int index) const;
     public slots:
         void loadCurrenciesDone(QNetworkReply *reply);
     signals:

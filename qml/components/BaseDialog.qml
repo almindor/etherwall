@@ -30,8 +30,10 @@ Window {
 
     modality: Qt.ApplicationModal
     visible: false
-    width: 600
-    height: 70
+    width: 6 * dpi
+    height: 1 * dpi
+    x: Screen.width / 2.0 - width / 2.0
+    y: Screen.height / 2.0 - height / 2.0
 
     function open() {
         visible = true;
@@ -42,8 +44,9 @@ Window {
     }
 
     Label {
-        y: 10
-        x: 10
+        id: contentLabel
+        y: 0.1 * dpi
+        x: 0.1 * dpi
         text: msg
         wrapMode: Text.Wrap
         width: parent.width

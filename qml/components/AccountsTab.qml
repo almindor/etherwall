@@ -21,16 +21,18 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.0
+import AccountProxyModel 0.1
 
 Tab {
     id: accountsTab
-    enabled: !ipc.busy && (ipc.connectionState > 0)
+    enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
     title: qsTr("Accounts")
     property bool show_hashes: false
 
     Column {
         id: col
-        anchors.margins: 20
+        anchors.margins: 0.05 * dpi
+        anchors.topMargin: 0.1 * dpi
         anchors.fill: parent
 
         Item {
@@ -51,7 +53,7 @@ Tab {
             CheckBox {
                 id: showHashButton
                 anchors.left: newAccountButton.right
-                anchors.leftMargin: 5
+                anchors.leftMargin: 0.01 * dpi
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Show Hashes")
                 onClicked: {
@@ -61,7 +63,7 @@ Tab {
 
             Label {
                 id: currencyLabel
-                anchors.rightMargin: 5
+                anchors.rightMargin: 0.01 * dpi
                 anchors.right: currencyCombo.left
                 anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Currency")
@@ -69,9 +71,9 @@ Tab {
 
             ComboBox {
                 id: currencyCombo
-                width: 70
+                width: 1 * dpi
                 anchors.right: totalLabel.left
-                anchors.rightMargin: 5
+                anchors.rightMargin: 0.01 * dpi
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
                 model: currencyModel
@@ -85,19 +87,18 @@ Tab {
                 id: totalLabel
                 anchors.right: totalField.left
                 anchors.verticalCenter: parent.verticalCenter
-                anchors.rightMargin: 5
-                text: qsTr("Wallet total ")
+                anchors.rightMargin: 0.01 * dpi
+                text: qsTr("Wallet total: ")
             }
 
             TextField {
                 id: totalField
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: newAccountButton.height
-                width: 210
+                width: 1 * dpi
                 horizontalAlignment: TextInput.AlignRight
                 readOnly: true
-                text: accountModel.total
+                text: Number(accountModel.total).toFixed(2)
             }
         }
 
@@ -146,39 +147,62 @@ Tab {
             height: parent.height - newAccountButton.height - parent.spacing
 
             TableViewColumn {
+                role: "index"
+                title: qsTr("#")
+                width: 0.3 * dpi
+            }
+
+            TableViewColumn {
                 horizontalAlignment: Text.AlignHCenter
                 role: "locked"
                 title: qsTr("Locked")
-                width: 70
+                width: 0.7 * dpi
                 delegate: ToolButton {
                     iconSource: (styleData.value === true) ? "/images/locked" : "/images/unlocked"
                     enabled: (styleData.value === true)
                     onClicked: {
                         if ( styleData.value === true ) {
                             accountView.currentRow = styleData.row
-                            accountModel.selectedAccountRow = accountView.currentRow
+                            accountModel.selectedAccountRow = styleData.row
                             accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
                         }
                     }
                 }
             }
+
             TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
-                width: 400
+                width: 3 * dpi
             }
+
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
-                width: 150
+                width: 2.5 * dpi
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "transactions"
                 title: qsTr("Sent Trans.")
-                width: 100
+                width: 1 * dpi
             }
+
+            // TODO: fix selection for active row first
+            /*sortIndicatorVisible: true
+            model: AccountProxyModel {
+                   id: proxyModel
+                   source: accountModel
+
+                   sortOrder: accountView.sortIndicatorOrder
+                   sortCaseSensitivity: Qt.CaseInsensitive
+                   sortRole: accountView.getColumn(accountView.sortIndicatorColumn).role
+
+                   filterString: "*"
+                   filterSyntax: AccountProxyModel.Wildcard
+                   filterCaseSensitivity: Qt.CaseInsensitive
+               }*/
             model: accountModel
 
             Menu {
@@ -211,6 +235,8 @@ Tab {
                     id: osPalette
                     colorGroup: SystemPalette.Active
                 }
+
+                height: 0.3 * dpi
 
                 Rectangle {
                     anchors {

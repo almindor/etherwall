@@ -48,6 +48,8 @@ namespace Etherwall {
         roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
         roles[AliasRole] = "alias";
+        roles[IndexRole] = "index";
+
         return roles;
     }
 
@@ -90,7 +92,9 @@ namespace Etherwall {
         BigInt::Rossi total;
 
         foreach ( const AccountInfo& info, fAccountList ) {
-            const QString strVal = fCurrencyModel.recalculate(info.value(BalanceRole)).toString();
+            const QVariant balance = info.value(BalanceRole);
+            double dVal = fCurrencyModel.recalculate(balance).toDouble();
+            const QString strVal = QString::number(dVal, 'f', 18);
             total += Helpers::etherStrToRossi(strVal);
         }
 

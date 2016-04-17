@@ -22,7 +22,7 @@ import QtQuick 2.0
 import QtQuick.Controls 1.1
 
 BaseDialog {
-    width: Math.max(parent.width * 0.6, 500)
+    width: Math.max(parent.width * 0.6, 6 * dpi)
     property string password
     property bool acceptEmpty: true
 

@@ -30,8 +30,10 @@
 #include <QJsonDocument>
 #include <QTimer>
 #include <QThread>
+#include <QProcess>
 #include "types.h"
 #include "etherlog.h"
+#include "gethlog.h"
 
 namespace Etherwall {
 
@@ -71,17 +73,28 @@ namespace Etherwall {
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
+        Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
+        Q_PROPERTY(bool syncing READ getSyncingVal NOTIFY syncingChanged)
+        Q_PROPERTY(bool closing READ getClosing NOTIFY closingChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
+        Q_PROPERTY(quint64 currentBlock READ getCurrentBlock NOTIFY syncingChanged)
+        Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
+        Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
     public:
-        EtherIPC();
+        EtherIPC(const QString& ipcPath, GethLog& gethLog);
+        virtual ~EtherIPC();
         void setWorker(QThread* worker);
         bool getBusy() const;
+        bool getStarting() const;
+        bool getClosing() const;
         const QString& getError() const;
         int getCode() const;
     public slots:
-        void connectToServer(const QString& path);
+        void init();
+        void waitConnect();
+        void connectToServer();
         void connectedToServer();
         void connectionTimeout();
         void disconnectedFromServer();
@@ -120,10 +133,14 @@ namespace Etherwall {
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
+        void startingChanged(bool starting);
+        void syncingChanged(bool syncing);
+        void closingChanged(bool closing);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
         void error();
     private:
+        QString fPath;
         QLocalSocket fSocket;
         int fFilterID;
         bool fClosingApp;
@@ -132,13 +149,19 @@ namespace Etherwall {
         QString fReadBuffer;
         QString fError;
         int fCode;
-        QString fPath;
         AccountList fAccountList;
         TransactionList fTransactionList;
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
         QString fClientVersion;
+        QProcess fGeth;
+        int fStarting;
+        GethLog& fGethLog;
+        bool fSyncing;
+        quint64 fCurrentBlock;
+        quint64 fHighestBlock;
+        quint64 fStartingBlock;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -157,11 +180,18 @@ namespace Etherwall {
         void handleGetTransactionByHash();
         void handleGetBlock();
         void handleGetClientVersion();
+        void handleGetSyncing();
 
         void onTimer();
+        bool killGeth();
         int parseVersionNum() const;
+        void getSyncing();
         void getFilterChanges(int filterID);
         void getClientVersion();
+        bool getSyncingVal() const;
+        quint64 getCurrentBlock() const;
+        quint64 getHighestBlock() const;
+        quint64 getStartingBlock() const;
         int getConnectionState() const;
         quint64 peerCount() const;
         void abort();

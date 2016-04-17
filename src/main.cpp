@@ -22,6 +22,7 @@
 #include <QTranslator>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QtQml/qqml.h>
 #include <QIcon>
 #include <QPixmap>
 #include <QDebug>
@@ -29,8 +30,10 @@
 #include "settings.h"
 #include "clipboard.h"
 #include "accountmodel.h"
+#include "accountproxymodel.h"
 #include "transactionmodel.h"
 #include "currencymodel.h"
+#include "gethlog.h"
 
 using namespace Etherwall;
 
@@ -38,10 +41,12 @@ int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
 
-    QCoreApplication::setOrganizationName("Etherdiene");
+    qmlRegisterType<AccountProxyModel>("AccountProxyModel", 0, 1, "AccountProxyModel");
+
+    QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("0.9.3");
+    QCoreApplication::setApplicationVersion("1.0.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -49,15 +54,26 @@ int main(int argc, char *argv[])
     app.installTranslator(&translator);
 
     Settings settings;
-    ClipboardAdapter clipboard;
-    EtherLog log;
-    EtherIPC ipc;
 
     const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
+    const QString gethPath = settings.value("geth/path", DefaultGethPath).toString();
+    const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
 
+    // set defaults
     if ( !settings.contains("ipc/path") ) {
         settings.setValue("ipc/path", ipcPath);
     }
+    if ( !settings.contains("geth/path") ) {
+        settings.setValue("geth/path", gethPath);
+    }
+    if ( !settings.contains("geth/datadir") ) {
+        settings.setValue("geth/datadir", dataPath);
+    }
+
+    ClipboardAdapter clipboard;
+    EtherLog log;
+    GethLog gethLog;
+    EtherIPC ipc(ipcPath, gethLog);
 
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
@@ -72,12 +88,13 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
+    engine.rootContext()->setContextProperty("geth", &gethLog);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
-    log.log("Etherwall started");
-
-    ipc.connectToServer(ipcPath);
+    if ( settings.contains("program/firstrun") ) {
+        ipc.init();
+    }
 
     return app.exec();
 }

@@ -20,6 +20,7 @@
 
 #include "etheripc.h"
 #include <QSettings>
+#include <QFileInfo>
 
 namespace Etherwall {
 
@@ -66,12 +67,16 @@ namespace Etherwall {
 
 // *************************** EtherIPC **************************** //
 
-    EtherIPC::EtherIPC() : fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None)
+    EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
+        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None),
+        fGeth(), fStarting(0), fGethLog(gethLog),
+        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
         connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
+        connect(&fGeth, &QProcess::started, this, &EtherIPC::waitConnect);
 
         const QSettings settings;
 
@@ -79,8 +84,50 @@ namespace Etherwall {
         connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
     }
 
+    EtherIPC::~EtherIPC() {
+        fGeth.kill();
+    }
+
+    void EtherIPC::init() {
+        if ( fStarting > 0 ) {
+            return;
+        }
+
+        EtherLog::logMsg("Etherwall starting", LS_Info);
+
+        const QSettings settings;
+
+        const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
+        const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
+        const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
+        const QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
+
+        QFileInfo info(progStr);
+        if ( !info.exists() || !info.isExecutable() ) {
+            fStarting = -1;
+            emit startingChanged(-1);
+            setError("Could not find Geth. Please check Geth path and try again.");
+            return bail();
+        }
+
+        EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
+
+        fGethLog.attach(&fGeth);
+        fGeth.start(progStr, args);
+        fStarting = 0;
+        emit startingChanged(0);
+    }
+
     bool EtherIPC::getBusy() const {
         return (fActiveRequest.burden() != None);
+    }
+
+    bool EtherIPC::getStarting() const {
+        return (fStarting == 0);
+    }
+
+    bool EtherIPC::getClosing() const {
+        return fClosingApp;
     }
 
     const QString& EtherIPC::getError() const {
@@ -91,16 +138,25 @@ namespace Etherwall {
         return fCode;
     }
 
+
     void EtherIPC::setInterval(int interval) {
         fTimer.setInterval(interval);
+    }
+
+    bool EtherIPC::killGeth() {
+        fGeth.terminate();
+        fGeth.waitForFinished(5000);
+
+        return true;
     }
 
     bool EtherIPC::closeApp() {
         fClosingApp = true;
         fTimer.stop();
+        emit closingChanged(true);
 
         if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
-            return true;
+            return killGeth();
         }
 
         if ( fSocket.state() == QLocalSocket::ConnectedState && getBusy() ) { // wait for operation first if we're still connected
@@ -118,10 +174,14 @@ namespace Etherwall {
             return false;
         }
 
-        return true;
+        return killGeth();
     }
 
-    void EtherIPC::connectToServer(const QString& path) {
+    void EtherIPC::waitConnect() {
+        QTimer::singleShot(5000, this, SLOT(connectToServer()));
+    }
+
+    void EtherIPC::connectToServer() {
         if ( fAborted ) {
             bail();
             return;
@@ -129,13 +189,12 @@ namespace Etherwall {
 
         fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
-        fPath = path;
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
             setError("Already connected");
             return bail();
         }
 
-        fSocket.connectToServer(path);
+        fSocket.connectToServer(fPath);
         EtherLog::logMsg("Connecting to IPC socket");
 
         QTimer::singleShot(2000, this, SLOT(connectionTimeout()));
@@ -146,9 +205,13 @@ namespace Etherwall {
 
         getClientVersion();
         getBlockNumber(); // initial
+        newFilter();
+
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        fStarting = 1;
 
         EtherLog::logMsg("Connected to IPC socket");
+        emit startingChanged(fStarting);
         emit connectToServerDone();
         emit connectionStateChanged();
     }
@@ -156,7 +219,7 @@ namespace Etherwall {
     void EtherIPC::connectionTimeout() {
         if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
-            setError("Unable to establish IPC connection to Geth. Make sure Geth is running and try again.");
+            setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
             bail();
         }
     }
@@ -190,10 +253,6 @@ namespace Etherwall {
         }
 
         emit getAccountsDone(fAccountList);
-
-        // TODO: figure out a way to get account transaction history
-        newFilter();
-
         done();
     }
 
@@ -453,6 +512,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::newFilter() {
+        if ( fFilterID >= 0 ) {
+            setError("Filter already set");
+            return bail(true);
+        }
+
         if ( !queueRequest(RequestIPC(NewFilter, "eth_newBlockFilter")) ) {
             return bail();
         }
@@ -476,7 +540,13 @@ namespace Etherwall {
 
     void EtherIPC::onTimer() {
         getPeerCount();
-        getFilterChanges(fFilterID);
+        getSyncing();
+
+        if ( fFilterID >= 0 && !fSyncing ) {
+            getFilterChanges(fFilterID);
+        } else {
+            getBlockNumber();
+        }
     }
 
     int EtherIPC::parseVersionNum() const {
@@ -491,6 +561,12 @@ namespace Etherwall {
         return 0;
     }
 
+    void EtherIPC::getSyncing() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetSyncing, "eth_syncing")) ) {
+            return bail();
+        }
+    }
+
     void EtherIPC::getFilterChanges(int filterID) {
         if ( filterID < 0 ) {
             setError("Filter ID invalid");
@@ -503,12 +579,6 @@ namespace Etherwall {
         params.append(strHex);
 
         if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, filterID)) ) {
-            return bail();
-        }
-    }
-
-    void EtherIPC::getClientVersion() {
-        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
             return bail();
         }
     }
@@ -529,6 +599,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::uninstallFilter() {
+        if ( fFilterID < 0 ) {
+            setError("Filter not set");
+            return bail(true);
+        }
+
         QJsonArray params;
         BigInt::Vin vinVal(fFilterID);
         QString strHex = QString(vinVal.toStr0xHex().data());
@@ -548,6 +623,28 @@ namespace Etherwall {
         fFilterID = -1;
 
         done();
+    }
+
+    void EtherIPC::getClientVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
+            return bail();
+        }
+    }
+
+    bool EtherIPC::getSyncingVal() const {
+        return fSyncing;
+    }
+
+    quint64 EtherIPC::getCurrentBlock() const {
+        return fCurrentBlock;
+    }
+
+    quint64 EtherIPC::getHighestBlock() const {
+        return fHighestBlock;
+    }
+
+    quint64 EtherIPC::getStartingBlock() const {
+        return fStartingBlock;
     }
 
     void EtherIPC::getTransactionByHash(const QString& hash) {
@@ -616,7 +713,45 @@ namespace Etherwall {
             emit error();
         }
 
+        if ( vn > 0 && vn < 103005 ) {
+            setError("Geth version 1.3.4 and older are Frontier versions. Please update to Homestead (1.3.5+)");
+            emit error();
+        }
+
         emit clientVersionChanged(fClientVersion);
+        done();
+    }
+
+    void EtherIPC::handleGetSyncing() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        if ( jv.isNull() || ( jv.isBool() && !jv.toBool(false) ) ) {
+            if ( fSyncing ) {
+                fSyncing = false;
+                if ( fFilterID < 0 ) {
+                    newFilter();
+                }
+                emit syncingChanged(fSyncing);
+            }
+
+            return done();
+        }
+
+        const QJsonObject syncing = jv.toObject();
+        fCurrentBlock = Helpers::toQUInt64(syncing.value("currentBlock"));
+        fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
+        fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
+        if ( !fSyncing ) {
+            if ( fFilterID >= 0 ) {
+                uninstallFilter();
+            }
+            fSyncing = true;
+        }
+
+        emit syncingChanged(fSyncing);
         done();
     }
 
@@ -881,6 +1016,10 @@ namespace Etherwall {
             }
         case GetClientVersion: {
                 handleGetClientVersion();
+                break;
+            }
+        case GetSyncing: {
+                handleGetSyncing();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

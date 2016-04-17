@@ -52,15 +52,29 @@ namespace Etherwall {
         return QVariant(fCurrencies.at(index.row()).value(role));
     }
 
-    QString CurrencyModel::getCurrencyName() const {
-        return fCurrencies.at(fIndex).value(NameRole).toString();
+    QString CurrencyModel::getCurrencyName(int index) const {
+        if ( index < 0 ) {
+            index = fIndex;
+        }
+
+        if ( fCurrencies.size() > index && index >= 0 ) {
+            return fCurrencies.at(index).value(NameRole).toString();
+        }
+
+        return "UNK";
     }
 
     QVariant CurrencyModel::recalculate(const QVariant ether) const {
         if ( fIndex == 0 ) {
             return ether; // no change
         }
-        return QVariant(fCurrencies.at(fIndex).recalculate(ether.toFloat()));
+
+        double val = fCurrencies.at(fIndex).recalculate(ether.toDouble());
+        return QVariant(QString::number(val, 'f', 18));
+    }
+
+    int CurrencyModel::getCount() const {
+        return fCurrencies.size();
     }
 
     void CurrencyModel::loadCurrencies() {
@@ -133,6 +147,14 @@ namespace Etherwall {
 
     int CurrencyModel::getCurrencyIndex() const {
         return fIndex;
+    }
+
+    double CurrencyModel::getCurrencyPrice(int index) const {
+        if ( fCurrencies.size() > index && index >= 0 ) {
+            return fCurrencies.at(index).recalculate(1.0);
+        }
+
+        return 1.0;
     }
 
 }

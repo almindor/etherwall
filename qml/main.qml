@@ -20,16 +20,22 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+import QtQuick.Window 2.0
 import "components"
 
 ApplicationWindow {
+    property int dpi: Screen.pixelDensity * 25.4;
+
     id: appWindow
     visible: true
-    width: 800
-    height: 600
-    minimumWidth: 800
-    minimumHeight: 600
-    title: qsTr("Etherdiene Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
+    width: 8 * dpi
+    height: 6 * dpi
+    minimumWidth: 8 * dpi
+    minimumHeight: 6 * dpi
+    x: Screen.width / 2.0 - width / 2.0
+    y: Screen.height / 2.0 - height / 2.0
+
+    title: qsTr("Etherdyne Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {
         id: closeTimer
@@ -51,7 +57,7 @@ ApplicationWindow {
 
     ErrorDialog {
         id: errorDialog
-        width: 500
+        width: 5 * dpi
 
         Connections {
             target: ipc
@@ -65,7 +71,16 @@ ApplicationWindow {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.busy
+        running: ipc.starting || ipc.busy || ipc.syncing
+
+    }
+
+    SyncDialog {
+        visible: ipc.syncing
+    }
+
+    FirstTimeDialog {
+        visible: !settings.contains("program/firstrun")
     }
 
     TabView {
@@ -76,9 +91,13 @@ ApplicationWindow {
 
         TransactionsTab {}
 
+        CurrencyTab {}
+
         SettingsTab {}
 
         LogTab {}
+
+        GethTab {}
     }
 
     statusBar: StatusBar {
@@ -137,6 +156,11 @@ ApplicationWindow {
             }
         }
 
+        Text {
+            anchors.centerIn: parent
+            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : (ipc.syncing ? qsTr("Synchronizing blocks") : qsTr("Ready")))
+        }
+
         Row {
             anchors.right: parent.right
             ToolButton {
@@ -159,7 +183,7 @@ ApplicationWindow {
                 width: 32
                 tooltip: qsTr("Connection state: ") + (ipc.connectionState > 0 ? (qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")) : qsTr("disconnected", "connection state"))
                 onClicked: {
-                    ipc.connectToServer(settings.value("ipc/path", "bogus"))
+                    ipc.init()
                 }
             }
         }

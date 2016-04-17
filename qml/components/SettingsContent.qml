@@ -48,7 +48,7 @@ TabView {
                     selectMultiple: false
 
                     onAccepted: {
-                        gethDDField.text = ddFileDialog.fileUrl
+                        gethDDField.text = ddFileDialog.fileUrl.toString().replace(/^(file:\/{3})/,""); // fugly but gotta love QML on this one
                     }
                 }
             }
@@ -140,7 +140,7 @@ TabView {
                     selectMultiple: false
 
                     onAccepted: {
-                        gethPathField.text = gethFileDialog.fileUrl
+                        gethPathField.text = gethFileDialog.fileUrl.toString().replace(/^(file:\/{3})/,""); // fugly but gotta love QML on this one
                     }
                 }
             }

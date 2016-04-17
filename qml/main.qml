@@ -77,9 +77,6 @@ ApplicationWindow {
 
     SyncDialog {
         visible: ipc.syncing
-        first: transactionModel.firstBlock
-        last: transactionModel.lastBlock
-        current: transactionModel.blockNumber
     }
 
     FirstTimeDialog {

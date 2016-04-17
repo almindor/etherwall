@@ -63,7 +63,6 @@ namespace Etherwall {
         quint64 getLastBlock() const;
     public slots:
         void connectToServerDone();
-        void loadLastBlock();
         void getAccountsDone(const AccountList& list);
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);

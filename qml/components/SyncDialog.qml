@@ -25,10 +25,6 @@ import QtQuick.Window 2.0
 Window {
     id: syncWindow
     title: qsTr("Geth synchronizing blocks")
-    property int first
-    property int last
-    property int current
-
     modality: Qt.ApplicationModal
     visible: false
     minimumWidth: 4 * dpi
@@ -49,13 +45,13 @@ Window {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: qsTr("Synchronized ") + Math.max(0, current - first) + qsTr(" out of ") + Math.max(0, last - first) + qsTr(" blocks")
+            text: qsTr("Synchronized ") + Math.max(0, ipc.currentBlock - ipc.startingBlock) + qsTr(" out of ") + Math.max(0, ipc.highestBlock - ipc.startingBlock) + qsTr(" blocks")
         }
 
         ProgressBar {
             anchors.left: parent.left
             anchors.right: parent.right
-            value: Math.max(0, current - first) / Math.max(1, last - first)
+            value: Math.max(0, ipc.currentBlock - ipc.startingBlock) / Math.max(1, ipc.highestBlock - ipc.startingBlock)
         }
 
         Button {

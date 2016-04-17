@@ -74,23 +74,23 @@ namespace Etherwall {
         Q_PROPERTY(int code READ getCode NOTIFY error)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
-        Q_PROPERTY(bool syncing READ getSyncing NOTIFY syncingChanged)
+        Q_PROPERTY(bool syncing READ getSyncingVal NOTIFY syncingChanged)
         Q_PROPERTY(bool closing READ getClosing NOTIFY closingChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
+        Q_PROPERTY(quint64 currentBlock READ getCurrentBlock NOTIFY syncingChanged)
+        Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
+        Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
     public:
         EtherIPC(const QString& ipcPath, GethLog& gethLog);
         virtual ~EtherIPC();
         void setWorker(QThread* worker);
         bool getBusy() const;
         bool getStarting() const;
-        bool getSyncing() const;
         bool getClosing() const;
         const QString& getError() const;
         int getCode() const;
-        float syncDone();
-        void syncStart();
     public slots:
         void init();
         void waitConnect();
@@ -155,10 +155,13 @@ namespace Etherwall {
         RequestIPC fActiveRequest;
         QTimer fTimer;
         QString fClientVersion;
-        bool fSyncing;
         QProcess fGeth;
         int fStarting;
         GethLog& fGethLog;
+        bool fSyncing;
+        quint64 fCurrentBlock;
+        quint64 fHighestBlock;
+        quint64 fStartingBlock;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -177,12 +180,18 @@ namespace Etherwall {
         void handleGetTransactionByHash();
         void handleGetBlock();
         void handleGetClientVersion();
+        void handleGetSyncing();
 
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
+        void getSyncing();
         void getFilterChanges(int filterID);
         void getClientVersion();
+        bool getSyncingVal() const;
+        quint64 getCurrentBlock() const;
+        quint64 getHighestBlock() const;
+        quint64 getStartingBlock() const;
         int getConnectionState() const;
         quint64 peerCount() const;
         void abort();

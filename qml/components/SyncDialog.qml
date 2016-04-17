@@ -31,11 +31,13 @@ Window {
     minimumHeight: 0.5 * dpi
     maximumWidth: 8 * dpi
     maximumHeight: 4 * dpi
-    x: Screen.width / 2.0 - width / 2.0
-    y: Screen.height / 2.0 - height / 2.0
     //flags: Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint
     width: 5 * dpi
     height: 1 * dpi
+    Component.onCompleted: {
+        setX(Screen.width / 2.0 - width / 2.0)
+        setY(Screen.height / 2.0 - height / 2.0)
+    }
 
     Column {
         id: syncCol

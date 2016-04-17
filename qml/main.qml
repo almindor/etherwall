@@ -28,12 +28,16 @@ ApplicationWindow {
 
     id: appWindow
     visible: true
-    width: 8 * dpi
-    height: 6 * dpi
     minimumWidth: 8 * dpi
     minimumHeight: 6 * dpi
-    x: Screen.width / 2.0 - width / 2.0
-    y: Screen.height / 2.0 - height / 2.0
+
+    width: 8 * dpi
+    height: 6 * dpi
+
+    Component.onCompleted: {
+        setX(Screen.width / 2.0 - width / 2.0)
+        setY(Screen.height / 2.0 - height / 2.0)
+    }
 
     title: qsTr("Etherdyne Ethereum Wallet") + " " + Qt.application.version + ' [' + ipc.clientVersion + ']'
 

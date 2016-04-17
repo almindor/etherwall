@@ -32,8 +32,10 @@ Window {
     visible: false
     width: 6 * dpi
     height: 1 * dpi
-    x: Screen.width / 2.0 - width / 2.0
-    y: Screen.height / 2.0 - height / 2.0
+    Component.onCompleted: {
+        setX(Screen.width / 2.0 - width / 2.0)
+        setY(Screen.height / 2.0 - height / 2.0)
+    }
 
     function open() {
         visible = true;

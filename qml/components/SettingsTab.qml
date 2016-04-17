@@ -25,12 +25,11 @@ Tab {
     id: settingsTab
     title: qsTr("Settings")
 
-    Column {
-
-        SettingsContent {
-            id: settingsContent
-            anchors.left: parent.left
-            anchors.right: parent.right
-        }
+    SettingsContent {
+        id: settingsContent
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: 0.05 * dpi
+        anchors.topMargin: 0.1 * dpi
     }
 }

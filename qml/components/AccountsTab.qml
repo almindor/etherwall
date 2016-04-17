@@ -32,6 +32,7 @@ Tab {
     Column {
         id: col
         anchors.margins: 0.05 * dpi
+        anchors.topMargin: 0.1 * dpi
         anchors.fill: parent
 
         Item {
@@ -94,7 +95,6 @@ Tab {
                 id: totalField
                 anchors.right: parent.right
                 anchors.verticalCenter: parent.verticalCenter
-                height: newAccountButton.height
                 width: 1 * dpi
                 horizontalAlignment: TextInput.AlignRight
                 readOnly: true

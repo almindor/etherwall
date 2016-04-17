@@ -68,7 +68,9 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None), fSyncing(false), fGeth(), fStarting(0), fGethLog(gethLog)
+        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None),
+        fGeth(), fStarting(0), fGethLog(gethLog),
+        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -124,10 +126,6 @@ namespace Etherwall {
         return (fStarting == 0);
     }
 
-    bool EtherIPC::getSyncing() const {
-        return fSyncing;
-    }
-
     bool EtherIPC::getClosing() const {
         return fClosingApp;
     }
@@ -138,38 +136,6 @@ namespace Etherwall {
 
     int EtherIPC::getCode() const {
         return fCode;
-    }
-
-    float EtherIPC::syncDone() {
-        fSyncing = false;
-
-        emit syncingChanged(fSyncing);
-
-        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
-            return -1.0;
-        }
-
-        if ( fFilterID >= 0 ) {
-            return -1.0;
-        }
-
-        newFilter();
-
-        return -1.0;
-    }
-
-    void EtherIPC::syncStart() {
-        fSyncing = true;
-
-        emit syncingChanged(fSyncing);
-
-        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
-            return;
-        }
-
-        if ( fFilterID >= 0 ) {
-            uninstallFilter();
-        }
     }
 
 
@@ -239,6 +205,8 @@ namespace Etherwall {
 
         getClientVersion();
         getBlockNumber(); // initial
+        newFilter();
+
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
         fStarting = 1;
 
@@ -285,10 +253,6 @@ namespace Etherwall {
         }
 
         emit getAccountsDone(fAccountList);
-
-        // TODO: figure out a way to get account transaction history
-        newFilter();
-
         done();
     }
 
@@ -548,10 +512,6 @@ namespace Etherwall {
     }
 
     void EtherIPC::newFilter() {
-        if ( fSyncing ) {
-            return; // silent
-        }
-
         if ( fFilterID >= 0 ) {
             setError("Filter already set");
             return bail(true);
@@ -576,16 +536,13 @@ namespace Etherwall {
         }
 
         done();
-
-        if ( fSyncing ) {
-            uninstallFilter();
-        }
     }
 
     void EtherIPC::onTimer() {
         getPeerCount();
+        getSyncing();
 
-        if ( fFilterID >= 0 ) {
+        if ( fFilterID >= 0 && !fSyncing ) {
             getFilterChanges(fFilterID);
         } else {
             getBlockNumber();
@@ -604,12 +561,14 @@ namespace Etherwall {
         return 0;
     }
 
+    void EtherIPC::getSyncing() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetSyncing, "eth_syncing")) ) {
+            return bail();
+        }
+    }
+
     void EtherIPC::getFilterChanges(int filterID) {
         if ( filterID < 0 ) {
-            if ( fSyncing ) {
-                return; // silent
-            }
-
             setError("Filter ID invalid");
             return bail();
         }
@@ -670,6 +629,22 @@ namespace Etherwall {
         if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
             return bail();
         }
+    }
+
+    bool EtherIPC::getSyncingVal() const {
+        return fSyncing;
+    }
+
+    quint64 EtherIPC::getCurrentBlock() const {
+        return fCurrentBlock;
+    }
+
+    quint64 EtherIPC::getHighestBlock() const {
+        return fHighestBlock;
+    }
+
+    quint64 EtherIPC::getStartingBlock() const {
+        return fStartingBlock;
     }
 
     void EtherIPC::getTransactionByHash(const QString& hash) {
@@ -744,6 +719,39 @@ namespace Etherwall {
         }
 
         emit clientVersionChanged(fClientVersion);
+        done();
+    }
+
+    void EtherIPC::handleGetSyncing() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        if ( jv.isNull() || ( jv.isBool() && !jv.toBool(false) ) ) {
+            if ( fSyncing ) {
+                fSyncing = false;
+                if ( fFilterID < 0 ) {
+                    newFilter();
+                }
+                emit syncingChanged(fSyncing);
+            }
+
+            return done();
+        }
+
+        const QJsonObject syncing = jv.toObject();
+        fCurrentBlock = Helpers::toQUInt64(syncing.value("currentBlock"));
+        fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
+        fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
+        if ( !fSyncing ) {
+            if ( fFilterID >= 0 ) {
+                uninstallFilter();
+            }
+            fSyncing = true;
+        }
+
+        emit syncingChanged(fSyncing);
         done();
     }
 
@@ -1008,6 +1016,10 @@ namespace Etherwall {
             }
         case GetClientVersion: {
                 handleGetClientVersion();
+                break;
+            }
+        case GetSyncing: {
+                handleGetSyncing();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

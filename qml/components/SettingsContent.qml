@@ -3,8 +3,6 @@ import QtQuick.Controls 1.0
 import QtQuick.Dialogs 1.0
 
 TabView {
-    anchors.margins: 0.1 * dpi
-
     Tab {
         title: qsTr("Basic")
 

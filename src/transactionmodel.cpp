@@ -120,7 +120,6 @@ namespace Etherwall {
     void TransactionModel::connectToServerDone() {
         fIpc.getBlockNumber();
         fIpc.getGasPrice();
-        loadLastBlock();
     }
 
     void TransactionModel::getAccountsDone(const AccountList& list __attribute__((unused))) {
@@ -136,13 +135,6 @@ namespace Etherwall {
         fBlockNumber = num;
         if ( fFirstBlock == 0 ) {
             fFirstBlock = num;
-        }
-
-        if ( fLastBlock > 0 && fBlockNumber > 0 && fLastBlock > fBlockNumber && fLastBlock - fBlockNumber >= SYNC_DEPTH ) {
-            fIpc.syncStart();
-            QTimer::singleShot(1000 * 5, this, &TransactionModel::loadLastBlock);
-        } else if ( fLastBlock > 0 && fBlockNumber > 0 && ( (fLastBlock < fBlockNumber) || (fLastBlock >= fBlockNumber && fBlockNumber - fLastBlock < SYNC_DEPTH) ) ) {
-            fIpc.syncDone();
         }
 
         emit blockNumberChanged(num);
@@ -358,18 +350,6 @@ namespace Etherwall {
         emit dataChanged(leftIndex, rightIndex, roles);
     }
 
-    void TransactionModel::loadLastBlock() {
-        // get historical transactions from etherdata
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/lastblock"));
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-        QJsonObject objectJson;
-        const QByteArray data = QJsonDocument(objectJson).toJson();
-
-        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
-
-        fNetManager.post(request, data);
-    }
-
     void TransactionModel::loadHistory() {
         if ( fAccountModel.rowCount() == 0 ) {
             return; // don't try with empty request
@@ -410,33 +390,25 @@ namespace Etherwall {
             return EtherLog::logMsg("Response error: " + error, LS_Error);
         }
         const QJsonValue rv = resObj.value("result");
-        if ( rv.isArray() ) { // history
-            const QJsonArray result = rv.toArray();
+        const QJsonArray result = rv.toArray();
 
-            int stored = 0;
-            foreach ( const QJsonValue jv, result ) {
-                const QJsonObject jo = jv.toObject();
-                const QString hash = jo.value("hash").toString("bogus");
+        int stored = 0;
+        foreach ( const QJsonValue jv, result ) {
+            const QJsonObject jo = jv.toObject();
+            const QString hash = jo.value("hash").toString("bogus");
 
-                if ( hash == "bogus" ) {
-                    return EtherLog::logMsg("Response hash missing", LS_Error);
-                }
-
-                if ( containsTransaction(hash) < 0 ) {
-                    fIpc.getTransactionByHash(hash);
-                    stored++;
-                }
+            if ( hash == "bogus" ) {
+                return EtherLog::logMsg("Response hash missing", LS_Error);
             }
 
-            if ( stored > 0 ) {
-                EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
+            if ( containsTransaction(hash) < 0 ) {
+                fIpc.getTransactionByHash(hash);
+                stored++;
             }
-        } else { // last block
-            fLastBlock = rv.toString("0").toULongLong();
-            if ( fLastBlock > 0 && fBlockNumber > 0 && fLastBlock > fBlockNumber && fLastBlock - fBlockNumber >= SYNC_DEPTH ) {
-                fIpc.syncStart();
-            }
-            emit blockNumberChanged(fBlockNumber); // to force syncing if needed
+        }
+
+        if ( stored > 0 ) {
+            EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
         }
 
         reply->close();

@@ -93,7 +93,6 @@ namespace Etherwall {
         int getCode() const;
     public slots:
         void init();
-        void waitConnect();
         void connectToServer();
         void connectedToServer();
         void connectionTimeout();

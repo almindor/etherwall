@@ -76,7 +76,7 @@ namespace Etherwall {
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
         connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
-        connect(&fGeth, &QProcess::started, this, &EtherIPC::waitConnect);
+        connect(&fGeth, &QProcess::started, this, &EtherIPC::connectToServer);
 
         const QSettings settings;
 
@@ -177,10 +177,6 @@ namespace Etherwall {
         return killGeth();
     }
 
-    void EtherIPC::waitConnect() {
-        QTimer::singleShot(5000, this, SLOT(connectToServer()));
-    }
-
     void EtherIPC::connectToServer() {
         if ( fAborted ) {
             bail();
@@ -197,7 +193,7 @@ namespace Etherwall {
         fSocket.connectToServer(fPath);
         EtherLog::logMsg("Connecting to IPC socket");
 
-        QTimer::singleShot(2000, this, SLOT(connectionTimeout()));
+        QTimer::singleShot(60000, this, SLOT(connectionTimeout()));
     }
 
     void EtherIPC::connectedToServer() {

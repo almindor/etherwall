@@ -22,6 +22,11 @@
 #include <QSettings>
 #include <QFileInfo>
 
+// windblows hacks coz windblows sucks
+#ifdef Q_OS_WIN
+    #include <windows.h>
+#endif
+
 namespace Etherwall {
 
 // *************************** RequestIPC **************************** //
@@ -70,7 +75,8 @@ namespace Etherwall {
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
         fPath(ipcPath), fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
-        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0), fConnectAttempts(0)
+        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
+        fConnectAttempts(0), fKillTime()
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -215,20 +221,33 @@ namespace Etherwall {
     }
 
     bool EtherIPC::killGeth() {
-        fGeth.terminate();
-        fGeth.waitForFinished(5000);
+        if ( fGeth.state() == QProcess::NotRunning ) {
+            return true;
+        }
 
-        return true;
+        if ( fKillTime.elapsed() == 0 ) {
+            fKillTime.start();
+#ifdef Q_OS_WIN
+            SetConsoleCtrlHandler(NULL, true);
+            AttachConsole(fGeth.processId());
+            GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);
+            FreeConsole();
+#else
+            fGeth.terminate();
+#endif
+        } else if ( fKillTime.elapsed() > 6000 ) {
+            qDebug() << "Geth did not exit in 6 seconds. Killing...\n";
+            fGeth.kill();
+            return true;
+        }
+
+        return false;
     }
 
     bool EtherIPC::closeApp() {
         fClosingApp = true;
         fTimer.stop();
         emit closingChanged(true);
-
-        if ( fSocket.state() == QLocalSocket::UnconnectedState ) {
-            return killGeth();
-        }
 
         if ( fSocket.state() == QLocalSocket::ConnectedState && getBusy() ) { // wait for operation first if we're still connected
             return false;

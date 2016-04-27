@@ -31,6 +31,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QProcess>
+#include <QTime>
 #include "types.h"
 #include "etherlog.h"
 #include "gethlog.h"
@@ -162,6 +163,7 @@ namespace Etherwall {
         quint64 fHighestBlock;
         quint64 fStartingBlock;
         int fConnectAttempts;
+        QTime fKillTime;
 
         void handleNewAccount();
         void handleDeleteAccount();

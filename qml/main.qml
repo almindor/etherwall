@@ -185,9 +185,10 @@ ApplicationWindow {
                 iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
                 height: 32
                 width: 32
+                enabled: !ipc.starting
                 tooltip: qsTr("Connection state: ") + (ipc.connectionState > 0 ? (qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")) : qsTr("disconnected", "connection state"))
                 onClicked: {
-                    ipc.init()
+                    ipc.connectToServer()
                 }
             }
         }

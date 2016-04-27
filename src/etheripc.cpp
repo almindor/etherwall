@@ -68,9 +68,9 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fAborted(false), fPeerCount(0), fActiveRequest(None),
+        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
-        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0)
+        fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0), fConnectAttempts(0)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -89,11 +89,13 @@ namespace Etherwall {
     }
 
     void EtherIPC::init() {
-        if ( fStarting > 0 ) {
-            return;
+        fConnectAttempts = 0;
+        if ( fStarting <= 0 ) { // try to connect without starting geth
+            EtherLog::logMsg("Etherwall starting", LS_Info);
+            fStarting = 1;
+            emit startingChanged(fStarting);
+            return connectToServer();
         }
-
-        EtherLog::logMsg("Etherwall starting", LS_Info);
 
         const QSettings settings;
 
@@ -111,11 +113,80 @@ namespace Etherwall {
         }
 
         EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
+        fStarting = 2;
 
         fGethLog.attach(&fGeth);
         fGeth.start(progStr, args);
-        fStarting = 0;
         emit startingChanged(0);
+    }
+
+    void EtherIPC::waitConnect() {
+        if ( fStarting == 1 ) {
+            return init();
+        }
+
+        if ( fStarting != 1 && fStarting != 2 ) {
+            return connectionTimeout();
+        }
+
+        if ( ++fConnectAttempts < 60 ) {
+            if ( fSocket.state() == QLocalSocket::ConnectingState ) {
+                fSocket.abort();
+            }
+
+            connectToServer();
+        } else {
+            connectionTimeout();
+        }
+    }
+
+    void EtherIPC::connectToServer() {
+        fActiveRequest = RequestIPC(Full);
+        emit busyChanged(getBusy());
+        if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
+            setError("Already connected");
+            return bail();
+        }
+
+        fSocket.connectToServer(fPath);
+        if ( fConnectAttempts == 0 ) {
+            if ( fStarting == 1 ) {
+                EtherLog::logMsg("Checking to see if there is an already running geth...");
+            } else {
+                EtherLog::logMsg("Connecting to IPC socket");
+            }
+        }
+
+        QTimer::singleShot(2000, this, SLOT(waitConnect()));
+    }
+
+    void EtherIPC::connectedToServer() {
+        done();
+
+        getClientVersion();
+        getBlockNumber(); // initial
+        newFilter();
+
+        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        // if we connected to external geth, put that info in geth log
+        if ( fStarting == 1 ) {
+            fGethLog.append("Attached to external geth, see logs in terminal window.");
+        }
+        fStarting = 3;
+
+        EtherLog::logMsg("Connected to IPC socket");
+        emit startingChanged(fStarting);
+        emit connectToServerDone();
+        emit connectionStateChanged();
+    }
+
+    void EtherIPC::connectionTimeout() {
+        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
+            fSocket.abort();
+            fStarting = -1;
+            setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
+            bail();
+        }
     }
 
     bool EtherIPC::getBusy() const {
@@ -123,7 +194,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::getStarting() const {
-        return (fStarting == 0);
+        return (fStarting == 1 || fStarting == 2);
     }
 
     bool EtherIPC::getClosing() const {
@@ -177,51 +248,8 @@ namespace Etherwall {
         return killGeth();
     }
 
-    void EtherIPC::connectToServer() {
-        if ( fAborted ) {
-            bail();
-            return;
-        }
-
-        fActiveRequest = RequestIPC(Full);
-        emit busyChanged(getBusy());
-        if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
-            setError("Already connected");
-            return bail();
-        }
-
-        fSocket.connectToServer(fPath);
-        EtherLog::logMsg("Connecting to IPC socket");
-
-        QTimer::singleShot(60000, this, SLOT(connectionTimeout()));
-    }
-
-    void EtherIPC::connectedToServer() {
-        done();
-
-        getClientVersion();
-        getBlockNumber(); // initial
-        newFilter();
-
-        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
-        fStarting = 1;
-
-        EtherLog::logMsg("Connected to IPC socket");
-        emit startingChanged(fStarting);
-        emit connectToServerDone();
-        emit connectionStateChanged();
-    }
-
-    void EtherIPC::connectionTimeout() {
-        if ( !fAborted && fSocket.state() != QLocalSocket::ConnectedState ) {
-            fSocket.abort();
-            setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
-            bail();
-        }
-    }
-
     void EtherIPC::disconnectedFromServer() {
-        if ( fClosingApp || fAborted ) { // expected
+        if ( fClosingApp ) { // expected
             return;
         }
 
@@ -751,13 +779,6 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::abort() {
-        fAborted = true;
-        bail();
-        fSocket.abort();
-        emit connectionStateChanged();
-    }
-
     void EtherIPC::bail(bool soft) {
         qDebug() << "BAIL[" << soft << "]: " << fError << "\n";
 
@@ -928,10 +949,6 @@ namespace Etherwall {
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
-        if ( fAborted ) {
-            return; // ignore
-        }
-
         fError = fSocket.errorString();
         fCode = err;
     }

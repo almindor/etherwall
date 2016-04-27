@@ -42,6 +42,10 @@ namespace Etherwall {
         connect(fProcess, &QProcess::readyReadStandardError, this, &GethLog::readStderr);
     }
 
+    void GethLog::append(const QString& line) {
+        fList.append(line);
+    }
+
     void GethLog::readStdout() {
         const QByteArray ba = fProcess->readAllStandardOutput();
         const QString str = QString::fromUtf8(ba);

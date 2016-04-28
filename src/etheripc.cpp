@@ -881,7 +881,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::readData() {
-        fReadBuffer += QString(fSocket.readAll());
+        fReadBuffer += QString(fSocket.readAll()).trimmed();
 
         if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' && fReadBuffer.count('{') == fReadBuffer.count('}') ) {
             EtherLog::logMsg("Received: " + fReadBuffer, LS_Debug);

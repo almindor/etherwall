@@ -64,6 +64,7 @@ Tab {
         ScrollView {
             anchors.left: parent.left
             anchors.right: parent.right
+            height: parent.height - logControlRow.height
 
             ListView {
                 anchors.fill: parent

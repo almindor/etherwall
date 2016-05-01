@@ -44,6 +44,7 @@ Tab {
                 id: newAccountButton
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.left: parent.left
+                enabled: !ipc.syncing && !ipc.closing && !ipc.starting
                 text: qsTr("New account")
                 onClicked: {
                     accountNewDialog.openFocused("New account password")

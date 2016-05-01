@@ -79,10 +79,6 @@ ApplicationWindow {
 
     }
 
-    SyncDialog {
-        visible: ipc.syncing
-    }
-
     FirstTimeDialog {
         visible: !settings.contains("program/firstrun")
     }
@@ -109,6 +105,7 @@ ApplicationWindow {
         enabled: !ipc.busy
 
         Row {
+            id: leftButtonsRow
             ToolButton {
                 id: blockButton
                 height: 32
@@ -162,10 +159,27 @@ ApplicationWindow {
 
         Text {
             anchors.centerIn: parent
-            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : (ipc.syncing ? qsTr("Synchronizing blocks") : qsTr("Ready")))
+            visible: !ipc.syncing
+            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : qsTr("Ready"))
+        }
+
+        Text {
+            anchors.centerIn: parent
+            visible: ipc.syncing
+            text: qsTr("Synchronized ") + Math.max(0, ipc.currentBlock - ipc.startingBlock) + qsTr(" out of ") + Math.max(0, ipc.highestBlock - ipc.startingBlock) + qsTr(" blocks")
+        }
+
+        ProgressBar {
+            anchors.leftMargin: 0.05 * dpi
+            anchors.rightMargin: 0.05 * dpi
+            anchors.left: leftButtonsRow.right
+            anchors.right: rightButtonsRow.left
+            visible: ipc.syncing
+            value: Math.max(0, ipc.currentBlock - ipc.startingBlock) / Math.max(1, ipc.highestBlock - ipc.startingBlock)
         }
 
         Row {
+            id: rightButtonsRow
             anchors.right: parent.right
             ToolButton {
                 function getQuality(cs, pc) {

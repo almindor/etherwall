@@ -194,6 +194,7 @@ Tab {
 
                 Button {
                     id: sendButton
+                    enabled: !ipc.syncing && !ipc.closing && !ipc.starting
                     text: "Send"
 
                     onClicked: {

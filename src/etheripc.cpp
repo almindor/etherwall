@@ -23,7 +23,7 @@
 #include <QFileInfo>
 
 // windblows hacks coz windblows sucks
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN32
     #include <windows.h>
 #endif
 
@@ -227,7 +227,7 @@ namespace Etherwall {
 
         if ( fKillTime.elapsed() == 0 ) {
             fKillTime.start();
-#ifdef Q_OS_WIN
+#ifdef Q_OS_WIN32
             SetConsoleCtrlHandler(NULL, true);
             AttachConsole(fGeth.processId());
             GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0);

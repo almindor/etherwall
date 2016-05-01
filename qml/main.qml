@@ -174,6 +174,8 @@ ApplicationWindow {
             anchors.rightMargin: 0.05 * dpi
             anchors.left: leftButtonsRow.right
             anchors.right: rightButtonsRow.left
+            anchors.verticalCenter: parent.verticalCenter
+            z: -999
             visible: ipc.syncing
             value: Math.max(0, ipc.currentBlock - ipc.startingBlock) / Math.max(1, ipc.highestBlock - ipc.startingBlock)
         }

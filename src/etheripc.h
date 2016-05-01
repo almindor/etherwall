@@ -31,6 +31,7 @@
 #include <QTimer>
 #include <QThread>
 #include <QProcess>
+#include <QTime>
 #include "types.h"
 #include "etherlog.h"
 #include "gethlog.h"
@@ -144,7 +145,6 @@ namespace Etherwall {
         QLocalSocket fSocket;
         int fFilterID;
         bool fClosingApp;
-        bool fAborted;
         quint64 fPeerCount;
         QString fReadBuffer;
         QString fError;
@@ -162,6 +162,8 @@ namespace Etherwall {
         quint64 fCurrentBlock;
         quint64 fHighestBlock;
         quint64 fStartingBlock;
+        int fConnectAttempts;
+        QTime fKillTime;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -194,7 +196,6 @@ namespace Etherwall {
         quint64 getStartingBlock() const;
         int getConnectionState() const;
         quint64 peerCount() const;
-        void abort();
         void bail(bool soft = false);
         void setError(const QString& error);
         void errorOut();

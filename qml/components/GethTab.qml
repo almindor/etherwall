@@ -25,8 +25,8 @@ Tab {
     title: qsTr("Geth")
 
     ScrollView {
-        anchors.margins: 0.2 * dpi
         ListView {
+            anchors.margins: 0.2 * dpi
             anchors.fill: parent
             model: geth
 

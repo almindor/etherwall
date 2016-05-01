@@ -23,8 +23,10 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 
 Window {
+    id: baseDialogID
     signal accepted
     signal yes
+    signal opened
 
     property string msg
 
@@ -38,6 +40,7 @@ Window {
     }
 
     function open() {
+        baseDialogID.opened();
         visible = true;
     }
 

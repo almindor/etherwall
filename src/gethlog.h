@@ -20,6 +20,7 @@ namespace Etherwall {
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         Q_INVOKABLE void saveToClipboard() const;
         void attach(QProcess* process);
+        void append(const QString& line);
     private:
         QStringList fList;
         QProcess* fProcess;

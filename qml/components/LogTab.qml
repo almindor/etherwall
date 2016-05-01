@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick.Controls 1.1
 
 Tab {
     id: logTab
@@ -61,50 +61,21 @@ Tab {
             }
         }
 
-        TableView {
-            id: logView
+        ScrollView {
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing - logControlRow.height
+            height: parent.height - logControlRow.height
 
-            TableViewColumn {
-                role: "date"
-                title: qsTr("Date")
-                width: 2 * dpi
-            }
-            TableViewColumn {
-                role: "severity"
-                title: qsTr("Severity")
-                width: 1 * dpi
-            }
-            TableViewColumn {
-                role: "msg"
-                title: qsTr("Message")
-                width: 4 * dpi
-            }
-            model: log
+            ListView {
+                anchors.fill: parent
+                model: log
 
-            rowDelegate: Item {
-                height: 1 * dpi
-                SystemPalette {
-                    id: osPalette
-                    colorGroup: SystemPalette.Active
+                delegate: Text {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    text: date + "\t" + severity + "\t" + msg
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 }
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                    }
-                    height: parent.height
-                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
-                }
-            }
-
-            itemDelegate: TextArea {
-                readOnly: true
-                text: styleData.value
             }
         }
     }

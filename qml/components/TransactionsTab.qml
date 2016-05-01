@@ -175,7 +175,10 @@ Tab {
 
                 ConfirmDialog {
                     id: confirmDialog
-                    msg: qsTr("Confirm transaction send?")
+                    onOpened: {
+                        var result = transactionWarning.check()
+                        msg = qsTr("Confirm send of " + result.txtVal + " from " + result.from + " to " + result.to + "?")
+                    }
 
                     onYes: {
                         var result = transactionWarning.check()
@@ -191,6 +194,7 @@ Tab {
 
                 Button {
                     id: sendButton
+                    enabled: !ipc.syncing && !ipc.closing && !ipc.starting
                     text: "Send"
 
                     onClicked: {

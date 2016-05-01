@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.0.0");
+    QCoreApplication::setApplicationVersion("1.0.3");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -55,9 +55,14 @@ int main(int argc, char *argv[])
 
     Settings settings;
 
-    const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
     const QString gethPath = settings.value("geth/path", DefaultGethPath).toString();
     const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
+#ifdef Q_OS_WIN32
+    const QString ipcPath = settings.value("ipc/path", DefaultIPCPath).toString();
+#else
+    const QString ipcPath = dataPath + "/geth.ipc";
+#endif
+
 
     // set defaults
     if ( !settings.contains("ipc/path") ) {

@@ -49,8 +49,8 @@ namespace Etherwall {
     void GethLog::readStdout() {
         const QByteArray ba = fProcess->readAllStandardOutput();
         const QString str = QString::fromUtf8(ba);
-        beginInsertRows(QModelIndex(), fList.size(), fList.size());
-        fList.append(str);
+        beginInsertRows(QModelIndex(), 0, 0);
+        fList.insert(0, str);
         endInsertRows();
         overflowCheck();
     }
@@ -58,16 +58,16 @@ namespace Etherwall {
     void GethLog::readStderr() {
         const QByteArray ba = fProcess->readAllStandardError();
         const QString str = QString::fromUtf8(ba);
-        beginInsertRows(QModelIndex(), fList.size(), fList.size());
-        fList.append(str);
+        beginInsertRows(QModelIndex(), 0, 0);
+        fList.insert(0, str);
         endInsertRows();
         overflowCheck();
     }
 
     void GethLog::overflowCheck() {
         if ( fList.length() > 100 ) {
-            beginRemoveRows(QModelIndex(), 0, 0);
-            fList.removeAt(0);
+            beginRemoveRows(QModelIndex(), fList.length() - 1, fList.length() - 1);
+            fList.removeAt(fList.length() - 1);
             endRemoveRows();
         }
     }

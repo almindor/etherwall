@@ -73,7 +73,7 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fFilterID(-1), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
+        fPath(ipcPath), fFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
         fConnectAttempts(0), fKillTime()
@@ -253,7 +253,7 @@ namespace Etherwall {
             return false;
         }
 
-        if ( fSocket.state() == QLocalSocket::ConnectedState && fFilterID >= 0 ) { // remove filter if still connected
+        if ( fSocket.state() == QLocalSocket::ConnectedState && !fFilterID.isEmpty() ) { // remove filter if still connected
             uninstallFilter();
             return false;
         }
@@ -555,7 +555,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::newFilter() {
-        if ( fFilterID >= 0 ) {
+        if ( !fFilterID.isEmpty() ) {
             setError("Filter already set");
             return bail(true);
         }
@@ -566,14 +566,14 @@ namespace Etherwall {
     }
 
     void EtherIPC::handleNewFilter() {
-        BigInt::Vin bv;
-        if ( !readVin(bv) ) {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
             return bail();
         }
-        const QString strDec = QString(bv.toStrDec().data());
-        fFilterID = strDec.toInt();
+        fFilterID = jv.toString();
+        //qDebug() << "new filter: " << fFilterID << "\n";
 
-        if ( fFilterID < 0 ) {
+        if ( fFilterID.isEmpty() ) {
             setError("Filter ID invalid");
             return bail();
         }
@@ -585,7 +585,7 @@ namespace Etherwall {
         getPeerCount();
         getSyncing();
 
-        if ( fFilterID >= 0 && !fSyncing ) {
+        if ( !fFilterID.isEmpty() && !fSyncing ) {
             getFilterChanges(fFilterID);
         } else {
             getBlockNumber();
@@ -610,18 +610,16 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::getFilterChanges(int filterID) {
+    void EtherIPC::getFilterChanges(const QString& filterID) {
         if ( filterID < 0 ) {
             setError("Filter ID invalid");
             return bail();
         }
 
         QJsonArray params;
-        BigInt::Vin vinVal(filterID);
-        QString strHex = QString(vinVal.toStr0xHex().data());
-        params.append(strHex);
+        params.append(filterID);
 
-        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params, filterID)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params)) ) {
             return bail();
         }
     }
@@ -633,6 +631,7 @@ namespace Etherwall {
         }
 
         QJsonArray ar = jv.toArray();
+        //qDebug() << "got filter changes: " << ar.size() << "\n";
         foreach( const QJsonValue v, ar ) {
            const QString hash = v.toString("bogus");
            getBlockByHash(hash);
@@ -642,15 +641,15 @@ namespace Etherwall {
     }
 
     void EtherIPC::uninstallFilter() {
-        if ( fFilterID < 0 ) {
+        if ( fFilterID.isEmpty() ) {
             setError("Filter not set");
             return bail(true);
         }
 
+        //qDebug() << "uninstalling filter: " << fFilterID << "\n";
+
         QJsonArray params;
-        BigInt::Vin vinVal(fFilterID);
-        QString strHex = QString(vinVal.toStr0xHex().data());
-        params.append(strHex);
+        params.append(fFilterID);
 
         if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
             return bail();
@@ -663,7 +662,7 @@ namespace Etherwall {
             return bail();
         }
 
-        fFilterID = -1;
+        fFilterID.clear();
 
         done();
     }
@@ -774,7 +773,7 @@ namespace Etherwall {
         if ( jv.isNull() || ( jv.isBool() && !jv.toBool(false) ) ) {
             if ( fSyncing ) {
                 fSyncing = false;
-                if ( fFilterID < 0 ) {
+                if ( fFilterID.isEmpty() ) {
                     newFilter();
                 }
                 emit syncingChanged(fSyncing);
@@ -788,7 +787,7 @@ namespace Etherwall {
         fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
         fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
         if ( !fSyncing ) {
-            if ( fFilterID >= 0 ) {
+            if ( !fFilterID.isEmpty() ) {
                 uninstallFilter();
             }
             fSyncing = true;

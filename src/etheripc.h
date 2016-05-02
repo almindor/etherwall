@@ -143,7 +143,7 @@ namespace Etherwall {
     private:
         QString fPath;
         QLocalSocket fSocket;
-        int fFilterID;
+        QString fFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
         QString fReadBuffer;
@@ -188,7 +188,7 @@ namespace Etherwall {
         bool killGeth();
         int parseVersionNum() const;
         void getSyncing();
-        void getFilterChanges(int filterID);
+        void getFilterChanges(const QString& filterID);
         void getClientVersion();
         bool getSyncingVal() const;
         quint64 getCurrentBlock() const;

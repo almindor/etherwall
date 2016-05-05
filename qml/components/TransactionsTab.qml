@@ -318,7 +318,6 @@ Tab {
                 width: 1.4 * dpi
             }
             TableViewColumn {
-                horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
                 width: 0.75 * dpi

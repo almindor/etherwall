@@ -121,8 +121,7 @@ namespace Etherwall {
     };
 
     enum AccountRoles {
-        LockedRole = Qt::UserRole + 1,
-        HashRole,
+        HashRole = Qt::UserRole + 1,
         BalanceRole,
         TransCountRole,
         SummaryRole,

@@ -47,42 +47,12 @@ Tab {
                 Layout.columnSpan: 3
                 Layout.minimumWidth: 6 * dpi
 
-                PasswordDialog {
-                    id: accountUnlockDialog
-                    //standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-                    onAccepted: {
-                        accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), fromField.currentIndex)
-                    }
-                }
-
-                ToolButton {
-                    id: lockTool
-                    iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                    width: fromField.height
-                    height: fromField.height
-
-                    Connections {
-                        target: accountModel
-                        onAccountLockedChanged: {
-                            lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                            transactionWarning.refresh()
-                        }
-                    }
-
-                    onClicked: {
-                        accountModel.selectedAccountRow = fromField.currentIndex
-                        accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
-                    }
-                }
-
                 ComboBox {
                     id: fromField
-                    width: parent.width - lockTool.width
+                    width: parent.width
                     model: accountModel
                     textRole: "summary"
                     onCurrentIndexChanged: {
-                        lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
                         transactionWarning.refresh()
                     }
                 }
@@ -134,11 +104,6 @@ Tab {
                             return result
                         }
 
-                        if ( accountModel.isLocked(index) ) {
-                            result.error = qsTr("From account is locked")
-                            return result
-                        }
-
                         result.to = toField.text || ""
                         if ( !result.to.match(/0x[a-f,0-9]{40}/) ) {
                             result.error = qsTr("Recipient account invalid")
@@ -176,14 +141,10 @@ Tab {
                     }
                 }
 
-                ConfirmDialog {
-                    id: confirmDialog
-                    onOpened: {
-                        var result = transactionWarning.check()
-                        msg = qsTr("Confirm send of " + result.txtVal + " from " + result.from + " to " + result.to + "?")
-                    }
+                PasswordDialog {
+                    id: transactionSendDialog
 
-                    onYes: {
+                    onAccepted: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
                             errorDialog.msg = result.error
@@ -191,7 +152,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                        transactionModel.sendTransaction(password, result.from, result.to, result.txtVal, result.txtGas)
                     }
                 }
 
@@ -208,7 +169,7 @@ Tab {
                             return
                         }
 
-                        confirmDialog.open()
+                        transactionSendDialog.open()
                     }
                 }
             }

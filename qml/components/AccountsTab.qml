@@ -132,15 +132,6 @@ Tab {
             }
         }
 
-        PasswordDialog {
-            id: accountUnlockDialog
-            //standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-            onAccepted: {
-                accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), accountView.currentRow)
-            }
-        }
-
         TableView {
             id: accountView
             anchors.left: parent.left
@@ -154,27 +145,9 @@ Tab {
             }
 
             TableViewColumn {
-                horizontalAlignment: Text.AlignHCenter
-                role: "locked"
-                title: qsTr("Locked")
-                width: 0.7 * dpi
-                delegate: ToolButton {
-                    iconSource: (styleData.value === true) ? "/images/locked" : "/images/unlocked"
-                    enabled: (styleData.value === true)
-                    onClicked: {
-                        if ( styleData.value === true ) {
-                            accountView.currentRow = styleData.row
-                            accountModel.selectedAccountRow = styleData.row
-                            accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
-                        }
-                    }
-                }
-            }
-
-            TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
-                width: 3 * dpi
+                width: 4 * dpi
             }
 
             TableViewColumn {

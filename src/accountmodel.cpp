@@ -33,7 +33,6 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
-        connect(&ipc, &EtherIPC::unlockAccountDone, this, &AccountModel::unlockAccountDone);
         connect(&ipc, &EtherIPC::accountChanged, this, &AccountModel::accountChanged);
         connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
 
@@ -45,7 +44,6 @@ namespace Etherwall {
         roles[HashRole] = "hash";
         roles[BalanceRole] = "balance";
         roles[TransCountRole] = "transactions";
-        roles[LockedRole] = "locked";
         roles[SummaryRole] = "summary";
         roles[AliasRole] = "alias";
         roles[IndexRole] = "index";
@@ -131,23 +129,6 @@ namespace Etherwall {
         }
     }
 
-    void AccountModel::unlockAccount(const QString& pw, int duration, int index) {
-        if ( index >= 0 && index < fAccountList.size() && duration > 0 ) {
-            const QString hash = fAccountList.at(index).value(HashRole).toString();
-            fIpc.unlockAccount(hash, pw, duration, index);
-        } else {
-            EtherLog::logMsg("Invalid account selection for unlock");
-        }
-    }
-
-    bool AccountModel::isLocked(int index) const {
-        if ( index < 0 || index >= fAccountList.length() ) {
-            return true;
-        }
-
-        return fAccountList.at(index).isLocked();
-    }
-
     const QString AccountModel::getAccountHash(int index) const {
         if ( index >= 0 && fAccountList.length() > index ) {
             return fAccountList.at(index).value(HashRole).toString();
@@ -179,38 +160,6 @@ namespace Etherwall {
             EtherLog::logMsg("Account deleted");
         } else {
             EtherLog::logMsg("Account delete failure");
-        }
-    }
-
-    void AccountModel::unlockAccountDone(bool result, int index) {
-        if ( result ) {
-            QSettings settings;
-            qint64 diff = settings.value("/ipc/accounts/lockduration", 300).toInt() * 1000;
-
-            QTimer::singleShot(diff + 200, this, SLOT(checkAccountLocks()));
-            fAccountList[index].unlock();
-            const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
-            emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
-            emit accountLockedChanged(index);
-
-            qDebug() << "Account " << fAccountList.at(index).value(HashRole).toString() << " unlocked\n";
-            EtherLog::logMsg("Account unlocked");
-        } else {
-            EtherLog::logMsg("Account unlock failure");
-        }
-    }
-
-    void AccountModel::checkAccountLocks() {
-        int index = 0;
-        foreach ( AccountInfo i, fAccountList ) {
-            if ( i.value(LockedRole).toBool() != i.isLocked() ) {
-                i.lock();
-                const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
-                emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
-                qDebug() << "Account " << fAccountList.at(index).value(HashRole).toString() << " locked\n";
-                emit accountLockedChanged(index);
-            }
-            index++;
         }
     }
 

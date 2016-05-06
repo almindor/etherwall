@@ -156,7 +156,8 @@ namespace Etherwall {
         emit gasEstimateChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas) {
+    void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to, const QString& value, const QString& gas) {
+        fIpc.unlockAccount(from, password, 5, 0);
         fIpc.sendTransaction(from, to, value, gas);
         fQueuedTransaction.init(from, to, value, gas);
     }
@@ -268,7 +269,7 @@ namespace Etherwall {
                     const TransactionInfo info(jsonDoc.object());
                     newTransaction(info);
                     // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
-                    if ( fBlockNumber - info.getBlockNumber() < 5400 ) {
+                    if ( info.getBlockNumber() == 0 || fBlockNumber - info.getBlockNumber() < 5400 ) {
                         fIpc.getTransactionByHash(info.getHash());
                     }
                 }

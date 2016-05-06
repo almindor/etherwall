@@ -242,6 +242,7 @@ namespace Etherwall {
         return doc.toJson();
     }
 
+
 // ***************************** Helpers ***************************** //
 
     const QString Helpers::toDecStr(const QJsonValue& jv) {

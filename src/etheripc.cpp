@@ -500,16 +500,15 @@ namespace Etherwall {
     void EtherIPC::handleUnlockAccount() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            return bail();
+            // special case, we def. need to remove all subrequests, but not stop timer
+            fRequestQueue.clear();
+            return bail(true);
         }
 
         const bool result = jv.toBool(false);
 
         if ( !result ) {
             setError("Unlock account failure");
-            if ( parseVersionNum() == 100002 ) {
-                fError += " Geth v1.0.2 has a bug with unlocking empty password accounts! Consider updating";
-            }
             emit error();
         }
         emit unlockAccountDone(result, fActiveRequest.getIndex());

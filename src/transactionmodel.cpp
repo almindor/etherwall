@@ -252,6 +252,10 @@ namespace Etherwall {
         settings.endGroup();
     }
 
+    bool transCompare(const TransactionInfo& a, const TransactionInfo& b) {
+        return a.getBlockNumber() > b.getBlockNumber();
+    }
+
     void TransactionModel::refresh() {
         QSettings settings;
         settings.beginGroup("transactions");
@@ -279,6 +283,8 @@ namespace Etherwall {
             }
         }
         settings.endGroup();
+
+        qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
     }
 
     const QString TransactionModel::estimateTotal(const QString& value, const QString& gas) const {

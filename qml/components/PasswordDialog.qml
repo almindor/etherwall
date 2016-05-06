@@ -44,7 +44,10 @@ BaseDialog {
     }
 
     Row {
-        anchors.centerIn: parent
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 0.1 * dpi
+        x: 0.1 * dpi
+
         Keys.onEscapePressed: {
             close()
             accountPW.text = ""

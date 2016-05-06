@@ -143,6 +143,7 @@ Tab {
 
                 PasswordDialog {
                     id: transactionSendDialog
+                    title: qsTr("Confirm transaction")
 
                     onAccepted: {
                         var result = transactionWarning.check()
@@ -169,6 +170,7 @@ Tab {
                             return
                         }
 
+                        transactionSendDialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
                         transactionSendDialog.open()
                     }
                 }

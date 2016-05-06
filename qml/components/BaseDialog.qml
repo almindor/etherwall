@@ -34,6 +34,8 @@ Window {
     visible: false
     width: 6 * dpi
     height: 1 * dpi
+    minimumWidth: 6 * dpi
+    minimumHeight: 1 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)

@@ -294,6 +294,14 @@ namespace Etherwall {
         return Helpers::weiStrToEtherStr(wei);
     }
 
+    const QString TransactionModel::getHash(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(THashRole).toString();
+        }
+
+        return QString();
+    }
+
     const QString TransactionModel::getSender(int index) const {
         if ( index >= 0 && index < fTransactionList.length() ) {
             return fTransactionList.at(index).value(SenderRole).toString();
@@ -308,6 +316,14 @@ namespace Etherwall {
         }
 
         return QString();
+    }
+
+    double TransactionModel::getValue(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(ValueRole).toFloat();
+        }
+
+        return 0;
     }
 
     const QJsonObject TransactionModel::getJson(int index, bool decimal) const {

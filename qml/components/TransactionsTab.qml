@@ -81,7 +81,10 @@ Tab {
                     width: parent.width - lockTool.width
                     model: accountModel
                     textRole: "summary"
-                    onCurrentIndexChanged: transactionWarning.refresh()
+                    onCurrentIndexChanged: {
+                        lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
+                        transactionWarning.refresh()
+                    }
                 }
             }
 
@@ -335,6 +338,13 @@ Tab {
                 }
 
                 MenuItem {
+                    text: qsTr("Copy Transaction Hash")
+                    onTriggered: {
+                        clipboard.setText(transactionModel.getHash(transactionView.currentRow))
+                    }
+                }
+
+                MenuItem {
                     text: qsTr("Copy Sender")
                     onTriggered: {
                         clipboard.setText(transactionModel.getSender(transactionView.currentRow))
@@ -345,6 +355,14 @@ Tab {
                     text: qsTr("Copy Receiver")
                     onTriggered: {
                         clipboard.setText(transactionModel.getReceiver(transactionView.currentRow))
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Resend")
+                    onTriggered: {
+                        toField.text = transactionModel.getReceiver(transactionView.currentRow)
+                        valueField.text = transactionModel.getValue(transactionView.currentRow)
                     }
                 }
             }

@@ -30,7 +30,9 @@ Window {
     visible: false
     title: transaction.hash
     width: 7 * dpi
-    height: 3.5 * dpi
+    height: 3.7 * dpi
+    minimumWidth: 7 * dpi
+    minimumHeight: 3.7 * dpi
 
     function open( trans ) {
         transaction = trans;

@@ -193,6 +193,7 @@ namespace Etherwall {
             emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
             emit accountLockedChanged(index);
 
+            qDebug() << "Account " << fAccountList.at(index).value(HashRole).toString() << " unlocked\n";
             EtherLog::logMsg("Account unlocked");
         } else {
             EtherLog::logMsg("Account unlock failure");
@@ -206,6 +207,7 @@ namespace Etherwall {
                 i.lock();
                 const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
                 emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
+                qDebug() << "Account " << fAccountList.at(index).value(HashRole).toString() << " locked\n";
                 emit accountLockedChanged(index);
             }
             index++;

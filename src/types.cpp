@@ -110,34 +110,16 @@ namespace Etherwall {
         fTransCount = count;
     }
 
-    void AccountInfo::unlock(qint64 toTime) {
-        if ( fHash.length() > 0 ) {
-            QSettings settings;
-            settings.setValue("accounts/" + fHash, toTime);
-            fLocked = false;
-        }
+    void AccountInfo::unlock() {
+        fLocked = false;
     }
 
     void AccountInfo::lock() {
         fLocked = true;
     }
 
-    bool AccountInfo::isLocked(bool internal) const {
-        if ( internal ) {
-            return fLocked;
-        }
-
-        if ( fHash.length() > 0 ) {
-            QSettings settings;
-            const qint64 toTime = settings.value("accounts/" + fHash, 0).toLongLong();
-            if ( toTime <= QDateTime::currentMSecsSinceEpoch() ) {
-                return true;
-            }
-
-            return false;
-        }
-
-        return true;
+    bool AccountInfo::isLocked() const {
+        return fLocked;
     }
 
     void AccountInfo::alias(const QString& name) {

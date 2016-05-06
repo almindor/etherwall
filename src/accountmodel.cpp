@@ -188,7 +188,7 @@ namespace Etherwall {
             qint64 diff = settings.value("/ipc/accounts/lockduration", 300).toInt() * 1000;
 
             QTimer::singleShot(diff + 200, this, SLOT(checkAccountLocks()));
-            fAccountList[index].unlock(QDateTime::currentMSecsSinceEpoch() + diff);
+            fAccountList[index].unlock();
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
             emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));
             emit accountLockedChanged(index);
@@ -202,7 +202,7 @@ namespace Etherwall {
     void AccountModel::checkAccountLocks() {
         int index = 0;
         foreach ( AccountInfo i, fAccountList ) {
-            if ( i.value(LockedRole).toBool() != i.isLocked(true) ) {
+            if ( i.value(LockedRole).toBool() != i.isLocked() ) {
                 i.lock();
                 const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
                 emit dataChanged(modelIndex, modelIndex, QVector<int>(1, LockedRole));

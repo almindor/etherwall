@@ -76,7 +76,7 @@ namespace Etherwall {
         fPath(ipcPath), fFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
-        fConnectAttempts(0), fKillTime()
+        fConnectAttempts(0), fKillTime(), fExternal(false)
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -94,7 +94,7 @@ namespace Etherwall {
         fGeth.kill();
     }
 
-    void EtherIPC::init() {
+    void EtherIPC::init() {        
         fConnectAttempts = 0;
         if ( fStarting <= 0 ) { // try to connect without starting geth
             EtherLog::logMsg("Etherwall starting", LS_Info);
@@ -108,7 +108,11 @@ namespace Etherwall {
         const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
         const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
         const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
-        const QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
+        QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
+        bool testnet = settings.value("geth/testnet", false).toBool();
+        if ( testnet ) {
+            args.append("--testnet");
+        }
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
@@ -176,6 +180,8 @@ namespace Etherwall {
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
         // if we connected to external geth, put that info in geth log
         if ( fStarting == 1 ) {
+            fExternal = true;
+            emit externalChanged(true);
             fGethLog.append("Attached to external geth, see logs in terminal window.");
         }
         fStarting = 3;
@@ -197,6 +203,10 @@ namespace Etherwall {
 
     bool EtherIPC::getBusy() const {
         return (fActiveRequest.burden() != None);
+    }
+
+    bool EtherIPC::getExternal() const {
+        return fExternal;
     }
 
     bool EtherIPC::getStarting() const {
@@ -245,6 +255,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::closeApp() {
+        EtherLog::logMsg("Closing etherwall");
         fClosingApp = true;
         fTimer.stop();
         emit closingChanged(true);

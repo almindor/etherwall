@@ -143,6 +143,32 @@ TabView {
                 }
             }
 
+            // TODO: rename to infodialog
+            ErrorDialog {
+                id: confirmDialog
+                title: qsTr("Warning")
+                msg: qsTr("Changing the chain requires a restart of Etherwall.")
+            }
+
+            Row {
+                id: rowGethTestnet
+                width: parent.width
+
+                Label {
+                    id: gethTestnetLabel
+                    text: "Testnet: "
+                }
+
+                CheckBox {
+                    id: gethTestnetCheck
+                    checked: settings.value("geth/testnet", false)
+                    onClicked: {
+                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                        confirmDialog.show()
+                    }
+                }
+            }
+
             Row {
                 id: rowGethArgs
                 width: parent.width

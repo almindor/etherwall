@@ -52,6 +52,10 @@ namespace Etherwall {
             return; // skip due to severity setting
         }
 
+        if ( msg.contains("personal_unlockAccount") ) {
+            msg = "account content *REDACTED*";
+        }
+
         beginInsertRows(QModelIndex(), 0, 0);
         fList.insert(0, LogInfo(msg, sev));
         endInsertRows();

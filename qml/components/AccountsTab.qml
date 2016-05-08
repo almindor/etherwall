@@ -106,6 +106,7 @@ Tab {
         PasswordDialog {
             id: accountNewDialog
             acceptEmpty: false
+            msg: qsTr("Provide password for new account")
 
             onAccepted: {
                 accountModel.newAccount(password)

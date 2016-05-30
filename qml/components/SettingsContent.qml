@@ -55,26 +55,6 @@ TabView {
                 width: parent.width
 
                 Label {
-                    text: qsTr("Account unlock duration (s): ")
-                }
-
-                SpinBox {
-                    id: unlockDurSpinBox
-                    width: 100
-                    minimumValue: 10
-                    maximumValue: 3600
-
-                    value: settings.value("ipc/accounts/lockduration", 300)
-                    onValueChanged: {
-                        settings.setValue("ipc/accounts/lockduration", value)
-                    }
-                }
-            }
-
-            Row {
-                width: parent.width
-
-                Label {
                     text: qsTr("Update interval (s): ")
                 }
 

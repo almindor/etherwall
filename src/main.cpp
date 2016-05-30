@@ -55,8 +55,10 @@ int main(int argc, char *argv[])
 
     Settings settings;
 
+    qDebug() << "DGP: " << DefaultGethPath() << "\n";
+
     bool testnet = settings.value("geth/testnet", false).toBool();
-    const QString gethPath = settings.value("geth/path", DefaultGethPath).toString();
+    const QString gethPath = settings.value("geth/path", DefaultGethPath()).toString();
     const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
     const QString ipcPath = DefaultIPCPath(testnet);
 

@@ -23,6 +23,7 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QJsonDocument>
+#include <QApplication>
 #include <QDebug>
 
 namespace Etherwall {
@@ -41,6 +42,17 @@ namespace Etherwall {
     #endif
     }
 
+    const QString DefaultGethPath() {
+#ifdef Q_OS_WIN32
+        return QApplication::applicationDirPath() + "/geth";
+#else
+#ifdef Q_OS_MACX
+        return QApplication::applicationDirPath() + "/geth";
+#else
+        return "/usr/bin/geth";
+#endif
+#endif
+    }
 
 // ***************************** LogInfo ***************************** //
 

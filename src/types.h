@@ -35,14 +35,11 @@ namespace Etherwall {
 
 #ifdef Q_OS_WIN32
     static const QString DefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Ethereum";
-    static const QString DefaultGethPath = "./geth.exe";
 #else
     #ifdef Q_OS_MACX
     static const QString DefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum";
-    static const QString DefaultGethPath = "./geth";
     #else
     static const QString DefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum";
-    static const QString DefaultGethPath = "/usr/bin/geth";
     #endif
 #endif
 
@@ -50,6 +47,7 @@ namespace Etherwall {
     static const QString DefaultGethArgs = "--fast --cache 512";
 
     const QString DefaultIPCPath(bool testnet);
+    const QString DefaultGethPath();
 
     enum LogRoles {
         MsgRole = Qt::UserRole + 1,

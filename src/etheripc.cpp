@@ -163,7 +163,7 @@ namespace Etherwall {
             if ( fStarting == 1 ) {
                 EtherLog::logMsg("Checking to see if there is an already running geth...");
             } else {
-                EtherLog::logMsg("Connecting to IPC socket");
+                EtherLog::logMsg("Connecting to IPC socket " + fPath);
             }
         }
 

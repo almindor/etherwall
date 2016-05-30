@@ -121,8 +121,7 @@ namespace Etherwall {
     };
 
     enum AccountRoles {
-        LockedRole = Qt::UserRole + 1,
-        HashRole,
+        HashRole = Qt::UserRole + 1,
         BalanceRole,
         TransCountRole,
         SummaryRole,
@@ -139,8 +138,8 @@ namespace Etherwall {
         void setBalance(const QString& balance);
         void setTransactionCount(quint64 count);
         void lock();
-        void unlock(qint64 toTime);
-        bool isLocked(bool internal = false) const;
+        void unlock();
+        bool isLocked() const;
         void alias(const QString& name);
     private:
         int fIndex;

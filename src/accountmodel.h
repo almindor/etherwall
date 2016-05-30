@@ -52,22 +52,17 @@ namespace Etherwall {
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void renameAccount(const QString& name, int index);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
-        Q_INVOKABLE void unlockAccount(const QString& pw, int duration, int index);
-        Q_INVOKABLE bool isLocked(int index) const;
         Q_INVOKABLE const QString getAccountHash(int index) const;
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
         void newAccountDone(const QString& hash, int index);
         void deleteAccountDone(bool result, int index);
-        void unlockAccountDone(bool result, int index);
         void accountChanged(const AccountInfo& info);
         void newBlock(const QJsonObject& block);
-        void checkAccountLocks();
         void currencyChanged();
     signals:
         void accountSelectionChanged(int);
-        void accountLockedChanged(int);
         void totalChanged();
     private:
         EtherIPC& fIpc;

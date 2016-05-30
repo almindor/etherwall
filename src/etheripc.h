@@ -73,6 +73,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(QString error READ getError NOTIFY error)
         Q_PROPERTY(int code READ getCode NOTIFY error)
+        Q_PROPERTY(bool external READ getExternal NOTIFY externalChanged)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
         Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
         Q_PROPERTY(bool syncing READ getSyncingVal NOTIFY syncingChanged)
@@ -88,6 +89,7 @@ namespace Etherwall {
         virtual ~EtherIPC();
         void setWorker(QThread* worker);
         bool getBusy() const;
+        bool getExternal() const;
         bool getStarting() const;
         bool getClosing() const;
         const QString& getError() const;
@@ -134,6 +136,7 @@ namespace Etherwall {
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
         void busyChanged(bool busy);
+        void externalChanged(bool external);
         void startingChanged(bool starting);
         void syncingChanged(bool syncing);
         void closingChanged(bool closing);
@@ -143,7 +146,7 @@ namespace Etherwall {
     private:
         QString fPath;
         QLocalSocket fSocket;
-        int fFilterID;
+        QString fFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
         QString fReadBuffer;
@@ -164,6 +167,7 @@ namespace Etherwall {
         quint64 fStartingBlock;
         int fConnectAttempts;
         QTime fKillTime;
+        bool fExternal;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -188,7 +192,7 @@ namespace Etherwall {
         bool killGeth();
         int parseVersionNum() const;
         void getSyncing();
-        void getFilterChanges(int filterID);
+        void getFilterChanges(const QString& filterID);
         void getClientVersion();
         bool getSyncingVal() const;
         quint64 getCurrentBlock() const;

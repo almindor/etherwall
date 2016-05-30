@@ -53,8 +53,10 @@ namespace Etherwall {
         int containsTransaction(const QString& hash);
         Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas) const;
         Q_INVOKABLE void loadHistory();
+        Q_INVOKABLE const QString getHash(int index) const;
         Q_INVOKABLE const QString getSender(int index) const;
         Q_INVOKABLE const QString getReceiver(int index) const;
+        Q_INVOKABLE double getValue(int index) const;
         Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
         Q_INVOKABLE const QString getMaxValue(int row, const QString& gas) const;
         Q_INVOKABLE void lookupAccountsAliases();
@@ -68,7 +70,7 @@ namespace Etherwall {
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
-        void sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas = QString());
+        void sendTransaction(const QString& password, const QString& from, const QString& to, const QString& value, const QString& gas = QString());
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();

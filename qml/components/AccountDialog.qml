@@ -11,46 +11,52 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file PasswordDialog.qml
+/** @file AccountDialog.qml
  * @author Ales Katona <almindor@gmail.com>
- * @date 2015
+ * @date 2016
  *
- * Password dialog
+ * Account dialog
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
+ import QtQuick.Controls.Styles 1.4
 
 BaseDialog {
     width: Math.max(parent.width * 0.6, 6 * dpi)
     property string password
-    property bool acceptEmpty: true
 
     function openFocused(m, ae) {
+        accountPW0.text = ""
+        accountPW1.text = ""
+        password = ""
+
         title = m || "Confirm operation"
         open()
-        accountPW.focus = true
+        accountPW0.focus = true
     }
 
     function doAccept() {
-        if ( !acceptEmpty && password.length == 0 ) {
+        if ( password.length == 0 ) {
             return;
         }
 
         close()
         accepted()
-        accountPW.text = ""
+        accountPW0.text = ""
+        accountPW1.text = ""
         password = ""
     }
 
     Row {
-        anchors.bottom: parent.bottom
+        id: topRow
+        anchors.bottom: bottomRow.top
         anchors.bottomMargin: 0.1 * dpi
         x: 0.1 * dpi
 
         Keys.onEscapePressed: {
             close()
-            accountPW.text = ""
+            accountPW0.text = ""
             password = ""
         }
 
@@ -62,19 +68,44 @@ BaseDialog {
         }
 
         TextField {
-            id: accountPW
+            id: accountPW0
             echoMode: TextInput.Password
             width: parent.parent.width * 0.6
             focus: true
+        }
+    }
 
-            onTextChanged: {
-                password = text
-            }
+    Row {
+        id: bottomRow
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 0.1 * dpi
+        x: 0.1 * dpi
+
+        Keys.onEscapePressed: {
+            close()
+            accountPW1.text = ""
+            password = ""
+        }
+
+        Keys.onEnterPressed: doAccept()
+        Keys.onReturnPressed: doAccept()
+
+        Label {
+            text: qsTr("Repeat: ", "password") + "    "
+        }
+
+        TextField {
+            id: accountPW1
+            echoMode: TextInput.Password
+            width: parent.parent.width * 0.6
         }
 
         Button {
+            id: okButton
             text: "OK"
+            enabled: accountPW0.text === accountPW1.text && accountPW0.text.length > 0
             onClicked: {
+                password = accountPW0.text
                 doAccept()
             }
         }

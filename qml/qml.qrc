@@ -11,13 +11,13 @@
         <file>components/LogTab.qml</file>
         <file>components/TransactionDetails.qml</file>
         <file>components/InputDialog.qml</file>
-        <file>components/SyncDialog.qml</file>
         <file>components/CurrencyTab.qml</file>
         <file>components/CurrencyRow.qml</file>
         <file>components/ToolTip.qml</file>
         <file>components/GethTab.qml</file>
         <file>components/FirstTimeDialog.qml</file>
         <file>components/SettingsContent.qml</file>
+        <file>components/AccountDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

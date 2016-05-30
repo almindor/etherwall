@@ -47,41 +47,14 @@ Tab {
                 Layout.columnSpan: 3
                 Layout.minimumWidth: 6 * dpi
 
-                PasswordDialog {
-                    id: accountUnlockDialog
-                    //standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-                    onAccepted: {
-                        accountModel.unlockAccount(password, settings.value("ipc/accounts/lockduration", 300), fromField.currentIndex)
-                    }
-                }
-
-                ToolButton {
-                    id: lockTool
-                    iconSource: accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                    width: fromField.height
-                    height: fromField.height
-
-                    Connections {
-                        target: accountModel
-                        onAccountLockedChanged: {
-                            lockTool.iconSource = accountModel.isLocked(fromField.currentIndex) ? "/images/locked" : "/images/unlocked"
-                            transactionWarning.refresh()
-                        }
-                    }
-
-                    onClicked: {
-                        accountModel.selectedAccountRow = fromField.currentIndex
-                        accountUnlockDialog.openFocused("Unlock " + accountModel.selectedAccount)
-                    }
-                }
-
                 ComboBox {
                     id: fromField
-                    width: parent.width - lockTool.width
+                    width: parent.width
                     model: accountModel
                     textRole: "summary"
-                    onCurrentIndexChanged: transactionWarning.refresh()
+                    onCurrentIndexChanged: {
+                        transactionWarning.refresh()
+                    }
                 }
             }
 
@@ -131,11 +104,6 @@ Tab {
                             return result
                         }
 
-                        if ( accountModel.isLocked(index) ) {
-                            result.error = qsTr("From account is locked")
-                            return result
-                        }
-
                         result.to = toField.text || ""
                         if ( !result.to.match(/0x[a-f,0-9]{40}/) ) {
                             result.error = qsTr("Recipient account invalid")
@@ -173,14 +141,11 @@ Tab {
                     }
                 }
 
-                ConfirmDialog {
-                    id: confirmDialog
-                    onOpened: {
-                        var result = transactionWarning.check()
-                        msg = qsTr("Confirm send of " + result.txtVal + " from " + result.from + " to " + result.to + "?")
-                    }
+                PasswordDialog {
+                    id: transactionSendDialog
+                    title: qsTr("Confirm transaction")
 
-                    onYes: {
+                    onAccepted: {
                         var result = transactionWarning.check()
                         if ( result.error !== null ) {
                             errorDialog.msg = result.error
@@ -188,7 +153,7 @@ Tab {
                             return
                         }
 
-                        transactionModel.sendTransaction(result.from, result.to, result.txtVal, result.txtGas)
+                        transactionModel.sendTransaction(password, result.from, result.to, result.txtVal, result.txtGas)
                     }
                 }
 
@@ -205,7 +170,8 @@ Tab {
                             return
                         }
 
-                        confirmDialog.open()
+                        transactionSendDialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
+                        transactionSendDialog.open()
                     }
                 }
             }
@@ -318,7 +284,6 @@ Tab {
                 width: 1.4 * dpi
             }
             TableViewColumn {
-                horizontalAlignment: Text.AlignRight
                 role: "depth"
                 title: qsTr("Depth")
                 width: 0.75 * dpi
@@ -336,6 +301,13 @@ Tab {
                 }
 
                 MenuItem {
+                    text: qsTr("Copy Transaction Hash")
+                    onTriggered: {
+                        clipboard.setText(transactionModel.getHash(transactionView.currentRow))
+                    }
+                }
+
+                MenuItem {
                     text: qsTr("Copy Sender")
                     onTriggered: {
                         clipboard.setText(transactionModel.getSender(transactionView.currentRow))
@@ -346,6 +318,14 @@ Tab {
                     text: qsTr("Copy Receiver")
                     onTriggered: {
                         clipboard.setText(transactionModel.getReceiver(transactionView.currentRow))
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Resend")
+                    onTriggered: {
+                        toField.text = transactionModel.getReceiver(transactionView.currentRow)
+                        valueField.text = transactionModel.getValue(transactionView.currentRow)
                     }
                 }
             }

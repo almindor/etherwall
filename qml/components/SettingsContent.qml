@@ -55,26 +55,6 @@ TabView {
                 width: parent.width
 
                 Label {
-                    text: qsTr("Account unlock duration (s): ")
-                }
-
-                SpinBox {
-                    id: unlockDurSpinBox
-                    width: 100
-                    minimumValue: 10
-                    maximumValue: 3600
-
-                    value: settings.value("ipc/accounts/lockduration", 300)
-                    onValueChanged: {
-                        settings.setValue("ipc/accounts/lockduration", value)
-                    }
-                }
-            }
-
-            Row {
-                width: parent.width
-
-                Label {
                     text: qsTr("Update interval (s): ")
                 }
 
@@ -139,6 +119,32 @@ TabView {
 
                     onAccepted: {
                         gethPathField.text = gethFileDialog.fileUrl.toString().replace(/^(file:\/{3})/,""); // fugly but gotta love QML on this one
+                    }
+                }
+            }
+
+            // TODO: rename to infodialog
+            ErrorDialog {
+                id: confirmDialog
+                title: qsTr("Warning")
+                msg: qsTr("Changing the chain requires a restart of Etherwall.")
+            }
+
+            Row {
+                id: rowGethTestnet
+                width: parent.width
+
+                Label {
+                    id: gethTestnetLabel
+                    text: "Testnet: "
+                }
+
+                CheckBox {
+                    id: gethTestnetCheck
+                    checked: settings.value("geth/testnet", false)
+                    onClicked: {
+                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                        confirmDialog.show()
                     }
                 }
             }

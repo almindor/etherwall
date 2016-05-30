@@ -156,7 +156,8 @@ namespace Etherwall {
         emit gasEstimateChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& from, const QString& to, const QString& value, const QString& gas) {
+    void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to, const QString& value, const QString& gas) {
+        fIpc.unlockAccount(from, password, 5, 0);
         fIpc.sendTransaction(from, to, value, gas);
         fQueuedTransaction.init(from, to, value, gas);
     }
@@ -251,6 +252,10 @@ namespace Etherwall {
         settings.endGroup();
     }
 
+    bool transCompare(const TransactionInfo& a, const TransactionInfo& b) {
+        return a.getBlockNumber() > b.getBlockNumber();
+    }
+
     void TransactionModel::refresh() {
         QSettings settings;
         settings.beginGroup("transactions");
@@ -268,7 +273,7 @@ namespace Etherwall {
                     const TransactionInfo info(jsonDoc.object());
                     newTransaction(info);
                     // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
-                    if ( fBlockNumber - info.getBlockNumber() < 5400 ) {
+                    if ( info.getBlockNumber() == 0 || fBlockNumber - info.getBlockNumber() < 5400 ) {
                         fIpc.getTransactionByHash(info.getHash());
                     }
                 }
@@ -278,6 +283,8 @@ namespace Etherwall {
             }
         }
         settings.endGroup();
+
+        qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
     }
 
     const QString TransactionModel::estimateTotal(const QString& value, const QString& gas) const {
@@ -294,6 +301,14 @@ namespace Etherwall {
         return Helpers::weiStrToEtherStr(wei);
     }
 
+    const QString TransactionModel::getHash(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(THashRole).toString();
+        }
+
+        return QString();
+    }
+
     const QString TransactionModel::getSender(int index) const {
         if ( index >= 0 && index < fTransactionList.length() ) {
             return fTransactionList.at(index).value(SenderRole).toString();
@@ -308,6 +323,14 @@ namespace Etherwall {
         }
 
         return QString();
+    }
+
+    double TransactionModel::getValue(int index) const {
+        if ( index >= 0 && index < fTransactionList.length() ) {
+            return fTransactionList.at(index).value(ValueRole).toFloat();
+        }
+
+        return 0;
     }
 
     const QJsonObject TransactionModel::getJson(int index, bool decimal) const {
@@ -351,8 +374,9 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistory() {
-        if ( fAccountModel.rowCount() == 0 ) {
-            return; // don't try with empty request
+        QSettings settings;
+        if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() ) {
+            return; // don't try with empty request or on test net
         }
 
         // get historical transactions from etherdata

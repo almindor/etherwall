@@ -23,9 +23,36 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QJsonDocument>
+#include <QApplication>
 #include <QDebug>
 
 namespace Etherwall {
+
+    const QString DefaultIPCPath(bool testnet) {
+    #ifdef Q_OS_WIN32
+        return "\\\\.\\pipe\\geth.ipc";
+    #else
+    #ifdef Q_OS_MACX
+        const QString base_path = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum/";
+    #else
+        const QString base_path = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum/";
+    #endif
+        const QString mid_fix = testnet ? "/testnet" : "";
+        return base_path + mid_fix + "/geth.ipc";
+    #endif
+    }
+
+    const QString DefaultGethPath() {
+#ifdef Q_OS_WIN32
+        return QApplication::applicationDirPath() + "/geth";
+#else
+#ifdef Q_OS_MACX
+        return QApplication::applicationDirPath() + "/geth";
+#else
+        return "/usr/bin/geth";
+#endif
+#endif
+    }
 
 // ***************************** LogInfo ***************************** //
 

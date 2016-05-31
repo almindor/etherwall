@@ -105,7 +105,7 @@ namespace Etherwall {
 
         const QSettings settings;
 
-        const QString progStr = settings.value("geth/path", DefaultGethPath).toString();
+        const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
         const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
         const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
         QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
@@ -163,7 +163,7 @@ namespace Etherwall {
             if ( fStarting == 1 ) {
                 EtherLog::logMsg("Checking to see if there is an already running geth...");
             } else {
-                EtherLog::logMsg("Connecting to IPC socket");
+                EtherLog::logMsg("Connecting to IPC socket " + fPath);
             }
         }
 

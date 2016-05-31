@@ -44,7 +44,7 @@ namespace Etherwall {
 
     const QString DefaultGethPath() {
 #ifdef Q_OS_WIN32
-        return QApplication::applicationDirPath() + "/geth";
+        return QApplication::applicationDirPath() + "/geth.exe";
 #else
 #ifdef Q_OS_MACX
         return QApplication::applicationDirPath() + "/geth";

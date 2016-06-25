@@ -72,6 +72,27 @@ ApplicationWindow {
         }
     }
 
+    ErrorDialog {
+        id: versionDialog
+        width: 5 * dpi
+
+        Connections {
+            target: transactionModel
+            onLatestVersionChanged: {
+                var now = new Date()
+                var bumpTime = settings.value("program/versionbump", now.valueOf())
+                if ( bumpTime > now.valueOf() ) {
+                    return; // don't bump more than once a day!
+                }
+
+                settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
+                versionDialog.title = qsTr("Update available")
+                versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
+                versionDialog.open()
+            }
+        }
+    }
+
     BusyIndicator {
         anchors.centerIn: parent
         z: 10

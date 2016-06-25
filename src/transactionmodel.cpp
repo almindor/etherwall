@@ -25,12 +25,14 @@
 #include <QJsonValue>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QCoreApplication>
 #include <QSettings>
 
 namespace Etherwall {
 
     TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this)
+        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
+        fLatestVersion(QCoreApplication::applicationVersion())
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
@@ -62,6 +64,10 @@ namespace Etherwall {
 
     const QString& TransactionModel::getGasEstimate() const {
         return fGasEstimate;
+    }
+
+    const QString& TransactionModel::getLatestVersion() const {
+        return fLatestVersion;
     }
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
@@ -433,6 +439,15 @@ namespace Etherwall {
 
         if ( stored > 0 ) {
             EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
+        }
+
+        // check new version if supplied
+        if ( resObj.contains("version") ) {
+            const QString ver = resObj.value("version").toString(fLatestVersion);
+            if ( ver != fLatestVersion ) {
+                fLatestVersion = ver;
+                emit latestVersionChanged(ver);
+            }
         }
 
         reply->close();

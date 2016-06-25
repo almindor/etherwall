@@ -42,10 +42,12 @@ namespace Etherwall {
         Q_PROPERTY(quint64 blockNumber READ getBlockNumber NOTIFY blockNumberChanged FINAL)
         Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
         Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
+        Q_PROPERTY(QString latestVersion READ getLatestVersion NOTIFY latestVersionChanged FINAL)
     public:
         TransactionModel(EtherIPC& ipc, const AccountModel& accountModel);
         quint64 getBlockNumber() const;
         const QString& getGasPrice() const;
+        const QString& getLatestVersion() const;
         const QString& getGasEstimate() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -80,6 +82,7 @@ namespace Etherwall {
         void gasPriceChanged(const QString& price);
         void gasEstimateChanged(const QString& price);
         void historyChanged();
+        void latestVersionChanged(const QString& version);
     private:
         EtherIPC& fIpc;
         const AccountModel& fAccountModel;
@@ -91,6 +94,7 @@ namespace Etherwall {
         QString fGasEstimate;
         TransactionInfo fQueuedTransaction;
         QNetworkAccessManager fNetManager;
+        QString fLatestVersion;
 
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);

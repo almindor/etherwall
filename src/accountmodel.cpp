@@ -35,6 +35,7 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
         connect(&ipc, &EtherIPC::accountChanged, this, &AccountModel::accountChanged);
         connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
+        connect(&ipc, &EtherIPC::syncingChanged, this, &AccountModel::syncingChanged);
 
         connect(&currencyModel, &CurrencyModel::currencyChanged, this, &AccountModel::currencyChanged);
     }
@@ -173,13 +174,24 @@ namespace Etherwall {
         emit totalChanged();
     }
 
+    void AccountModel::syncingChanged(bool syncing) {
+        if ( !syncing ) {
+            refreshAccounts();
+        }
+    }
+
     void AccountModel::getAccountsDone(const AccountList& list) {
         beginResetModel();
         fAccountList = list;
         endResetModel();
 
+        refreshAccounts();
+    }
+
+    void AccountModel::refreshAccounts() {
+        //qDebug() << "Refreshing accounts\n";
         int i = 0;
-        foreach ( const AccountInfo& info, list ) {
+        foreach ( const AccountInfo& info, fAccountList ) {
             const QString& hash = info.value(HashRole).toString();
             fIpc.refreshAccount(hash, i++);
         }

@@ -48,6 +48,7 @@ namespace Etherwall {
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
         const QJsonArray getAccountsJsonArray() const;
         const QString getTotal() const;
+        void refreshAccounts();
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void renameAccount(const QString& name, int index);
@@ -61,6 +62,7 @@ namespace Etherwall {
         void accountChanged(const AccountInfo& info);
         void newBlock(const QJsonObject& block);
         void currencyChanged();
+        void syncingChanged(bool syncing);
     signals:
         void accountSelectionChanged(int);
         void totalChanged();

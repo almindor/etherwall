@@ -189,7 +189,7 @@ namespace Etherwall {
     }
 
     void AccountModel::refreshAccounts() {
-        qDebug() << "Refreshing accounts\n";
+        //qDebug() << "Refreshing accounts\n";
         int i = 0;
         foreach ( const AccountInfo& info, fAccountList ) {
             const QString& hash = info.value(HashRole).toString();

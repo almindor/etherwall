@@ -1,6 +1,7 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.0
 import QtQuick.Dialogs 1.0
+import QtQuick.Extras 1.4
 
 TabView {
     Tab {
@@ -72,6 +73,32 @@ TabView {
                 }
             }
 
+            ErrorDialog {
+                id: hfConfirmDialog
+                title: qsTr("Warning")
+                msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
+            }
+
+            Row {
+                width: parent.width
+
+                Label {
+                    text: qsTr("Support DAO hard fork: ")
+                }
+
+                ToggleButton {
+                    id: hfButton
+
+                    checked: settings.value("geth/hardfork", true)
+                    text: "Hard Fork"
+                    onClicked: {
+                        settings.setValue("geth/hardfork", checked)
+                        if ( settings.contains("program/firstrun") ) {
+                            hfConfirmDialog.show()
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -127,7 +154,7 @@ TabView {
             ErrorDialog {
                 id: confirmDialog
                 title: qsTr("Warning")
-                msg: qsTr("Changing the chain requires a restart of Etherwall.")
+                msg: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
             }
 
             Row {
@@ -144,7 +171,9 @@ TabView {
                     checked: settings.value("geth/testnet", false)
                     onClicked: {
                         settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                        confirmDialog.show()
+                        if ( settings.contains("program/firstrun") ) {
+                            confirmDialog.show()
+                        }
                     }
                 }
             }

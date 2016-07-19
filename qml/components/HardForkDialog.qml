@@ -23,8 +23,8 @@ import QtQuick.Controls 1.1
 import QtQuick.Window 2.0
 
 Window {
-    id: ftWindow
-    title: qsTr("First time setup wizard")
+    id: hfWindow
+    title: qsTr("Hard fork decision needed")
 
     modality: Qt.ApplicationModal
     visible: false
@@ -39,7 +39,6 @@ Window {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-
     property bool done: false
 
     Column {
@@ -53,7 +52,7 @@ Window {
             anchors.margins: 0.2 * dpi
             font.pixelSize: 0.2 * dpi
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Please confirm options for Geth before running for the first time")
+            text: qsTr("Please choose DAO hard fork preferences")
         }
 
         Text {
@@ -63,12 +62,8 @@ Window {
             font.pixelSize: 0.2 * dpi
             font.bold: true
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Ethereum blockchain grows rapidly and requires at least 20GB of space. Make sure to choose an appropriate data directory with enough space left.")
-        }
-
-        SettingsContent {
-            anchors.left: parent.left
-            anchors.right: parent.right
+            text: qsTr("Ethereum will decide on hard fork support at block 1920000. Please choose if you support or oppose the hard fork. For more info please visit <a href='https://blog.ethereum.org/2016/07/15/to-fork-or-not-to-fork/'>Ethereum blog</a>")
+            onLinkActivated: Qt.openUrlExternally(link)
         }
 
         Row {
@@ -76,31 +71,38 @@ Window {
 
             Button {
                 id: continueButton
-                text: qsTr("Continue", "First time dialog")
+                text: qsTr("Support", "Hard fork dialog")
                 anchors.margins: 0.1 * dpi
                 width: 1 * dpi
                 height: 0.6 * dpi
 
                 onClicked: {
-                    ipc.init();
-                    settings.setValue("program/firstrun", new Date())
-                    // set hf decision too so we don't get pestered
-                    settings.setValue("geth/hardfork", settings.value("geth/hardfork", true))
+                    settings.setValue("geth/hardfork", true)
+                    hfWindow.close()
+                }
+            }
 
-                    ftWindow.close()
+            ErrorDialog {
+                id: hfConfirmDialog
+                title: qsTr("Warning")
+                msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
+
+                onAccepted: {
+                    hfWindow.close()
+                    appWindow.close()
                 }
             }
 
             Button {
                 id: quitButton
-                text: qsTr("Quit", "First time dialog")
+                text: qsTr("Oppose", "Hard fork dialog")
                 anchors.margins: 0.1 * dpi
                 width: 1 * dpi
                 height: 0.6 * dpi
 
                 onClicked: {
-                    ftWindow.close()
-                    appWindow.close()
+                    settings.setValue("geth/hardfork", false)
+                    hfConfirmDialog.show()
                 }
             }
         }

@@ -104,6 +104,10 @@ ApplicationWindow {
         visible: !settings.contains("program/firstrun")
     }
 
+    HardForkDialog {
+        visible: !ipc.busy && !ipc.starting && !settings.contains("geth/hardfork") && settings.contains("program/firstrun") && ipc.hardForkReady
+    }
+
     TabView {
         id: tabView
         anchors.fill: parent

@@ -113,6 +113,12 @@ namespace Etherwall {
         if ( testnet ) {
             args.append("--testnet");
         }
+        bool hardfork = settings.value("geth/hardfork", true).toBool();
+        if ( hardfork ) {
+            args.append("--support-dao-fork");
+        } else {
+            args.append("--oppose-dao-fork");
+        }
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
@@ -122,7 +128,7 @@ namespace Etherwall {
             return bail();
         }
 
-        EtherLog::logMsg("Geth starting " + progStr + " " + argStr, LS_Info);
+        EtherLog::logMsg("Geth starting " + progStr + " " + args.join(" "), LS_Info);
         fStarting = 2;
 
         fGethLog.attach(&fGeth);
@@ -190,6 +196,7 @@ namespace Etherwall {
         emit startingChanged(fStarting);
         emit connectToServerDone();
         emit connectionStateChanged();
+        emit hardForkReadyChanged(getHardForkReady());
     }
 
     void EtherIPC::connectionTimeout() {
@@ -215,6 +222,11 @@ namespace Etherwall {
 
     bool EtherIPC::getClosing() const {
         return fClosingApp;
+    }
+
+    bool EtherIPC::getHardForkReady() const {
+        const int vn = parseVersionNum();
+        return ( vn >= 104010 );
     }
 
     const QString& EtherIPC::getError() const {

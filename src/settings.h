@@ -32,6 +32,7 @@ namespace Etherwall {
         Settings(QObject *parent = 0);
         Q_INVOKABLE bool contains(const QString& key) const;
         Q_INVOKABLE QVariant value(const QString& key, const QVariant& defaultValue = QVariant()) const;
+        Q_INVOKABLE bool valueBool(const QString& key, const bool defaultValue = false) const;
         Q_INVOKABLE void setValue(const QString& key, const QVariant& value);
     };
 

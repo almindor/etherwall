@@ -89,7 +89,7 @@ TabView {
                 ToggleButton {
                     id: hfButton
 
-                    checked: settings.value("geth/hardfork", true)
+                    checked: settings.valueBool("geth/hardfork", true)
                     text: "Hard Fork"
                     onClicked: {
                         settings.setValue("geth/hardfork", checked)
@@ -168,7 +168,7 @@ TabView {
 
                 CheckBox {
                     id: gethTestnetCheck
-                    checked: settings.value("geth/testnet", false)
+                    checked: settings.valueBool("geth/testnet", false)
                     onClicked: {
                         settings.setValue("geth/testnet", gethTestnetCheck.checked)
                         if ( settings.contains("program/firstrun") ) {

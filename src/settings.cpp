@@ -37,6 +37,12 @@ namespace Etherwall {
         return QSettings::value(key, defaultValue);
     }
 
+    bool Settings::valueBool(const QString& key, bool defaultValue) const
+    {
+        return QSettings::value(key, defaultValue).toBool();
+    }
+
+
     void Settings::setValue(const QString& key, const QVariant& value)
     {
         QSettings::setValue(key, value);

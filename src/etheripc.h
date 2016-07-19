@@ -78,6 +78,7 @@ namespace Etherwall {
         Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
         Q_PROPERTY(bool syncing READ getSyncingVal NOTIFY syncingChanged)
         Q_PROPERTY(bool closing READ getClosing NOTIFY closingChanged)
+        Q_PROPERTY(bool hardForkReady READ getHardForkReady NOTIFY hardForkReadyChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
@@ -92,6 +93,7 @@ namespace Etherwall {
         bool getExternal() const;
         bool getStarting() const;
         bool getClosing() const;
+        bool getHardForkReady() const;
         const QString& getError() const;
         int getCode() const;
     public slots:
@@ -140,6 +142,7 @@ namespace Etherwall {
         void startingChanged(bool starting);
         void syncingChanged(bool syncing);
         void closingChanged(bool closing);
+        void hardForkReadyChanged(bool hfReady);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
         void error();

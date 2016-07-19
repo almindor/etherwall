@@ -18,6 +18,7 @@
         <file>components/FirstTimeDialog.qml</file>
         <file>components/SettingsContent.qml</file>
         <file>components/AccountDialog.qml</file>
+        <file>components/HardForkDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

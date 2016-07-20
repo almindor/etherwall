@@ -2,11 +2,12 @@
 
 Ethereum QT5 Wallet
 
-Etherwall is a free software wallet/front-end for Ethereum Geth*.
+Etherwall is a free software wallet/front-end for Ethereum.
 
 ## Usage
 
-Geth 1.3.5+ is required to be running for Etherwall to work.
+Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main
+website for windows and mac os x.
 
 Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
 
@@ -36,9 +37,9 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ### Requirements
 
-Geth 1.3.5+
+Latest Geth (provided if downloaded off site)
 
-Qt5.2+ with qmake
+Qt5.5+ with qmake
 
 ### Building
 
@@ -46,8 +47,9 @@ qmake -config release && make
 
 ### Roadmap
 
-- 1.1+ add eth support
-- 1.0 add geth account backup and restore
+- 2.0 added contract support
+- 1.1+ add eth support (cancelled)
+- 1.0 add geth account backup and restore (skipped for now)
 - 0.9 add transaction history support [done]
 - 0.8 initial release [done]
 

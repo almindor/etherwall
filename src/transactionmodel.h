@@ -77,7 +77,9 @@ namespace Etherwall {
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();
-        void loadRequestDone(QNetworkReply* reply);
+        void loadHistoryDone(QNetworkReply* reply);
+        void checkVersionDone(QNetworkReply *reply);
+        void httpRequestDone(QNetworkReply *reply);
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
@@ -97,6 +99,7 @@ namespace Etherwall {
         QNetworkAccessManager fNetManager;
         QString fLatestVersion;
 
+        void checkVersion();
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);
         void storeTransaction(const TransactionInfo& info);

@@ -20,6 +20,7 @@
 
 #include "accountmodel.h"
 #include "types.h"
+#include "helpers.h"
 #include <QDebug>
 #include <QSettings>
 #include <QDateTime>

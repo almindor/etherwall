@@ -19,6 +19,7 @@
  */
 
 #include "transactionmodel.h"
+#include "helpers.h"
 #include <QDebug>
 #include <QTimer>
 #include <QJsonArray>
@@ -43,7 +44,8 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
 
-        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadRequestDone(QNetworkReply*)));
+        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
+        checkVersion(); // TODO: move this off at some point
     }
 
     quint64 TransactionModel::getBlockNumber() const {
@@ -382,6 +384,49 @@ namespace Etherwall {
         emit dataChanged(leftIndex, rightIndex, roles);
     }
 
+    void TransactionModel::httpRequestDone(QNetworkReply *reply) {
+        const QString uri = reply->url().fileName();
+
+        if ( uri == "version" ) {
+            checkVersionDone(reply);
+        } else if ( uri == "transactions" ) {
+            loadHistoryDone(reply);
+        } else {
+            EtherLog::logMsg("Unknown uri from reply: " + uri, LS_Error);
+        }
+    }
+
+    void TransactionModel::checkVersion() {
+        // get latest app version
+        QNetworkRequest request(QUrl("http://data.etherwall.com/api/version"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QJsonObject objectJson;
+        const QByteArray data = QJsonDocument(objectJson).toJson();
+
+        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+
+        fNetManager.post(request, data);
+    }
+
+    void TransactionModel::checkVersionDone(QNetworkReply *reply) {
+        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        const bool success = resObj.value("success").toBool();
+
+        if ( !success ) {
+            const QString error = resObj.value("error").toString("unknown error");
+            return EtherLog::logMsg("Response error: " + error, LS_Error);
+        }
+        const QJsonValue rv = resObj.value("result");
+        const QString result = rv.toString(fLatestVersion);
+        int latestIntVer = Helpers::parseAppVersion(fLatestVersion);
+        int intVer = Helpers::parseAppVersion(result);
+
+        if ( latestIntVer < intVer ) {
+            fLatestVersion = result;
+            emit latestVersionChanged(result);
+        }
+    }
+
     void TransactionModel::loadHistory() {
         QSettings settings;
         if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() ) {
@@ -400,22 +445,8 @@ namespace Etherwall {
         fNetManager.post(request, data);
     }
 
-    void TransactionModel::loadRequestDone(QNetworkReply *reply) {
-        if ( reply == NULL ) {
-            return EtherLog::logMsg("Undefined history reply", LS_Error);
-        }
-
-        const QByteArray data = reply->readAll();
-        EtherLog::logMsg("HTTP Post reply: " + data, LS_Debug);
-
-        QJsonParseError parseError;
-        const QJsonDocument resDoc = QJsonDocument::fromJson(data, &parseError);
-
-        if ( parseError.error != QJsonParseError::NoError ) {
-            return EtherLog::logMsg("Response parse error: " + parseError.errorString(), LS_Error);
-        }
-
-        const QJsonObject resObj = resDoc.object();
+    void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
+        QJsonObject resObj = Helpers::parseHTTPReply(reply);
         const bool success = resObj.value("success").toBool();
 
         if ( !success ) {
@@ -444,16 +475,7 @@ namespace Etherwall {
             EtherLog::logMsg("Restored " + QString::number(stored) + " transactions from etherdata server", LS_Info);
         }
 
-        // check new version if supplied
-        if ( resObj.contains("version") ) {
-            const QString ver = resObj.value("version").toString(fLatestVersion);
-            if ( ver != fLatestVersion ) {
-                fLatestVersion = ver;
-                emit latestVersionChanged(ver);
-            }
-        }
-
         reply->close();
-    }
+    }    
 
 }

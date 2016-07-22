@@ -35,6 +35,7 @@
 #include "types.h"
 #include "etherlog.h"
 #include "gethlog.h"
+#include "bigint.h"
 
 namespace Etherwall {
 

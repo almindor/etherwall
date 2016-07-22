@@ -79,6 +79,7 @@ ApplicationWindow {
         Connections {
             target: transactionModel
             onLatestVersionChanged: {
+                console.log("latest version changed")
                 var now = new Date()
                 var bumpTime = settings.value("program/versionbump", now.valueOf())
                 if ( bumpTime > now.valueOf() ) {

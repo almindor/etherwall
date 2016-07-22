@@ -19,6 +19,7 @@
  */
 
 #include "etheripc.h"
+#include "helpers.h"
 #include <QSettings>
 #include <QFileInfo>
 

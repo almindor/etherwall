@@ -20,7 +20,6 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Layouts 1.0
 
 Tab {
     id: transactionsTab
@@ -33,233 +32,27 @@ Tab {
         anchors.topMargin: 0.1 * dpi
         spacing: 0.1 * dpi
 
-        GridLayout {
-            id: gridLayout
-            columns: 4
-            width: parent.width
-
-            Label {
-                id: fromLabel
-                text: qsTr("From: ")
-            }
-
-            Row {
-                Layout.columnSpan: 3
-                Layout.minimumWidth: 6 * dpi
-
-                ComboBox {
-                    id: fromField
-                    width: parent.width
-                    model: accountModel
-                    textRole: "summary"
-                    onCurrentIndexChanged: {
-                        transactionWarning.refresh()
-                    }
-                }
-            }
-
-            Label {
-                id: toLabel
-                text: qsTr("To: ")
-            }
-
-            TextField {
-                id: toField
-                validator: RegExpValidator {
-                    regExp: /0x[a-f,0-9]{40}/
-                }
-
-                maximumLength: 42
-                Layout.minimumWidth: 6 * dpi
-                Layout.columnSpan: 3
-
-                onTextChanged: transactionWarning.refresh()
-            }
-
-            Row {
-                ToolButton {
-                    id: transactionWarning
-                    iconSource: "/images/warning"
-                    tooltip: qsTr("Sending checks", "before sending a transaction")
-                    width: sendButton.height
-                    height: sendButton.height
-
-                    function check() {
-                        var result = {
-                            error: null,
-                            from: null,
-                            to: null,
-                            value: -1
-                        }
-
-                        if ( fromField.currentIndex < 0 ) {
-                            result.error = qsTr("Sender account not selected")
-                            return result
-                        }
-                        var index = fromField.currentIndex
-                        result.from = accountModel.getAccountHash(index) || ""
-
-                        if ( !result.from.match(/0x[a-f,0-9]{40}/) ) {
-                            result.error = qsTr("Sender account invalid")
-                            return result
-                        }
-
-                        result.to = toField.text || ""
-                        if ( !result.to.match(/0x[a-f,0-9]{40}/) ) {
-                            result.error = qsTr("Recipient account invalid")
-                            return result
-                        }
-
-                        result.txtVal = valueField.text.trim() || ""
-                        result.value = result.txtVal.length > 0 ? Number(result.txtVal) : NaN
-                        if ( isNaN(result.value) || result.value <= 0.0 ) {
-                            result.error = qsTr("Invalid value")
-                            return result
-                        }
-
-                        result.txtGas = gasField.text
-
-                        return result;
-                    }
-
-                    function refresh() {
-                        var result = check()
-                        if ( result.error !== null ) {
-                            tooltip = result.error
-                        }
-
-                        enabled = (result.error !== null)
-                    }
-
-                    onClicked: {
-                        refresh()
-
-                        if ( enabled ) {
-                            errorDialog.msg = tooltip
-                            errorDialog.open()
-                        }
-                    }
-                }
-
-                PasswordDialog {
-                    id: transactionSendDialog
-                    title: qsTr("Confirm transaction")
-
-                    onAccepted: {
-                        var result = transactionWarning.check()
-                        if ( result.error !== null ) {
-                            errorDialog.msg = result.error
-                            errorDialog.open()
-                            return
-                        }
-
-                        transactionModel.sendTransaction(password, result.from, result.to, result.txtVal, result.txtGas)
-                    }
-                }
-
-                Button {
-                    id: sendButton
-                    enabled: !ipc.syncing && !ipc.closing && !ipc.starting
-                    text: "Send"
-
-                    onClicked: {
-                        var result = transactionWarning.check()
-                        if ( result.error !== null ) {
-                            errorDialog.msg = result.error
-                            errorDialog.open()
-                            return
-                        }
-
-                        transactionSendDialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
-                        transactionSendDialog.open()
-                    }
-                }
-            }
-
-            Row {
-                Layout.columnSpan: 1
-
-                Label {
-                    text: qsTr("Value: ")
-                }
-
-                TextField {
-                    id: valueField
-                    validator: DoubleValidator {
-                        bottom: 0.000000000000000001 // should be 1 wei
-                        decimals: 18
-                        locale: "en_US"
-                    }
-
-                    maximumLength: 50
-                    width: 2 * dpi
-                    onTextChanged: transactionWarning.refresh()
-                }
-
-                ToolButton {
-                    iconSource: "/images/all"
-                    width: sendButton.height
-                    height: sendButton.height
-                    tooltip: qsTr("Send all", "send all ether from account")
-                    onClicked: {
-                        valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text)
-                    }
-                }
-            }
-
-            // -- estimate is broken in geth 1.0.1- must wait for later release
-            Row {
-                Layout.columnSpan: 2
-                Layout.minimumWidth: 4.5 * dpi
-
-                Label {
-                    text: qsTr("Gas: ")
-                }
-
-                TextField {
-                    id: gasField
-                    width: 80
-                    text: settings.value("gas", "90000")
-                    validator: IntValidator {
-                        bottom: 0
-                        locale: "en_US"
-                    }
-
-                    onTextChanged: {
-                        settings.setValue("gas", text)
-                    }
-                }
-
-                Label {
-                    text: qsTr("Total: ")
-                }
-
-                TextField {
-                    id: valueTotalField
-                    readOnly: true
-                    maximumLength: 50
-                    width: 2 * dpi
-                    validator: DoubleValidator {
-                        bottom: 0.000000000000000001 // should be 1 wei
-                        decimals: 18
-                        locale: "en_US"
-                    }
-
-                    text: transactionModel.estimateTotal(valueField.text, gasField.text)
-                }
-            }
-
+        TransactionDialog {
+            id: sendDialog
         }
 
         TransactionDetails {
             id: details
         }
 
+        Button {
+            text: "Send Ether"
+            width: parent.width
+            height: 1 * dpi
+
+            onClicked: sendDialog.show()
+        }
+
         TableView {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - gridLayout.height - parent.spacing
+            height: parent.height - parent.spacing
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
@@ -297,6 +90,14 @@ Tab {
                     text: qsTr("Details")
                     onTriggered: {
                         details.open(transactionModel.getJson(transactionView.currentRow, true))
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Find on blockchain explorer")
+                    onTriggered: {
+                        var url = "http://" + (settings.value("geth/testnet", false) ? "testnet." : "") + "etherscan.io/tx/" + transactionModel.getHash(transactionView.currentRow)
+                        Qt.openUrlExternally(url)
                     }
                 }
 

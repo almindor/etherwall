@@ -19,6 +19,7 @@
         <file>components/SettingsContent.qml</file>
         <file>components/AccountDialog.qml</file>
         <file>components/HardForkDialog.qml</file>
+        <file>components/TransactionDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>
@@ -28,6 +29,7 @@
         <file alias="connected1">images/low_connection.png</file>
         <file alias="connected0">images/no_connection.png</file>
         <file alias="warning">images/warning.png</file>
+        <file alias="ok">images/ok.png</file>
         <file alias="locked">images/locked.png</file>
         <file alias="unlocked">images/unlocked.png</file>
         <file alias="gas">images/gas.png</file>

@@ -162,16 +162,17 @@ namespace Etherwall {
         emit gasEstimateChanged(num);
     }
 
-    void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to, const QString& value, const QString& gas) {
+    void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
+                                           const QString& value, const QString& gas, const QString& gasPrice) {
         fIpc.unlockAccount(from, password, 5, 0);
-        fIpc.sendTransaction(from, to, value, gas);
-        fQueuedTransaction.init(from, to, value, gas);
+        fIpc.sendTransaction(from, to, value, gas, gasPrice);
+        fQueuedTransaction.init(from, to, value, gas, gasPrice);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
         fQueuedTransaction.setHash(hash);
         addTransaction(fQueuedTransaction);
-        EtherLog::logMsg("Transaction sent hash: " + hash);
+        EtherLog::logMsg("Transaction sent, hash: " + hash);
     }
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {
@@ -349,12 +350,12 @@ namespace Etherwall {
         return fTransactionList.at(index).toJson(decimal);
     }
 
-    const QString TransactionModel::getMaxValue(int row, const QString& gas) const {
+    const QString TransactionModel::getMaxValue(int row, const QString& gas, const QString& gasPrice) const {
         const QModelIndex index = QAbstractListModel::createIndex(row, 2);
 
         BigInt::Rossi balanceWeiRossi = Helpers::etherStrToRossi( fAccountModel.data(index, BalanceRole).toString() );
         const BigInt::Rossi gasRossi = Helpers::decStrToRossi(gas);
-        const BigInt::Rossi gasPriceRossi = Helpers::etherStrToRossi(fGasPrice);
+        const BigInt::Rossi gasPriceRossi = Helpers::etherStrToRossi(gasPrice);
         const BigInt::Rossi gasTotalRossi = gasRossi * gasPriceRossi;
 
         if ( balanceWeiRossi < gasTotalRossi ) {

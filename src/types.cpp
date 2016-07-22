@@ -197,13 +197,16 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
+    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas, const QString& gasPrice) {
         fSender = from;
         fReceiver = to;
         fNonce = 0;
         fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
             fGas = gas;
+        }
+        if ( !gasPrice.isEmpty() ) {
+            fGasPrice = gasPrice;
         }
 
         lookupAccountAliases();

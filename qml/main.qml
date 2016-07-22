@@ -97,7 +97,6 @@ ApplicationWindow {
         anchors.centerIn: parent
         z: 10
         running: ipc.starting || ipc.busy || ipc.syncing
-
     }
 
     FirstTimeDialog {

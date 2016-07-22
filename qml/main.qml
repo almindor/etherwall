@@ -39,7 +39,7 @@ ApplicationWindow {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    title: qsTr("Etherdyne Ethereum Wallet") + ((settings.value("geth/testnet") && !ipc.external) ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
+    title: qsTr("Etherdyne Ethereum Wallet") + ((settings.valueBool("geth/testnet") && !ipc.external) ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {
         id: closeTimer

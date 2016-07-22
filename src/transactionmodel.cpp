@@ -200,6 +200,8 @@ namespace Etherwall {
             return; // not interested in pending blocks
         }
 
+        fIpc.getGasPrice(); // let's update our gas price
+
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const QString thash = to.value("hash").toString();

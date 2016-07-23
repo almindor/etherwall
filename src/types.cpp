@@ -19,6 +19,7 @@
  */
 
 #include "types.h"
+#include "helpers.h"
 #include <QSettings>
 #include <QDateTime>
 #include <QTimer>
@@ -197,13 +198,16 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas) {
+    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas, const QString& gasPrice) {
         fSender = from;
         fReceiver = to;
         fNonce = 0;
         fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
             fGas = gas;
+        }
+        if ( !gasPrice.isEmpty() ) {
+            fGasPrice = gasPrice;
         }
 
         lookupAccountAliases();
@@ -267,140 +271,6 @@ namespace Etherwall {
     const QString TransactionInfo::toJsonString(bool decimal) const {
         const QJsonDocument doc(toJson(decimal));
         return doc.toJson();
-    }
-
-
-// ***************************** Helpers ***************************** //
-
-    const QString Helpers::toDecStr(const QJsonValue& jv) {
-        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        const BigInt::Vin bv(hexStr, 16);
-        QString decStr = QString(bv.toStrDec().data());
-
-        return decStr;
-    }
-
-    const QString Helpers::toDecStrEther(const QJsonValue& jv) {
-        QString decStr = toDecStr(jv);
-
-        int dsl = decStr.length();
-        if ( dsl <= 18 ) {
-            decStr.prepend(QString(19 - dsl, '0'));
-            dsl = decStr.length();
-        }
-        decStr.insert(dsl - 18, '.');
-        return decStr;
-    }
-
-    const QString Helpers::toDecStr(quint64 val) {
-        BigInt::Vin vinVal(val);
-        return QString(vinVal.toStrDec().data());
-    }
-
-    const QString Helpers::toHexStr(quint64 val) {
-        BigInt::Vin vinVal(val);
-        return QString(vinVal.toStr0xHex().data());
-    }
-
-    const QString Helpers::toHexWeiStr(const QString& val) {
-        QString decStr = val;
-
-        int diff = 18;
-        int n = decStr.indexOf('.');
-        if ( n >= 0 ) {
-            decStr.replace(".", "");
-            diff = 18 - (decStr.length() - n);
-        }
-
-        for ( int i = 0; i < diff; i++ ) {
-            decStr.append('0');
-        }
-
-        BigInt::Vin vinVal(decStr.toUtf8().data(), 10);
-        QString res = QString(vinVal.toStr0xHex().data());
-
-        return QString(vinVal.toStr0xHex().data());
-    }
-
-    const QString Helpers::toHexWeiStr(quint64 val) {
-        BigInt::Vin vinVal(val);
-        return QString(vinVal.toStr0xHex().data());
-    }
-
-    const QString Helpers::decStrToHexStr(const QString &dec) {
-        BigInt::Vin vinVal(dec.toStdString(), 10);
-        return QString(vinVal.toStrDec().data());
-    }
-
-    const QString Helpers::weiStrToEtherStr(const QString& wei) {
-        QString weiStr = wei;
-        while ( weiStr.length() < 18 ) {
-            weiStr.insert(0, '0');
-        }
-
-        weiStr.insert(weiStr.length() - 18, '.');
-        if ( weiStr.at(0) == '.' ) {
-            weiStr.insert(0, '0');
-        }
-        return weiStr;
-    }
-
-    BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {
-        return BigInt::Rossi(dec.toStdString(), 10);
-    }
-
-    BigInt::Rossi Helpers::etherStrToRossi(const QString& dec) {
-        QString decStr = dec;
-
-        int diff = 18;
-        int n = decStr.indexOf('.');
-        if ( n >= 0 ) {
-            decStr.replace(".", "");
-            diff = 18 - (decStr.length() - n);
-        }
-
-        for ( int i = 0; i < diff; i++ ) {
-            decStr.append('0');
-        }
-
-        return decStrToRossi(decStr);
-    }
-
-    const QString Helpers::formatEtherStr(const QString& ether) {
-        QString decStr = ether;
-
-        int n = decStr.indexOf('.');
-        int diff;
-        if ( n < 0 ) {
-            decStr.append('.');
-            n = decStr.indexOf('.');
-            diff = 18;
-        } else {
-            diff = 18 - (decStr.length() - n - 1);
-        }
-
-        for ( int i = 0; i < diff; i++ ) {
-            decStr.append('0');
-        }
-
-        return decStr;
-    }
-
-    const QJsonArray Helpers::toQJsonArray(const AccountList& list) {
-        QJsonArray result;
-
-        foreach ( const AccountInfo info, list ) {
-            const QString hash = info.value(HashRole).toString();
-            result.append(hash);
-        }
-
-        return result;
-    }
-
-    quint64 Helpers::toQUInt64(const QJsonValue& jv) {
-        std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
-        BigInt::Vin vin(hexStr, 16);
-        return vin.toUlong();
     }
 
 }

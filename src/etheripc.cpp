@@ -19,6 +19,7 @@
  */
 
 #include "etheripc.h"
+#include "helpers.h"
 #include <QSettings>
 #include <QFileInfo>
 
@@ -455,7 +456,7 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas) {
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas, const QString& gasPrice) {
         QJsonArray params;
         const QString valHex = Helpers::toHexWeiStr(valStr);
         EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
@@ -467,6 +468,11 @@ namespace Etherwall {
         if ( !gas.isEmpty() ) {
             const QString gasHex = Helpers::decStrToHexStr(gas);
             p["gas"] = gasHex;
+        }
+        if ( !gasPrice.isEmpty() ) {
+            const QString gasPriceHex = Helpers::toHexWeiStr(gasPrice);
+            p["gasPrice"] = gasPriceHex;
+            EtherLog::logMsg(QString("Trans gasPrice: ") + gasPrice + QString(" HexValue: ") + gasPriceHex);
         }
 
         params.append(p);

@@ -39,7 +39,7 @@ ApplicationWindow {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    title: qsTr("Etherdyne Ethereum Wallet") + ((settings.value("geth/testnet") && !ipc.external) ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
+    title: qsTr("Etherdyne Ethereum Wallet") + ((settings.valueBool("geth/testnet") && !ipc.external) ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {
         id: closeTimer
@@ -79,6 +79,7 @@ ApplicationWindow {
         Connections {
             target: transactionModel
             onLatestVersionChanged: {
+                console.log("latest version changed")
                 var now = new Date()
                 var bumpTime = settings.value("program/versionbump", now.valueOf())
                 if ( bumpTime > now.valueOf() ) {
@@ -97,7 +98,6 @@ ApplicationWindow {
         anchors.centerIn: parent
         z: 10
         running: ipc.starting || ipc.busy || ipc.syncing
-
     }
 
     FirstTimeDialog {

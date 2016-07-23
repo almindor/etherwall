@@ -195,6 +195,14 @@ Tab {
                     }
                 }
 
+                MenuItem {
+                    text: qsTr("Find on blockchain explorer")
+                    onTriggered: {
+                        var url = "http://" + (settings.valueBool("geth/testnet", false) ? "testnet." : "") + "etherscan.io/address/" + accountModel.selectedAccount
+                        Qt.openUrlExternally(url)
+                    }
+                }
+
                 /*MenuItem {
                     text: qsTr("Delete")
                     onTriggered: {

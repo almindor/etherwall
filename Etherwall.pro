@@ -16,7 +16,8 @@ SOURCES += src/main.cpp \
     src/etherlog.cpp \
     src/currencymodel.cpp \
     src/accountproxymodel.cpp \
-    src/gethlog.cpp
+    src/gethlog.cpp \
+    src/helpers.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -46,7 +47,8 @@ HEADERS += \
     src/etherlog.h \
     src/currencymodel.h \
     src/accountproxymodel.h \
-    src/gethlog.h
+    src/gethlog.h \
+    src/helpers.h
 
 macx {
     ICON=qml/images/icon.icns

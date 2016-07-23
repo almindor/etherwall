@@ -60,7 +60,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getReceiver(int index) const;
         Q_INVOKABLE double getValue(int index) const;
         Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
-        Q_INVOKABLE const QString getMaxValue(int row, const QString& gas) const;
+        Q_INVOKABLE const QString getMaxValue(int row, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void lookupAccountsAliases();
         double getHistoryProgress() const;
         quint64 getFirstBlock() const;
@@ -72,11 +72,14 @@ namespace Etherwall {
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
-        void sendTransaction(const QString& password, const QString& from, const QString& to, const QString& value, const QString& gas = QString());
+        void sendTransaction(const QString& password, const QString& from, const QString& to,
+                             const QString& value, const QString& gas = QString(), const QString& gasPrice = QString());
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();
-        void loadRequestDone(QNetworkReply* reply);
+        void loadHistoryDone(QNetworkReply* reply);
+        void checkVersionDone(QNetworkReply *reply);
+        void httpRequestDone(QNetworkReply *reply);
     signals:
         void blockNumberChanged(quint64 num);
         void gasPriceChanged(const QString& price);
@@ -96,6 +99,7 @@ namespace Etherwall {
         QNetworkAccessManager fNetManager;
         QString fLatestVersion;
 
+        void checkVersion();
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);
         void storeTransaction(const TransactionInfo& info);

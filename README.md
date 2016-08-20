@@ -1,12 +1,12 @@
 # etherwall
 
-Ethereum QT5 Wallet
+Ethereum Classic QT5 Wallet
 
-Etherwall is a free software wallet/front-end for Ethereum.
+Etherwall is a free software wallet/front-end for Ethereum Classic  .
 
 ## Usage
 
-Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main
+Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main Ehereum Classic
 website for windows and mac os x.
 
 Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
@@ -21,17 +21,14 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ## Donations
 
-#### Flattr
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Almindor&url=https://github.com/almindor/etherwall&title=Etherwall&language=&tags=github&category=software)
-
 #### Bitcoin
-`1NcJoao879C1pSKvFqnUKD6wKtFpCMppP6`
+`3DPWYmUaymGoTYkvx5gHztPVANJau4unh1`
 
 #### Litecoin
-`LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm`
+`LaMQ5F8MuxCZFwrhR51mTm3zoc7brDzVeV`
 
-#### Ether
-`0xc64b50db57c0362e27a32b65bd29363f29fdfa59`
+#### Ether Classic
+`0xe290b5cb85d66afc1c2ea8800b7caab55a5a0006`
 
 ## Development
 

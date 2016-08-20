@@ -24,7 +24,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Balance (Ether)</source>
+        <source>Balance (ETC)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>

@@ -74,7 +74,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
         QHash<int, QByteArray> roles;
-        roles[THashRole] = "hash";
+        roles[TransactionRoles::THashRole] = "hash";
         roles[NonceRole] = "nonce";
         roles[SenderRole] = "sender";
         roles[ReceiverRole] = "receiver";

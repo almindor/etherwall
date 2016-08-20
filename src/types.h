@@ -22,6 +22,7 @@
 #define TYPES_H
 
 #include <QString>
+#include <QStringList>
 #include <QList>
 #include <QVariant>
 #include <QStandardPaths>

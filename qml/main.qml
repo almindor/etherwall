@@ -116,13 +116,13 @@ ApplicationWindow {
 
         TransactionsTab {}
 
+        ContractsTab {}
+
         CurrencyTab {}
 
         SettingsTab {}
 
-        LogTab {}
-
-        GethTab {}
+        InfoTab {}
     }
 
     statusBar: StatusBar {

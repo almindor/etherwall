@@ -25,6 +25,7 @@
 #include <QTimer>
 #include <QJsonDocument>
 #include <QApplication>
+#include <QCryptographicHash>
 #include <QDebug>
 
 namespace Etherwall {
@@ -270,7 +271,7 @@ namespace Etherwall {
 
     const QString TransactionInfo::toJsonString(bool decimal) const {
         const QJsonDocument doc(toJson(decimal));
-        return doc.toJson();
+        return doc.toJson(QJsonDocument::Compact);
     }
 
 }

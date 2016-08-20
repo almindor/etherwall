@@ -20,6 +20,11 @@
         <file>components/AccountDialog.qml</file>
         <file>components/HardForkDialog.qml</file>
         <file>components/TransactionDialog.qml</file>
+        <file>components/ContractsTab.qml</file>
+        <file>components/ContractDetails.qml</file>
+        <file>components/ContractCalls.qml</file>
+        <file>components/ArgNumber.qml</file>
+        <file>components/InfoTab.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

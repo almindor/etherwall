@@ -114,6 +114,7 @@ namespace Etherwall {
         GetTransactionByHash,
         GetBlock,
         GetClientVersion,
+        GetNetVersion,
         GetSyncing
     };
 

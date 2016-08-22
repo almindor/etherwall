@@ -83,6 +83,8 @@ namespace Etherwall {
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
+        Q_PROPERTY(int netVersion MEMBER fNetVersion NOTIFY netVersionChanged)
+        Q_PROPERTY(bool testnet READ getTestnet NOTIFY netVersionChanged)
         Q_PROPERTY(quint64 currentBlock READ getCurrentBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
@@ -146,6 +148,7 @@ namespace Etherwall {
         void hardForkReadyChanged(bool hfReady);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
+        void netVersionChanged(int ver);
         void error();
     private:
         QString fPath;
@@ -161,6 +164,7 @@ namespace Etherwall {
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
+        int fNetVersion;
         QString fClientVersion;
         QProcess fGeth;
         int fStarting;
@@ -190,14 +194,17 @@ namespace Etherwall {
         void handleGetTransactionByHash();
         void handleGetBlock();
         void handleGetClientVersion();
+        void handleGetNetVersion();
         void handleGetSyncing();
 
+        bool getTestnet() const;
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
         void getSyncing();
         void getFilterChanges(const QString& filterID);
         void getClientVersion();
+        void getNetVersion();
         bool getSyncingVal() const;
         quint64 getCurrentBlock() const;
         quint64 getHighestBlock() const;

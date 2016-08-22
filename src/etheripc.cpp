@@ -181,6 +181,7 @@ namespace Etherwall {
         done();
 
         getClientVersion();
+        getNetVersion();
         getBlockNumber(); // initial
         newFilter();
 
@@ -241,6 +242,10 @@ namespace Etherwall {
 
     void EtherIPC::setInterval(int interval) {
         fTimer.setInterval(interval);
+    }
+
+    bool EtherIPC::getTestnet() const {
+        return fNetVersion == 2;
     }
 
     bool EtherIPC::killGeth() {
@@ -701,6 +706,12 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::getNetVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetNetVersion, "net_version")) ) {
+            return bail();
+        }
+    }
+
     bool EtherIPC::getSyncingVal() const {
         return fSyncing;
     }
@@ -789,6 +800,24 @@ namespace Etherwall {
         }
 
         emit clientVersionChanged(fClientVersion);
+        done();
+    }
+
+    void EtherIPC::handleGetNetVersion() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        bool ok = false;
+        fNetVersion = jv.toString().toInt(&ok);
+
+        if ( !ok ) {
+            setError("Unable to parse client version string: " + jv.toString());
+            return bail(true);
+        }
+
+        emit netVersionChanged(fNetVersion);
         done();
     }
 
@@ -1075,6 +1104,10 @@ namespace Etherwall {
             }
         case GetClientVersion: {
                 handleGetClientVersion();
+                break;
+            }
+        case GetNetVersion: {
+                handleGetNetVersion();
                 break;
             }
         case GetSyncing: {

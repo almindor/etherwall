@@ -96,7 +96,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (settings.valueBool("geth/testnet", false) ? "testnet." : "") + "etherscan.io/tx/" + transactionModel.getHash(transactionView.currentRow)
+                        var url = "http://" + (ipc.testnet ? "testnet." : "") + "etherscan.io/tx/" + transactionModel.getHash(transactionView.currentRow)
                         Qt.openUrlExternally(url)
                     }
                 }

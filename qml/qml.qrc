@@ -25,6 +25,8 @@
         <file>components/ContractCalls.qml</file>
         <file>components/ArgNumber.qml</file>
         <file>components/InfoTab.qml</file>
+        <file>components/SendTransactionContent.qml</file>
+        <file>components/CallContractContent.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

@@ -159,32 +159,27 @@ namespace Etherwall {
         }
     }
 
-    const QStringList ContractModel::getArguments(int index, const QString& functionName) const {
+    const QVariantList ContractModel::getArguments(int index, const QString& functionName) const {
         if ( index < 0 || index >= fList.size() ) {
-            return QStringList();
+            return QVariantList();
         }
 
         try {
-            const ContractArgs args = fList.at(index).function(functionName).getArguments();
-            QStringList list;
-            foreach ( const ContractArg arg, args ) {
-                list.append(arg.name() + " " + arg.type());
-            }
-
-            return list;
+            return fList.at(index).function(functionName).getArgModel();
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
-            return QStringList();
+            emit callError(err);
+            return QVariantList();
         }
     }
 
-    const QString ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) const {
+    void ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) {
         try {
-            return fList.at(index).function(functionName).callData(params);
+            const QString encoded = "0x" + fList.at(index).function(functionName).callData(params);
+            emit callEncoded(encoded);
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
-            qDebug() << err << "\n";
-            return QString();
+            emit callError(err);
         }
     }
 

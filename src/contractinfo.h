@@ -3,6 +3,7 @@
 
 #include <QVariant>
 #include <QCryptographicHash>
+#include <QAbstractListModel>
 #include <QStringList>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -12,6 +13,12 @@
 #include <QDebug>
 
 namespace Etherwall {
+
+    enum ArgumentRoles {
+        ArgNameRole = Qt::UserRole + 1,
+        ArgTypeRole,
+        ValRexRole
+    };
 
     class ContractArg
     {
@@ -24,6 +31,7 @@ namespace Etherwall {
         const QString type() const; // the base type e.g. int, text, byte
         const QString name() const;
         const QString toString() const;
+        const QVariantMap toVariantMap() const;
         const QString encode(const QVariant& val, bool internal = false) const;
         static const QString encodeBytes(QByteArray bytes);
         static const QString encodeInt(int number);
@@ -35,6 +43,8 @@ namespace Etherwall {
         const QString encode(int number) const;
         const QString encode(const BigInt::Rossi& val, int digits) const;
         const QString encode(bool val) const;
+        const QRegExp getValRex() const;
+        const QString getPlaceholder() const;
         QString fName;
         QString fType;
         QString fBaseType;
@@ -53,6 +63,7 @@ namespace Etherwall {
         const QString getName() const;
         const ContractArg getArgument(int index) const;
         const ContractArgs getArguments() const;
+        const QVariantList getArgModel() const;
         const QString getMethodID() const;
         const QString getSignature() const;
         const QString callData(const QVariantList& params) const;
@@ -65,6 +76,7 @@ namespace Etherwall {
         ContractArgs fReturns;
         QString fSignature;
         QString fMethodID;
+        QVariantList fArgModel;
     };
 
     typedef QList<ContractFunction> ContractFunctionList;

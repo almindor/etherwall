@@ -81,6 +81,17 @@ namespace Etherwall {
         return "Type: " + fType + " Length: " + QString::number(fLength) + " M: " + QString::number(fM) + " N: " + QString::number(fN);
     }
 
+    const QVariantMap ContractArg::toVariantMap() const {
+        QVariantMap result;
+        result["name"] = fName;
+        result["type"] = fType;
+        result["length"] = fLength;
+        result["placeholder"] = getPlaceholder();
+        result["valrex"] = getValRex();
+
+        return result;
+    }
+
     bool ContractArg::dynamic() const {
         return (fBaseType == "string" || fBaseType == "bytes" || fLength == 0);
     }
@@ -88,8 +99,11 @@ namespace Etherwall {
     const QString ContractArg::encode(const QVariant& val, bool internal) const {
         // if we're an array of anything consider a string, split and encode individually
         if ( fLength >= 0 && !internal ) {
-            const QString arrStr = val.toString();
+            const QString arrStr = val.toString().remove('[').remove(']'); // optional []
             const QStringList arr = arrStr.split(',');
+            if ( fLength > 0 && arr.length() != fLength ) {
+                throw QString(fName + ": Invalid params count for array of " + QString::number(fLength));
+            }
             QString result = fLength > 0 ? "" : encodeInt(arr.size()); // encode length on dynamic arrays only
 
             foreach ( const QString subVal, arr ) {
@@ -102,7 +116,7 @@ namespace Etherwall {
         bool ok = false;
         if ( fBaseType == "int" || fBaseType == "uint" ) {
             int ival = val.toInt(&ok);
-            if ( !ok ) throw QString("Invalid " + fBaseType + " argument: " + val.toString());
+            if ( !ok ) throw QString(fName + ": Invalid " + fBaseType + " argument: " + val.toString());
             return encode(ival);
         }
 
@@ -217,6 +231,55 @@ namespace Etherwall {
         return size + bytes.toHex();
     }
 
+    const QRegExp ContractArg::getValRex() const {
+        QString pattern = ".*";
+
+        if ( fBaseType == "int" ) {
+            pattern = "-?[0-9]+";
+        } else if ( fBaseType == "uint" ) {
+            pattern = "[0-9]+";
+        } else if ( fBaseType == "bool" ) {
+            pattern = "true|false";
+        } else if ( fBaseType == "address" ) {
+            pattern = "0x[a-f,A-F,0-9]{40}";
+        } else if ( fBaseType == "fixed" ) {
+            pattern = "-?[0-9]+\\.[0-9]+";
+        } else if ( fBaseType == "ufixed" ) {
+            pattern = "[0-9]+\\.[0-9]+";
+        }
+
+        // array pattern around the base type
+        if ( fLength >= 0 ) {
+            pattern = "^\\[?(" + pattern + "\\,?)+\\]?$";
+        }
+
+        return QRegExp(pattern);
+    }
+
+    const QString ContractArg::getPlaceholder() const {
+        QString result = "text";
+
+        if ( fBaseType == "int" ) {
+            result = "-15";
+        } else if ( fBaseType == "uint" ) {
+            result = "23";
+        } else if ( fBaseType == "bool" ) {
+            result = "true";
+        } else if ( fBaseType == "address" ) {
+            result = "0x0000000000000000000000000000000000000000";
+        } else if ( fBaseType == "fixed" ) {
+            result = "-0.5";
+        } else if ( fBaseType == "ufixed" ) {
+            result = "1.245";
+        }
+
+        if ( fLength >= 0 ) {
+            result = "[" + result + "," + result + "]";
+        }
+
+        return result;
+    }
+
     // ***************************** ContractFunction ***************************** //
 
     ContractFunction::ContractFunction(const QJsonObject& source)
@@ -224,12 +287,15 @@ namespace Etherwall {
         fName = source.value("name").toString();
         fArguments = ContractArgs();
         fReturns = ContractArgs();
+        fArgModel = QVariantList();
 
         const QJsonArray args = source.value("inputs").toArray();
         const QJsonArray rets = source.value("outputs").toArray();
 
         foreach ( QJsonValue arg, args ) {
-            fArguments.append(ContractArg(getArgName(arg), getArgLiteral(arg)));
+            const ContractArg carg = ContractArg(getArgName(arg), getArgLiteral(arg));
+            fArguments.append(carg);
+            fArgModel.append(carg.toVariantMap());
         }
 
         foreach ( QJsonValue ret, rets ) {
@@ -291,6 +357,10 @@ namespace Etherwall {
         return fArguments;
     }
 
+    const QVariantList ContractFunction::getArgModel() const {
+        return fArgModel;
+    }
+
     const QString ContractFunction::getMethodID() const {
         return fMethodID;
     }
@@ -301,7 +371,7 @@ namespace Etherwall {
 
     const QString ContractFunction::callData(const QVariantList& params) const {
         if ( fArguments.size() != params.size() ) {
-            throw QString("Incorrect amount of parameters passed to function " + fName + " got " + params.size() + " expected " + fArguments.size());
+            throw QString("Incorrect amount of parameters passed to function \"" + fName + "\" got " + QString::number(params.size()) + " expected " + QString::number(fArguments.size()));
         }
 
         QStringList encStr(fMethodID);

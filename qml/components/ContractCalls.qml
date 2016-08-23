@@ -27,170 +27,65 @@ Window {
     id: contractCalls
     title: qsTr("Call Contract")
 
-    modality: Qt.ApplicationModal
+    modality: Qt.NonModal
     visible: false
     minimumWidth: 6 * dpi
     minimumHeight: 1 * dpi
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 5 * dpi
+    height: 5.2 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    property int contractIndex : -1
-
     function open( index ) {
-        contractIndex = index
+        stcTab.active = true
+        stcTab.children[0].toAddress = contractModel.getAddress(index)
+        stcTab.children[0].contractData = "0x"
+        stcTab.enabled = false
+
+        cccTab.active = true
+        cccTab.children[0].contractIndex = index
         show()
     }
 
-    BusyIndicator {
-        anchors.centerIn: parent
-        z: 10
-        running: ipc.starting || ipc.busy || ipc.syncing
-    }
-
-    Column {
-        id: mainColumn
+    TabView {
+        id: tabs
         anchors.fill: parent
-        anchors.margins: 0.1 * dpi
-        spacing: 0.2 * dpi
 
-        Row {
-            Label {
-                width: 1 * dpi
-                text: qsTr("Name: ")
-            }
-
-            TextField {
-                id: nameField
-                width: mainColumn.width - 1 * dpi
-                text: contractModel.getName(contractIndex)
-                readOnly: true
-            }
-        }
-
-        Row {
-            Label {
-                width: 1 * dpi
-                text: qsTr("Function: ")
-            }
-
-            ComboBox {
-                id: functionField
-                width: mainColumn.width - 1 * dpi
-                model: contractModel.getFunctions(contractIndex)
-
-                onCurrentTextChanged: {
-                    argsView.params = []
-                    argsView.model = contractModel.getArguments(contractIndex, currentText)
-                }
-            }
-        }
-
-        ListView {
-            id: argsView
-            width: parent.width
-            height: 2 * dpi
-            property variant params : []
-
-            delegate: Row {
-                Label {
-                    width: 1 * dpi
-                    text: modelData
+        Tab {
+            id: cccTab
+            title: qsTr("Function")
+            CallContractContent {
+                onDone: {
+                    contractCalls.close()
                 }
 
-                TextField {
-                    width: mainColumn.width - 1 * dpi
-                    onTextChanged: {
-                        argsView.params[index] = text
+                onContractError: {
+                    stcTab.enabled = false
+                    tabs.currentIndex = 0
+                }
+
+                onContractReady: {
+                    stcTab.children[0].contractData = encoded
+                    stcTab.enabled = true
+                    if ( next ) {
+                        tabs.currentIndex = 1
                     }
                 }
             }
         }
 
-        TextArea {
-            id: encoded
-            width: parent.width
-            readOnly: true
-            wrapMode: TextEdit.WrapAnywhere
-            height: 0.5 * dpi
-        }
-
-        Button {
-            id: callButton
-            width: parent.width
-            height: 0.6 * dpi
-            text: "Save"
-
-            Image {
-                id: callIcon
-                anchors.left: parent.left
-                anchors.top: parent.top
-                anchors.bottom: parent.bottom
-                anchors.margins: parent.height * 0.15
-                width: height
-                source: "/images/warning"
-            }
-
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: callButton.height / 2.0
-                text: control.text
-              }
-            }
-
-            function check() {
-                var result = {
-                    error: null
-                }
-
-                return result;
-            }
-
-            function refresh() {
-                var result = check()
-                if ( result.error !== null ) {
-                    tooltip = result.error
-                    callIcon.source = "/images/warning"
-                    return result
-                }
-
-                callIcon.source = "/images/ok"
-                return result
-            }
-
-            onClicked: {
-                var result = refresh()
-                if ( result.error !== null ) {
-                    errorDialog.msg = result.error
-                    errorDialog.open()
-                    return
-                }
-
-                try {
-                    encoded.text = contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
-                } catch ( err ) {
-                    console.error(err)
+        Tab {
+            id: stcTab
+            title: qsTr("Transaction")
+            SendTransactionContent {
+                onDone: {
+                    contractCalls.close()
                 }
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                contractCalls.close()
-            }
-        }
-
     }
 }

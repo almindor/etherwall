@@ -165,10 +165,11 @@ namespace Etherwall {
     }
 
     void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
-                                           const QString& value, const QString& gas, const QString& gasPrice) {
+                                           const QString& value, const QString& gas, const QString& gasPrice,
+                                           const QString& data) {
         fIpc.unlockAccount(from, password, 5, 0);
-        fIpc.sendTransaction(from, to, value, gas, gasPrice);
-        fQueuedTransaction.init(from, to, value, gas, gasPrice);
+        fIpc.sendTransaction(from, to, value, gas, gasPrice, data);
+        fQueuedTransaction.init(from, to, value, gas, gasPrice, data);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
@@ -302,10 +303,6 @@ namespace Etherwall {
         BigInt::Rossi valRossi = Helpers::etherStrToRossi(value);
         BigInt::Rossi valGas = Helpers::decStrToRossi(gas);
         BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(fGasPrice);
-
-        if ( valRossi == BigInt::Rossi(0) ) {
-            return "0";
-        }
 
         const QString wei = QString((valRossi + valGas * valGasPrice).toStrDec().data());
 

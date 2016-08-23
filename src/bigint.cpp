@@ -55,6 +55,8 @@
 // include section
 #include "bigint.h"
 
+// Errors
+static QString lastError = "";
 
 // =================
 // Constants
@@ -2564,7 +2566,7 @@ BigInt::Rossi BigInt::Rossi::divide (
     // --- Check for attempt to divide by zero ---
     if (divisor == RossiZero)
     {
-        ERR_MSG (std::cerr, "divisor == Zero");
+        ERR_MSG (std::cerr, std::string("divisor == Zero"));
         ASSERTION (0 && "divisor == Zero");
 
         shiftcnt = 1 / shiftcnt;  // Force a divide by zero exception. (shiftcnt=0)
@@ -2684,7 +2686,7 @@ BigInt::Rossi BigInt::Rossi::naive_sqrt()		// Returns the square root of this
 			delta = delta * theFactor;	
 			curCandidate = curCandidate + delta;
 		}
-		ASSERTION ((curCandidate * curCandidate) > *this)
+        ASSERTION ((curCandidate * curCandidate) > *this);
 		curCandidate = curCandidate - delta;
 		ASSERTION ((curCandidate * curCandidate) <= *this);
 	}
@@ -2696,7 +2698,7 @@ BigInt::Rossi BigInt::Rossi::naive_sqrt()		// Returns the square root of this
 	{
 		curCandidate++;
 	}
-	ASSERTION ((curCandidate * curCandidate) > *this)
+    ASSERTION ((curCandidate * curCandidate) > *this);
 	curCandidate--;
 	ASSERTION ((curCandidate * curCandidate) <= *this);
 

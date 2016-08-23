@@ -95,7 +95,7 @@ Window {
                 id: addressField
                 width: mainColumn.width - 1 * dpi
                 validator: RegExpValidator {
-                    regExp: /0x[a-f,0-9]{40}/
+                    regExp: /0x[a-f,A-Z,0-9]{40}/
                 }
 
                 maximumLength: 42
@@ -154,7 +154,7 @@ Window {
                 }
 
                 result.address = addressField.text || ""
-                if ( !result.address.match(/0x[a-f,0-9]{40}/) ) {
+                if ( !result.address.match(/0x[a-f,A-Z,0-9]{40}/) ) {
                     result.error = qsTr("Contract address invalid")
                     return result
                 }

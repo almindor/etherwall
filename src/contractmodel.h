@@ -43,8 +43,11 @@ namespace Etherwall {
         Q_INVOKABLE const QString getABI(int index) const;
         Q_INVOKABLE const QStringList getFunctions(int index) const;
         Q_INVOKABLE const QString getMethodID(int index, const QString& functionName) const;
-        Q_INVOKABLE const QStringList getArguments(int index, const QString& functionName) const;
-        Q_INVOKABLE const QString encodeCall(int index, const QString& functionName, const QVariantList& params) const;
+        Q_INVOKABLE const QVariantList getArguments(int index, const QString& functionName) const;
+        Q_INVOKABLE void encodeCall(int index, const QString& functionName, const QVariantList& params);
+    signals:
+        void callEncoded(const QString& encoded) const;
+        void callError(const QString& err) const;
     private:
         void reload();
 

@@ -461,7 +461,8 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas, const QString& gasPrice) {
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr,
+                                   const QString& gas, const QString& gasPrice, const QString& data) {
         QJsonArray params;
         const QString valHex = Helpers::toHexWeiStr(valStr);
         EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
@@ -478,6 +479,9 @@ namespace Etherwall {
             const QString gasPriceHex = Helpers::toHexWeiStr(gasPrice);
             p["gasPrice"] = gasPriceHex;
             EtherLog::logMsg(QString("Trans gasPrice: ") + gasPrice + QString(" HexValue: ") + gasPriceHex);
+        }
+        if ( !data.isEmpty() ) {
+            p["data"] = data;
         }
 
         params.append(p);

@@ -209,4 +209,42 @@ namespace Etherwall {
         return "0x" + result;
     }
 
+    bool Helpers::checkAddress(const QString& origAddress) {
+        QString address = origAddress;
+        if ( address.indexOf("0x") == 0 ) {
+            address = address.remove(0, 2);
+        }
+
+        if ( address.length() != 40 ) {
+            return false;
+        }
+
+        const QByteArray byteAddress = QByteArray::fromHex(address.toUtf8());
+        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256);
+        QBitArray bita(hashed.count() * 8);
+        int i = 0;
+
+        for(i = 0; i < hashed.count(); ++i) {
+            for (int b = 0; b < 8; b++) {
+                bita.setBit( i * 8 + b, hashed.at(i) & (1 << (7 - b)) );
+            }
+        }
+
+        QString result = "";
+        i = 0;
+        foreach ( const QChar c, address ) {
+            if ( c >= '0' && c <= '9' ) {
+                // nothing
+            } else {
+                if ( ( bita.at(i) && !c.isUpper() ) || ( !bita.at(i) && c.isUpper() ) ) {
+                    return false;
+                }
+            }
+
+            i++;
+        }
+
+        return true;
+    }
+
 }

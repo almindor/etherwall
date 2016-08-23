@@ -27,6 +27,7 @@ namespace Etherwall {
         static int parseAppVersion(const QString& ver);
         static QJsonObject parseHTTPReply(QNetworkReply *reply);
         static const QString vitalizeAddress(const QString& origAddress);
+        static bool checkAddress(const QString& origAddress);
     };
 
 }

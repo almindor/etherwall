@@ -41,6 +41,7 @@ Tab {
         }
 
         Button {
+            id: sendButton
             text: "Send Ether"
             width: parent.width
             height: 1 * dpi
@@ -52,7 +53,7 @@ Tab {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing
+            height: parent.height - parent.spacing - sendButton.height
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight

@@ -108,7 +108,7 @@ namespace Etherwall {
     static int ACC_INDEX = 0;
 
     AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fIndex(ACC_INDEX++), fHash(hash), fBalance(balance), fTransCount(transCount)
+        fIndex(ACC_INDEX++), fHash(Helpers::vitalizeAddress(hash)), fBalance(balance), fTransCount(transCount)
     {
         const QSettings settings;
 
@@ -141,7 +141,7 @@ namespace Etherwall {
     void AccountInfo::alias(const QString& name) {
         QSettings settings;
 
-        settings.setValue("alias/" + fHash, name);
+        settings.setValue("alias/" + fHash.toLower(), name);
         fAlias = name;
     }
 
@@ -199,9 +199,9 @@ namespace Etherwall {
         fHash = hash;
     }
 
-    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas, const QString& gasPrice) {
-        fSender = from;
-        fReceiver = to;
+    void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas, const QString& gasPrice, const QString& data) {
+        fSender = Helpers::vitalizeAddress(from);
+        fReceiver = Helpers::vitalizeAddress(to);
         fNonce = 0;
         fValue = Helpers::formatEtherStr(value);
         if ( !gas.isEmpty() ) {
@@ -210,6 +210,9 @@ namespace Etherwall {
         if ( !gasPrice.isEmpty() ) {
             fGasPrice = gasPrice;
         }
+        if ( !data.isEmpty() ) {
+            fInput = data;
+        }
 
         lookupAccountAliases();
     }
@@ -217,8 +220,8 @@ namespace Etherwall {
     void TransactionInfo::init(const QJsonObject source) {
         fHash = source.value("hash").toString("invalid");
         fNonce = Helpers::toQUInt64(source.value("nonce"));
-        fSender = source.value("from").toString("invalid");
-        fReceiver = source.value("to").toString("invalid");
+        fSender = Helpers::vitalizeAddress(source.value("from").toString("invalid"));
+        fReceiver = Helpers::vitalizeAddress(source.value("to").toString("invalid"));
         fBlockHash = source.value("blockHash").toString("invalid");
         fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
         fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));

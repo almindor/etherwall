@@ -24,6 +24,7 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include "contractinfo.h"
+#include "etheripc.h"
 
 namespace Etherwall {
 
@@ -31,7 +32,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        ContractModel();
+        ContractModel(EtherIPC& ipc);
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -48,10 +49,13 @@ namespace Etherwall {
     signals:
         void callEncoded(const QString& encoded) const;
         void callError(const QString& err) const;
-    private:
+    public slots:
         void reload();
+    private:
+        const QString getPostfix() const;
 
         ContractList fList;
+        EtherIPC& fIpc;
     };
 
 }

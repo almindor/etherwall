@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
     TransactionModel transactionModel(ipc, accountModel);
-    ContractModel contractModel;
+    ContractModel contractModel(ipc);
 
     QQmlApplicationEngine engine;
 

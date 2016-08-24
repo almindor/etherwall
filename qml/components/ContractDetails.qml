@@ -202,6 +202,7 @@ Window {
                 }
 
                 contractModel.addContract(result.name, result.address, result.abi)
+                contractDetails.close()
             }
         }
 

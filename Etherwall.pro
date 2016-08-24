@@ -19,7 +19,9 @@ SOURCES += src/main.cpp \
     src/gethlog.cpp \
     src/helpers.cpp \
     src/contractmodel.cpp \
-    src/contractinfo.cpp
+    src/contractinfo.cpp \
+    src/eventmodel.cpp \
+    src/filtermodel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -52,7 +54,9 @@ HEADERS += \
     src/gethlog.h \
     src/helpers.h \
     src/contractmodel.h \
-    src/contractinfo.h
+    src/contractinfo.h \
+    src/eventmodel.h \
+    src/filtermodel.h
 
 macx {
     ICON=qml/images/icon.icns

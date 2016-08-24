@@ -99,6 +99,8 @@ namespace Etherwall {
         bool getHardForkReady() const;
         const QString& getError() const;
         int getCode() const;
+        bool getTestnet() const;
+        const QString getNetworkPostfix() const;
     public slots:
         void init();
         void waitConnect();
@@ -189,7 +191,7 @@ namespace Etherwall {
         void handleUnlockAccount();
         void handleGetGasPrice();
         void handleEstimateGas();
-        void handleNewFilter();
+        void handleNewBlockFilter();
         void handleGetFilterChanges();
         void handleUninstallFilter();
         void handleGetTransactionByHash();
@@ -198,7 +200,6 @@ namespace Etherwall {
         void handleGetNetVersion();
         void handleGetSyncing();
 
-        bool getTestnet() const;
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
@@ -216,8 +217,8 @@ namespace Etherwall {
         void setError(const QString& error);
         void errorOut();
         void done();
-        void newFilter();
-        void uninstallFilter();
+        void newBlockFilter();
+        void uninstallFilter(const QString& filter);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

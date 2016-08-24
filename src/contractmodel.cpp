@@ -26,9 +26,9 @@
 
 namespace Etherwall {
 
-    ContractModel::ContractModel() : QAbstractListModel(0), fList()
+    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc)
     {
-        reload();
+        connect(&ipc, &EtherIPC::connectToServerDone, this, &ContractModel::reload);
     }
 
     QHash<int, QByteArray> ContractModel::roleNames() const {
@@ -66,7 +66,7 @@ namespace Etherwall {
         const ContractInfo info(name, address, jsonDoc.array());
 
         QSettings settings;
-        settings.beginGroup("contracts");
+        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         settings.setValue(info.value(AddressRole).toString(), info.toJsonString());
         settings.endGroup();
 
@@ -101,7 +101,7 @@ namespace Etherwall {
         }
 
         QSettings settings;
-        settings.beginGroup("contracts");
+        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         settings.remove(fList.at(index).address());
         settings.endGroup();
 
@@ -185,7 +185,7 @@ namespace Etherwall {
 
     void ContractModel::reload() {
         QSettings settings;
-        settings.beginGroup("contracts");
+        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         const QStringList list = settings.allKeys();
 
         foreach ( const QString addr, list ) {

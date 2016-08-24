@@ -108,7 +108,7 @@ namespace Etherwall {
         UnlockAccount,
         GetGasPrice,
         EstimateGas,
-        NewFilter,
+        NewBlockFilter,
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,

@@ -181,24 +181,17 @@ namespace Etherwall {
         done();
 
         getClientVersion();
-        getNetVersion();
         getBlockNumber(); // initial
-        newFilter();
+        newBlockFilter();
+        getNetVersion();
 
-        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
-        // if we connected to external geth, put that info in geth log
         if ( fStarting == 1 ) {
             fExternal = true;
             emit externalChanged(true);
             fGethLog.append("Attached to external geth, see logs in terminal window.");
         }
         fStarting = 3;
-
         EtherLog::logMsg("Connected to IPC socket");
-        emit startingChanged(fStarting);
-        emit connectToServerDone();
-        emit connectionStateChanged();
-        emit hardForkReadyChanged(getHardForkReady());
     }
 
     void EtherIPC::connectionTimeout() {
@@ -248,6 +241,18 @@ namespace Etherwall {
         return fNetVersion == 2;
     }
 
+    const QString EtherIPC::getNetworkPostfix() const {
+        QSettings settings;
+        QString postfix = settings.value("geth/hardfork", true).toBool() ? "/eth" : "/etc";
+        if ( getTestnet() ) {
+            postfix += "/morden";
+        } else {
+            postfix += "/homestead";
+        }
+
+        return postfix;
+    }
+
     bool EtherIPC::killGeth() {
         if ( fGeth.state() == QProcess::NotRunning ) {
             return true;
@@ -283,7 +288,8 @@ namespace Etherwall {
         }
 
         if ( fSocket.state() == QLocalSocket::ConnectedState && !fFilterID.isEmpty() ) { // remove filter if still connected
-            uninstallFilter();
+            uninstallFilter(fFilterID);
+            fFilterID.clear();
             return false;
         }
 
@@ -591,18 +597,18 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::newFilter() {
+    void EtherIPC::newBlockFilter() {
         if ( !fFilterID.isEmpty() ) {
             setError("Filter already set");
             return bail(true);
         }
 
-        if ( !queueRequest(RequestIPC(NewFilter, "eth_newBlockFilter")) ) {
+        if ( !queueRequest(RequestIPC(NewBlockFilter, "eth_newBlockFilter")) ) {
             return bail();
         }
     }
 
-    void EtherIPC::handleNewFilter() {
+    void EtherIPC::handleNewBlockFilter() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
@@ -677,8 +683,8 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::uninstallFilter() {
-        if ( fFilterID.isEmpty() ) {
+    void EtherIPC::uninstallFilter(const QString& filter) {
+        if ( filter.isEmpty() ) {
             setError("Filter not set");
             return bail(true);
         }
@@ -686,7 +692,7 @@ namespace Etherwall {
         //qDebug() << "uninstalling filter: " << fFilterID << "\n";
 
         QJsonArray params;
-        params.append(fFilterID);
+        params.append(filter);
 
         if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
             return bail();
@@ -698,8 +704,6 @@ namespace Etherwall {
         if ( !readReply(jv) ) {
             return bail();
         }
-
-        fFilterID.clear();
 
         done();
     }
@@ -817,12 +821,20 @@ namespace Etherwall {
         fNetVersion = jv.toString().toInt(&ok);
 
         if ( !ok ) {
-            setError("Unable to parse client version string: " + jv.toString());
+            setError("Unable to parse net version string: " + jv.toString());
             return bail(true);
         }
 
         emit netVersionChanged(fNetVersion);
         done();
+
+        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        // if we connected to external geth, put that info in geth log
+
+        emit startingChanged(fStarting);
+        emit connectToServerDone();
+        emit connectionStateChanged();
+        emit hardForkReadyChanged(getHardForkReady());
     }
 
     void EtherIPC::handleGetSyncing() {
@@ -835,7 +847,7 @@ namespace Etherwall {
             if ( fSyncing ) {
                 fSyncing = false;
                 if ( fFilterID.isEmpty() ) {
-                    newFilter();
+                    newBlockFilter();
                 }
                 emit syncingChanged(fSyncing);
             }
@@ -849,7 +861,8 @@ namespace Etherwall {
         fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
         if ( !fSyncing ) {
             if ( !fFilterID.isEmpty() ) {
-                uninstallFilter();
+                uninstallFilter(fFilterID);
+                fFilterID.clear();
             }
             fSyncing = true;
         }
@@ -1086,8 +1099,8 @@ namespace Etherwall {
                 handleEstimateGas();
                 break;
             }
-        case NewFilter: {
-                handleNewFilter();
+        case NewBlockFilter: {
+                handleNewBlockFilter();
                 break;
             }
         case GetFilterChanges: {

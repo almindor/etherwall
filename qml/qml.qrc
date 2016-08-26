@@ -30,6 +30,7 @@
         <file>components/ContractContent.qml</file>
         <file>components/EventContent.qml</file>
         <file>components/FiltersContent.qml</file>
+        <file>components/FilterDetails.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

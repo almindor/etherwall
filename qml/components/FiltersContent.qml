@@ -10,13 +10,17 @@ Item {
         anchors.topMargin: 0.1 * dpi
         spacing: 0.1 * dpi
 
+        FilterDetails {
+            id: details
+        }
+
         Button {
             id: addButton
             text: "Add Filter"
             width: parent.width
             height: 1 * dpi
 
-            onClicked: details.open(-1)
+            onClicked: details.open()
         }
 
         TableView {
@@ -31,26 +35,38 @@ Item {
                 width: 2.25 * dpi
             }
             TableViewColumn {
-                role: "address"
-                title: qsTr("Address")
-                width: 5 * dpi
+                role: "contract"
+                title: qsTr("Contract")
+                width: 4 * dpi
             }
-            //model: contractModel // TODO
+            TableViewColumn {
+                role: "active"
+                title: qsTr("Active")
+                width: 1 * dpi
+            }
+            model: filterModel
 
             Menu {
                 id: rowMenu
 
                 MenuItem {
+                    text: qsTr("Activate/Deactivate")
+                    onTriggered: {
+                        filterModel.setFilterActive(filterView.currentRow, !filterModel.getActive(filterView.currentRow))
+                    }
+                }
+
+                MenuItem {
                     text: qsTr("Edit")
                     onTriggered: {
-                        // details.open(transactionModel.getJson(contractView.currentRow, true))
+                        details.open(filterView.currentRow)
                     }
                 }
 
                 MenuItem {
                     text: qsTr("Delete")
                     onTriggered: {
-                        // contractModel.deleteContract(contractView.currentRow)
+                        filterModel.deleteFilter(filterView.currentRow)
                     }
                 }
             }
@@ -77,7 +93,7 @@ Item {
                         acceptedButtons: Qt.RightButton
 
                         onReleased: {
-                            if ( contractView.currentRow >= 0 ) {
+                            if ( filterView.currentRow >= 0 ) {
                                 rowMenu.popup()
                             }
                         }

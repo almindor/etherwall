@@ -4,6 +4,54 @@
 
 namespace Etherwall {
 
+    // ***************************** FilterInfo ***************************** //
+
+    FilterInfo::FilterInfo(const QString& name, const QString& contract, const QStringList& topics, bool active) :
+        fName(name), fContract(contract), fTopics(topics), fActive(active)
+    {
+    }
+
+    FilterInfo::FilterInfo(const QJsonObject& source) {
+        fName = source.value("name").toString("invalid");
+        fContract = source.value("contract").toString("invalid");
+        fTopics = source.value("topics").toString("invalid").split(",");
+        fActive = source.value("active").toBool(false);
+    }
+
+    const QVariant FilterInfo::value(const int role) const {
+        switch ( role ) {
+            case FilterNameRole: return fName;
+            case FilterContractRole: return fContract;
+            case FilterTopicsRole: return fTopics;
+            case FilterActiveRole: return fActive;
+        }
+
+        return QVariant();
+    }
+
+    void FilterInfo::setActive(bool active) {
+        fActive = active;
+    }
+
+    const QJsonObject FilterInfo::toJson() const {
+        QJsonObject result;
+        result["name"] = fName;
+        result["contract"] = fContract;
+        result["topics"] = fTopics.join(",");
+        result["active"] = fActive;
+
+        return result;
+    }
+
+    const QString FilterInfo::toJsonString() const {
+        const QJsonDocument doc(toJson());
+        return doc.toJson(QJsonDocument::Compact);
+    }
+
+    const QString FilterInfo::getHandle() const {
+        return fName + "_" + fContract;
+    }
+
     // ***************************** ContractArg ***************************** //
 
     ContractArg::ContractArg(const QString& name, const QString &literal) {

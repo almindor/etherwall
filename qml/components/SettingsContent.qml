@@ -90,7 +90,7 @@ TabView {
                     id: hfButton
 
                     checked: settings.valueBool("geth/hardfork", true)
-                    text: "Hard Fork"
+                    text: checked ? qsTr("support") : qsTr("oppose")
                     onClicked: {
                         settings.setValue("geth/hardfork", checked)
                         if ( settings.contains("program/firstrun") ) {

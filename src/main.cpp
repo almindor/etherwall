@@ -34,6 +34,7 @@
 #include "transactionmodel.h"
 #include "contractmodel.h"
 #include "currencymodel.h"
+#include "filtermodel.h"
 #include "gethlog.h"
 
 #include "contractinfo.h"
@@ -83,6 +84,7 @@ int main(int argc, char *argv[])
     AccountModel accountModel(ipc, currencyModel);
     TransactionModel transactionModel(ipc, accountModel);
     ContractModel contractModel(ipc);
+    FilterModel filterModel(ipc);
 
     QQmlApplicationEngine engine;
 
@@ -91,6 +93,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
     engine.rootContext()->setContextProperty("contractModel", &contractModel);
+    engine.rootContext()->setContextProperty("filterModel", &filterModel);
     engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
@@ -101,18 +104,6 @@ int main(int argc, char *argv[])
     if ( settings.contains("program/firstrun") ) {
         ipc.init();
     }
-
-    /*try {
-        const QString t = "1,2";
-        qDebug() << t.split(',') << "\n";
-        ContractArg arg("x", "uint[2]");
-        qDebug() << arg.toString() << "\n";
-        //qDebug() << arg.encode(QString("dave")) << "\n";
-    } catch ( QString err ) {
-        qDebug() << err << "\n";
-    }
-
-    return 0;*/
 
     return app.exec();
 }

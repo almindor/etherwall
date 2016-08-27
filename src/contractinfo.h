@@ -50,7 +50,7 @@ namespace Etherwall {
     class ContractArg
     {
     public:
-        ContractArg(const QString& name, const QString& literal);
+        ContractArg(const QString& name, const QString& literal, bool indexed = false);
 
         int length() const; // length for arrays, -1 otherwise
         int M() const; // size M for sized types, e.g. 256 for int256 or 128 for fixed128x256
@@ -64,6 +64,8 @@ namespace Etherwall {
         static const QString encodeInt(int number);
         static const QString encodeInt(const BigInt::Rossi& number);
         bool dynamic() const;
+        const QVariant decode(const QString& data) const;
+        static const BigInt::Rossi decodeInt(const QString& data, bool isSigned);
     private:
         const QString encode(const QString& text) const;
         const QString encode(const QByteArray& bytes) const;
@@ -78,35 +80,90 @@ namespace Etherwall {
         int fM;
         int fN;
         int fLength;
+        bool fIndexed;
     };
 
     typedef QList<ContractArg> ContractArgs;
 
-    class ContractFunction
+    // includes both an event and a function of a contract
+    class ContractCallable
     {
     public:
-        ContractFunction(const QJsonObject& source);
+        ContractCallable(const QJsonObject& source);
 
         const QString getName() const;
         const ContractArg getArgument(int index) const;
         const ContractArgs getArguments() const;
-        const QVariantList getArgModel() const;
         const QString getMethodID() const;
         const QString getSignature() const;
-        const QString callData(const QVariantList& params) const;
-    private:
+    protected:
         const QString getArgLiteral(const QJsonValue& arg) const;
         const QString getArgName(const QJsonValue& arg) const;
         const QString buildSignature() const;
         QString fName;
+        QString fSignature;
         ContractArgs fArguments;
         ContractArgs fReturns;
-        QString fSignature;
         QString fMethodID;
+    };
+
+    class ContractEvent : public ContractCallable
+    {
+    public:
+        ContractEvent(const QJsonObject& source);
+    };
+
+
+    typedef QList<ContractEvent> ContractEventList;
+
+    class ContractFunction : public ContractCallable
+    {
+    public:
+        ContractFunction(const QJsonObject& source);
+
+        const QVariantList getArgModel() const;
+        const QString callData(const QVariantList& params) const;
+    private:
         QVariantList fArgModel;
     };
 
     typedef QList<ContractFunction> ContractFunctionList;
+
+    enum EventRoles {
+        EventNameRole = Qt::UserRole + 1,
+        EventAddressRole,
+        EventBlockNumberRole,
+        EventTransactionHashRole,
+        EventBlockHashRole,
+        EventArgumentsRole,
+        EventParamsRole
+    };
+
+    class ContractInfo;
+
+    class EventInfo
+    {
+    public:
+        EventInfo(const QJsonObject& source);
+
+        void fillParams(const ContractInfo& contract, const ContractEvent& event);
+        const QString address() const;
+        const QString getMethodID() const;
+        const QVariant value(const int role) const;
+    private:
+        QString fName;
+        QString fContract;
+        QString fAddress;
+        quint64 fBlockNumber;
+        QString fTransactionHash;
+        QString fBlockHash;
+        QString fMethodID;
+        QStringList fTopics;
+        ContractArgs fArguments;
+        QVariantList fParams;
+    };
+
+    typedef QList<EventInfo> EventList;
 
     enum ContractRoles {
         ContractNameRole = Qt::UserRole + 1,
@@ -130,6 +187,7 @@ namespace Etherwall {
         const QJsonArray abiJson() const;
         const QStringList functionList() const;
         const ContractFunction function(const QString& name) const;
+        void processEvent(EventInfo& info) const;
     private:
         void parse();
 
@@ -137,6 +195,7 @@ namespace Etherwall {
         QString fAddress;
         QJsonArray fABI;
         ContractFunctionList fFunctions;
+        ContractEventList fEvents;
     };
 
     typedef QList<ContractInfo> ContractList;

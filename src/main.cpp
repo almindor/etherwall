@@ -33,6 +33,7 @@
 #include "accountproxymodel.h"
 #include "transactionmodel.h"
 #include "contractmodel.h"
+#include "eventmodel.h"
 #include "currencymodel.h"
 #include "filtermodel.h"
 #include "gethlog.h"
@@ -85,6 +86,7 @@ int main(int argc, char *argv[])
     TransactionModel transactionModel(ipc, accountModel);
     ContractModel contractModel(ipc);
     FilterModel filterModel(ipc);
+    EventModel eventModel(contractModel);
 
     QQmlApplicationEngine engine;
 
@@ -94,6 +96,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
     engine.rootContext()->setContextProperty("contractModel", &contractModel);
     engine.rootContext()->setContextProperty("filterModel", &filterModel);
+    engine.rootContext()->setContextProperty("eventModel", &eventModel);
     engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);

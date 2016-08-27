@@ -128,6 +128,7 @@ namespace Etherwall {
         void onSocketError(QLocalSocket::LocalSocketError err);
         Q_INVOKABLE void setInterval(int interval);
         bool closeApp();
+        void registerEventFilters(const QStringList& addresses, const QStringList& topics);
     signals:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -140,6 +141,7 @@ namespace Etherwall {
         void estimateGasDone(const QString& price);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
+        void newEvent(const QJsonObject& event);
 
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
@@ -156,7 +158,7 @@ namespace Etherwall {
     private:
         QString fPath;
         QLocalSocket fSocket;
-        QString fFilterID;
+        QString fBlockFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
         QString fReadBuffer;
@@ -179,6 +181,7 @@ namespace Etherwall {
         int fConnectAttempts;
         QTime fKillTime;
         bool fExternal;
+        QString fEventFilterID;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -192,6 +195,7 @@ namespace Etherwall {
         void handleGetGasPrice();
         void handleEstimateGas();
         void handleNewBlockFilter();
+        void handleNewEventFilter();
         void handleGetFilterChanges();
         void handleUninstallFilter();
         void handleGetTransactionByHash();
@@ -218,6 +222,7 @@ namespace Etherwall {
         void errorOut();
         void done();
         void newBlockFilter();
+        void newEventFilter(const QStringList& addresses, const QStringList& topics);
         void uninstallFilter(const QString& filter);
 
         QJsonObject methodToJSON(const RequestIPC& request);

@@ -74,10 +74,10 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
+        fPath(ipcPath), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
-        fConnectAttempts(0), fKillTime(), fExternal(false)
+        fConnectAttempts(0), fKillTime(), fExternal(false), fEventFilterID()
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -287,10 +287,23 @@ namespace Etherwall {
             return false;
         }
 
-        if ( fSocket.state() == QLocalSocket::ConnectedState && !fFilterID.isEmpty() ) { // remove filter if still connected
-            uninstallFilter(fFilterID);
-            fFilterID.clear();
-            return false;
+        if ( fSocket.state() == QLocalSocket::ConnectedState ) {
+            bool removed = false;
+            if ( !fBlockFilterID.isEmpty() ) { // remove block filter if still connected
+                uninstallFilter(fBlockFilterID);
+                fBlockFilterID.clear();
+                removed = true;
+            }
+
+            if ( !fEventFilterID.isEmpty() ) { // remove event filter if still connected
+                uninstallFilter(fEventFilterID);
+                fEventFilterID.clear();
+                removed = true;
+            }
+
+            if ( removed ) {
+                return false;
+            }
         }
 
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) { // wait for clean disconnect
@@ -300,6 +313,15 @@ namespace Etherwall {
         }
 
         return killGeth();
+    }
+
+    void EtherIPC::registerEventFilters(const QStringList& addresses, const QStringList& topics) {
+        if ( !fEventFilterID.isEmpty() ) {
+            uninstallFilter(fEventFilterID);
+            fEventFilterID.clear();
+        }
+
+        newEventFilter(addresses, topics);
     }
 
     void EtherIPC::disconnectedFromServer() {
@@ -598,7 +620,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::newBlockFilter() {
-        if ( !fFilterID.isEmpty() ) {
+        if ( !fBlockFilterID.isEmpty() ) {
             setError("Filter already set");
             return bail(true);
         }
@@ -608,16 +630,46 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::newEventFilter(const QStringList& addresses, const QStringList& topics) {
+        QJsonArray params;
+        QJsonObject o;
+        o["address"] = QJsonArray::fromStringList(addresses);
+        if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
+            o["topics"] = QJsonArray::fromStringList(topics);
+        }
+        params.append(o);
+
+        if ( !queueRequest(RequestIPC(NewEventFilter, "eth_newFilter", params)) ) {
+            return bail();
+        }
+    }
+
     void EtherIPC::handleNewBlockFilter() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
         }
-        fFilterID = jv.toString();
-        //qDebug() << "new filter: " << fFilterID << "\n";
+        fBlockFilterID = jv.toString();
+        qDebug() << "new block filter: " << fBlockFilterID << "\n";
 
-        if ( fFilterID.isEmpty() ) {
-            setError("Filter ID invalid");
+        if ( fBlockFilterID.isEmpty() ) {
+            setError("Block filter ID invalid");
+            return bail();
+        }
+
+        done();
+    }
+
+    void EtherIPC::handleNewEventFilter() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+        fEventFilterID = jv.toString();
+        qDebug() << "new event filter: " << fEventFilterID << "\n";
+
+        if ( fEventFilterID.isEmpty() ) {
+            setError("Event filter ID invalid");
             return bail();
         }
 
@@ -628,10 +680,14 @@ namespace Etherwall {
         getPeerCount();
         getSyncing();
 
-        if ( !fFilterID.isEmpty() && !fSyncing ) {
-            getFilterChanges(fFilterID);
+        if ( !fBlockFilterID.isEmpty() && !fSyncing ) {
+            getFilterChanges(fBlockFilterID);
         } else {
             getBlockNumber();
+        }
+
+        if ( !fEventFilterID.isEmpty() ) {
+            getFilterChanges(fEventFilterID);
         }
     }
 
@@ -662,6 +718,8 @@ namespace Etherwall {
         QJsonArray params;
         params.append(filterID);
 
+        qDebug() << "Getting filter changes for: " << filterID << "\n";
+
         if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params)) ) {
             return bail();
         }
@@ -673,11 +731,17 @@ namespace Etherwall {
             return bail();
         }
 
+        qDebug() << "got filter changes: " << jv << "\n";
         QJsonArray ar = jv.toArray();
-        //qDebug() << "got filter changes: " << ar.size() << "\n";
+
         foreach( const QJsonValue v, ar ) {
-           const QString hash = v.toString("bogus");
-           getBlockByHash(hash);
+            if ( v.isObject() ) { // event filter result
+                const QJsonObject logs = v.toObject();
+                emit newEvent(logs);
+            } else { // block filter (we don't use transaction filters yet)
+                const QString hash = v.toString("bogus");
+                getBlockByHash(hash);
+            }
         }
 
         done();
@@ -689,7 +753,7 @@ namespace Etherwall {
             return bail(true);
         }
 
-        //qDebug() << "uninstalling filter: " << fFilterID << "\n";
+        //qDebug() << "uninstalling filter: " << fBlockFilterID << "\n";
 
         QJsonArray params;
         params.append(filter);
@@ -846,7 +910,7 @@ namespace Etherwall {
         if ( jv.isNull() || ( jv.isBool() && !jv.toBool(false) ) ) {
             if ( fSyncing ) {
                 fSyncing = false;
-                if ( fFilterID.isEmpty() ) {
+                if ( fBlockFilterID.isEmpty() ) {
                     newBlockFilter();
                 }
                 emit syncingChanged(fSyncing);
@@ -860,9 +924,9 @@ namespace Etherwall {
         fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
         fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
         if ( !fSyncing ) {
-            if ( !fFilterID.isEmpty() ) {
-                uninstallFilter(fFilterID);
-                fFilterID.clear();
+            if ( !fBlockFilterID.isEmpty() ) {
+                uninstallFilter(fBlockFilterID);
+                fBlockFilterID.clear();
             }
             fSyncing = true;
         }
@@ -995,6 +1059,11 @@ namespace Etherwall {
 
         result = obj["result"];
 
+        // get filter changes bugged, returns null on result array, see https://github.com/ethereum/go-ethereum/issues/2746
+        if ( result.isNull() && fActiveRequest.getType() == GetFilterChanges ) {
+            result = QJsonValue(QJsonArray());
+        }
+
         if ( result.isUndefined() || result.isNull() ) {
             if ( obj.contains("error") ) {
                 if ( obj["error"].toObject().contains("message") ) {
@@ -1101,6 +1170,10 @@ namespace Etherwall {
             }
         case NewBlockFilter: {
                 handleNewBlockFilter();
+                break;
+            }
+        case NewEventFilter: {
+                handleNewEventFilter();
                 break;
             }
         case GetFilterChanges: {

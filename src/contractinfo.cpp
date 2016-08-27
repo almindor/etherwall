@@ -1,6 +1,7 @@
 #include "contractinfo.h"
 #include <QRegExp>
 #include <QDebug>
+#include "helpers.h"
 
 namespace Etherwall {
 
@@ -54,11 +55,12 @@ namespace Etherwall {
 
     // ***************************** ContractArg ***************************** //
 
-    ContractArg::ContractArg(const QString& name, const QString &literal) {
+    ContractArg::ContractArg(const QString& name, const QString &literal, bool indexed) {
         const QRegExp typeMatcher("^([a-z]+)([0-9]*)x?([0-9]*)$");
         const QRegExp arrayMatcher("^(.*)\\[([0-9]*)\\]$");
 
         fName = name;
+        fIndexed = indexed; // only for events
         QString typeStr = literal;
         bool ok = true;
 
@@ -144,6 +146,51 @@ namespace Etherwall {
         return (fBaseType == "string" || fBaseType == "bytes" || fLength == 0);
     }
 
+    const QVariant ContractArg::decode(const QString& data) const {
+        if ( fLength >= 0 ) {
+            return "TODO: array support";
+        }
+
+        // we decode most types to string due to bigint's limits and the fact
+        // that we only display them, never use them directly
+        if ( fBaseType == "address" ) {
+            return data;
+        }
+
+        if ( fBaseType == "uint" || fBaseType == "int" ) {
+            const BigInt::Rossi ival = decodeInt(data, fBaseType.at(0) == 'u');
+            return QString(ival.toStrDec().c_str());
+        }
+
+        if ( fBaseType == "fixed" || fBaseType == "ufixed" ) {
+            const BigInt::Rossi fval = decodeInt(data, fBaseType.at(0) == 'f');
+
+            int i;
+            BigInt::Rossi twoAtN(2);
+            for ( i = 1; i < fN; i++ ) {
+                twoAtN = twoAtN * 2;
+            }
+
+            const BigInt::Rossi fresult = fval / twoAtN;
+            return QString(fresult.toStrDec().c_str());
+        }
+
+        if ( fBaseType == "string" ) {
+            return QString(QByteArray::fromHex(data.toUtf8()));
+        }
+
+        if ( fBaseType == "bytes" ) {
+            return data; // no idea what this might be so just keep as hex coded
+        }
+
+        if ( fBaseType == "bool" ) {
+            const BigInt::Rossi ival(data.toStdString(), 16);
+            return ival == BigInt::Rossi(1);
+        }
+
+        throw QString(QString("DECODE => Unknown type: ") + fBaseType);
+    }
+
     const QString ContractArg::encode(const QVariant& val, bool internal) const {
         // if we're an array of anything consider a string, split and encode individually
         if ( fLength >= 0 && !internal ) {
@@ -189,7 +236,7 @@ namespace Etherwall {
             return encode(val.toBool());
         }
 
-        throw QString(QString("Unknown type: ") + fBaseType);
+        throw QString(QString("ENCODE => Unknown type: ") + fBaseType);
     }
 
     const QString ContractArg::encode(const QString& text) const {
@@ -267,6 +314,17 @@ namespace Etherwall {
         return strNum;
     }
 
+    const BigInt::Rossi ContractArg::decodeInt(const QString& data, bool isSigned) {
+        QString rawData = data;
+        int multiplier = 1;
+        if ( isSigned && data.at(0) == 'f' && data.at(1) == 'f' ) {
+            rawData.replace(0, 2, '0');
+            multiplier = -1;
+        }
+
+        return BigInt::Rossi(rawData.toStdString(), 16) * multiplier;
+    }
+
     const QString ContractArg::encodeBytes(QByteArray bytes) {
         const QString size = encodeInt(bytes.size());
         int coef = bytes.size() / 64;
@@ -328,14 +386,13 @@ namespace Etherwall {
         return result;
     }
 
-    // ***************************** ContractFunction ***************************** //
+    // ***************************** ContractCallable ***************************** //
 
-    ContractFunction::ContractFunction(const QJsonObject& source)
+    ContractCallable::ContractCallable(const QJsonObject& source)
     {
         fName = source.value("name").toString();
         fArguments = ContractArgs();
         fReturns = ContractArgs();
-        fArgModel = QVariantList();
 
         const QJsonArray args = source.value("inputs").toArray();
         const QJsonArray rets = source.value("outputs").toArray();
@@ -343,7 +400,6 @@ namespace Etherwall {
         foreach ( QJsonValue arg, args ) {
             const ContractArg carg = ContractArg(getArgName(arg), getArgLiteral(arg));
             fArguments.append(carg);
-            fArgModel.append(carg.toVariantMap());
         }
 
         foreach ( QJsonValue ret, rets ) {
@@ -354,7 +410,7 @@ namespace Etherwall {
         fMethodID = QString(QCryptographicHash::hash(fSignature.toUtf8(), QCryptographicHash::Sha3_256).left(4).toHex());
     }
 
-    const QString ContractFunction::getArgLiteral(const QJsonValue& arg) const {
+    const QString ContractCallable::getArgLiteral(const QJsonValue& arg) const {
         if ( !arg.isObject() ) {
             throw QString("Invalid argument");
         }
@@ -368,7 +424,7 @@ namespace Etherwall {
         return argObj.value("type").toString();
     }
 
-    const QString ContractFunction::getArgName(const QJsonValue& arg) const {
+    const QString ContractCallable::getArgName(const QJsonValue& arg) const {
         if ( !arg.isObject() ) {
             throw QString("Invalid argument");
         }
@@ -382,7 +438,23 @@ namespace Etherwall {
         return argObj.value("name").toString();
     }
 
-    const QString ContractFunction::buildSignature() const {
+    const QString ContractCallable::getName() const {
+        return fName;
+    }
+
+    const ContractArg ContractCallable::getArgument(int index) const {
+        return fArguments.at(index);
+    }
+
+    const ContractArgs ContractCallable::getArguments() const {
+        return fArguments;
+    }
+
+    const QString ContractCallable::getMethodID() const {
+        return fMethodID;
+    }
+
+    const QString ContractCallable::buildSignature() const {
         QString list;
 
         foreach ( const ContractArg arg, fArguments ) {
@@ -393,28 +465,28 @@ namespace Etherwall {
         return fName + "(" + list + ")";
     }
 
-    const QString ContractFunction::getName() const {
-        return fName;
+    const QString ContractCallable::getSignature() const {
+        return fSignature;
     }
 
-    const ContractArg ContractFunction::getArgument(int index) const {
-        return fArguments.at(index);
+    // ***************************** ContractEvent ***************************** //
+
+    ContractEvent::ContractEvent(const QJsonObject &source) : ContractCallable(source) {
+        // TODO
     }
 
-    const ContractArgs ContractFunction::getArguments() const {
-        return fArguments;
+    // ***************************** ContractFunction ***************************** //
+
+    ContractFunction::ContractFunction(const QJsonObject &source) : ContractCallable(source) {
+        fArgModel = QVariantList();
+
+        foreach ( const ContractArg carg, fArguments ) {
+            fArgModel.append(carg.toVariantMap());
+        }
     }
 
     const QVariantList ContractFunction::getArgModel() const {
         return fArgModel;
-    }
-
-    const QString ContractFunction::getMethodID() const {
-        return fMethodID;
-    }
-
-    const QString ContractFunction::getSignature() const {
-        return fSignature;
     }
 
     const QString ContractFunction::callData(const QVariantList& params) const {
@@ -439,6 +511,53 @@ namespace Etherwall {
         }
 
         return encStr.join("") + dynaStr.join("");
+    }
+
+    // ***************************** EventInfo ***************************** //
+
+    EventInfo::EventInfo(const QJsonObject& source) {
+        fBlockNumber = Helpers::toQUInt64(source["blockNumber"]);
+        fBlockHash = source["blockHash"].toString();
+        fAddress = source["address"].toString();
+        fTransactionHash = source["transactionHash"].toString();
+        const QVariantList topics = source["topics"].toArray().toVariantList();
+        fTopics = QStringList();
+        foreach ( const QVariant v, topics ) {
+            fTopics.append(v.toString());
+        }
+        fMethodID = fTopics.length() > 0 ? fTopics.at(0) : QString("invalid");
+    }
+
+    void EventInfo::fillParams(const ContractInfo& contract, const ContractEvent& event) {
+        if ( fMethodID != event.getMethodID() ) {
+            throw QString("Event methodID mismatch");
+        }
+
+        fName = event.getName();
+        fContract = contract.name();
+        // TODO: handle params
+    }
+
+    const QString EventInfo::address() const {
+        return fAddress;
+    }
+
+    const QString EventInfo::getMethodID() const {
+        return fMethodID;
+    }
+
+    const QVariant EventInfo::value(const int role) const {
+        switch ( role ) {
+            case EventNameRole: return fName;
+            case EventAddressRole: return fAddress;
+            case EventBlockHashRole: return fBlockHash;
+            case EventBlockNumberRole: return fBlockNumber;
+            case EventTransactionHashRole: return fTransactionHash;
+            case EventArgumentsRole: return QVariantList();
+            case EventParamsRole: return QVariantList();
+        }
+
+        return QVariant();
     }
 
     // ***************************** ContractInfo ***************************** //
@@ -518,6 +637,15 @@ namespace Etherwall {
         throw QString("Function " + name + " not found");
     }
 
+    void ContractInfo::processEvent(EventInfo& info) const {
+        foreach ( const ContractEvent event, fEvents ) {
+            if ( event.getMethodID() == info.getMethodID() ) {
+                info.fillParams(*this, event);
+                return;
+            }
+        }
+    }
+
     void ContractInfo::parse() {
         const QJsonArray source = abiJson();
 
@@ -527,8 +655,13 @@ namespace Etherwall {
             }
 
             const QJsonObject obj = val.toObject();
-            if ( obj.contains("type") && obj.value("type").toString() == "function" ) {
-                fFunctions.append(ContractFunction(obj));
+            if ( obj.contains("type") ) {
+                const QString typeStr = obj.value("type").toString();
+                if ( typeStr == "function" ) {
+                    fFunctions.append(ContractFunction(obj));
+                } else if ( typeStr == "event" ) {
+                    fEvents.append(ContractEvent(obj));
+                }
             }
         }
     }

@@ -79,6 +79,8 @@ namespace Etherwall {
         beginInsertRows(QModelIndex(), fList.length(), fList.length());
         fList.append(info);
         endInsertRows();
+
+        registerFilters();
     }
 
     void FilterModel::setFilterActive(int index, bool active) {
@@ -111,6 +113,8 @@ namespace Etherwall {
         beginRemoveRows(QModelIndex(), index, index);
         fList.removeAt(index);
         endRemoveRows();
+
+        registerFilters();
     }
 
     void FilterModel::update(int index) {
@@ -122,6 +126,27 @@ namespace Etherwall {
         roles[2] = FilterTopicsRole;
         roles[3] = FilterActiveRole;
         emit dataChanged(leftIndex, rightIndex, roles);
+
+        registerFilters();
+    }
+
+    void FilterModel::registerFilters() const {
+        QStringList addresses;
+        QStringList topics;
+
+        foreach ( const FilterInfo info, fList ) {
+            if ( !info.value(FilterActiveRole).toBool() ) {
+                continue;
+            }
+
+            addresses.append(info.value(FilterContractRole).toString());
+            const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
+            if ( infoTopics.length() > 0 ) {
+                topics += infoTopics;
+            }
+        }
+
+        fIpc.registerEventFilters(addresses, topics);
     }
 
     void FilterModel::reload() {
@@ -144,6 +169,8 @@ namespace Etherwall {
         }
 
         settings.endGroup();
+
+        registerFilters();
     }
 
 }

@@ -49,8 +49,10 @@ namespace Etherwall {
     signals:
         void callEncoded(const QString& encoded) const;
         void callError(const QString& err) const;
+        void newEvent(const EventInfo& info) const;
     public slots:
         void reload();
+        void onNewEvent(const QJsonObject& event);
     private:
         const QString getPostfix() const;
 

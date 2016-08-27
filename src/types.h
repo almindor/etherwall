@@ -109,6 +109,7 @@ namespace Etherwall {
         GetGasPrice,
         EstimateGas,
         NewBlockFilter,
+        NewEventFilter,
         GetFilterChanges,
         UninstallFilter,
         GetTransactionByHash,

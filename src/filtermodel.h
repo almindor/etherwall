@@ -30,6 +30,7 @@ namespace Etherwall {
         void reload();
     private:
         void update(int index);
+        void registerFilters() const;
         EtherIPC& fIpc;
         EventFilters fList;
     };

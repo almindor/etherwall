@@ -16,6 +16,7 @@ namespace Etherwall {
 
     enum FilterRoles {
         FilterNameRole = Qt::UserRole + 1,
+        FilterAddressRole,
         FilterContractRole,
         FilterTopicsRole,
         FilterActiveRole
@@ -24,7 +25,7 @@ namespace Etherwall {
     class FilterInfo
     {
     public:
-        FilterInfo(const QString& name, const QString& contract, const QStringList& topics, bool active);
+        FilterInfo(const QString& name, const QString& address, const QString& contract, const QStringList& topics, bool active);
         FilterInfo(const QJsonObject& source);
 
         const QVariant value(const int role) const;
@@ -34,6 +35,7 @@ namespace Etherwall {
         void setActive(bool active);
     private:
         QString fName;
+        QString fAddress;
         QString fContract;
         QStringList fTopics;
         bool fActive;

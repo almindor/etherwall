@@ -11,6 +11,7 @@ namespace Etherwall {
     QHash<int, QByteArray> FilterModel::roleNames() const {
         QHash<int, QByteArray> roles;
         roles[FilterNameRole] = "name";
+        roles[FilterAddressRole] = "address";
         roles[FilterContractRole] = "contract";
         roles[FilterTopicsRole] = "topics";
         roles[FilterActiveRole] = "active";
@@ -58,8 +59,8 @@ namespace Etherwall {
         return fList.at(index).value(FilterActiveRole).toBool();
     }
 
-    void FilterModel::addFilter(const QString& name, const QString& contract, const QString& topics, bool active) {
-        const FilterInfo info(name, contract, topics.split(","), active);
+    void FilterModel::addFilter(const QString& name, const QString& address, const QString& contract, const QString& topics, bool active) {
+        const FilterInfo info(name, address, contract, topics.split(","), active);
         QSettings settings;
         settings.beginGroup("filters" + fIpc.getNetworkPostfix());
         settings.setValue(info.getHandle(), info.toJsonString());
@@ -139,7 +140,7 @@ namespace Etherwall {
                 continue;
             }
 
-            addresses.append(info.value(FilterContractRole).toString());
+            addresses.append(info.value(FilterAddressRole).toString());
             const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
             if ( infoTopics.length() > 0 ) {
                 topics += infoTopics;
@@ -158,7 +159,7 @@ namespace Etherwall {
                 continue;
             }
 
-            addresses.append(info.value(FilterContractRole).toString());
+            addresses.append(info.value(FilterAddressRole).toString());
             const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
             if ( infoTopics.length() > 0 ) {
                 topics += infoTopics;

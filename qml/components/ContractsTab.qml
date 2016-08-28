@@ -34,7 +34,7 @@ Tab {
         }
 
         Tab {
-            title: qsTr("Filters")
+            title: qsTr("Watches")
             FiltersContent {}
         }
 

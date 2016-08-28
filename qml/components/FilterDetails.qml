@@ -25,7 +25,7 @@ import QtQuick.Window 2.0
 
 Window {
     id: filterDetails
-    title: qsTr("Filter Details")
+    title: qsTr("Watch Details")
 
     modality: Qt.ApplicationModal
     visible: false
@@ -159,11 +159,13 @@ Window {
                     abi: null
                 }
 
-                result.contract = contractModel.getAddress(contractField.currentIndex)
-                if ( !result.contract.match(/0x[a-f,A-Z,0-9]{40}/) ) {
+                result.address = contractModel.getAddress(contractField.currentIndex)
+                if ( !result.address.match(/0x[a-f,A-Z,0-9]{40}/) ) {
                     result.error = qsTr("Contract address invalid")
                     return result
                 }
+
+                result.contract = contractField.currentText
 
                 result.name = nameField.text.trim() || ""
                 if ( result.name.length === 0 ) {
@@ -206,7 +208,7 @@ Window {
                     return
                 }
 
-                filterModel.addFilter(result.name, result.contract, result.topics, result.active)
+                filterModel.addFilter(result.name, result.address, result.contract, result.topics, result.active)
                 filterDetails.close()
             }
         }

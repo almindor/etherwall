@@ -7,13 +7,14 @@ namespace Etherwall {
 
     // ***************************** FilterInfo ***************************** //
 
-    FilterInfo::FilterInfo(const QString& name, const QString& contract, const QStringList& topics, bool active) :
-        fName(name), fContract(contract), fTopics(topics), fActive(active)
+    FilterInfo::FilterInfo(const QString& name, const QString& address, const QString& contract, const QStringList& topics, bool active) :
+        fName(name), fAddress(address), fContract(contract), fTopics(topics), fActive(active)
     {
     }
 
     FilterInfo::FilterInfo(const QJsonObject& source) {
         fName = source.value("name").toString("invalid");
+        fAddress = source.value("address").toString("invalid");
         fContract = source.value("contract").toString("invalid");
         fTopics = source.value("topics").toString("invalid").split(",");
         fActive = source.value("active").toBool(false);
@@ -22,6 +23,7 @@ namespace Etherwall {
     const QVariant FilterInfo::value(const int role) const {
         switch ( role ) {
             case FilterNameRole: return fName;
+            case FilterAddressRole: return fAddress;
             case FilterContractRole: return fContract;
             case FilterTopicsRole: return fTopics;
             case FilterActiveRole: return fActive;
@@ -37,6 +39,7 @@ namespace Etherwall {
     const QJsonObject FilterInfo::toJson() const {
         QJsonObject result;
         result["name"] = fName;
+        result["address"] = fAddress;
         result["contract"] = fContract;
         result["topics"] = fTopics.join(",");
         result["active"] = fActive;

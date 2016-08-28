@@ -16,7 +16,7 @@ Item {
 
         Button {
             id: addButton
-            text: "Add Filter"
+            text: qsTr("Add Watch")
             width: parent.width
             height: 1 * dpi
 

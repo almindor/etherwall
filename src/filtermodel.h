@@ -23,7 +23,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getTopics(int index) const;
         Q_INVOKABLE bool getActive(int index) const;
 
-        Q_INVOKABLE void addFilter(const QString& name, const QString& contract, const QString& topics, bool active);
+        Q_INVOKABLE void addFilter(const QString& name, const QString& address, const QString& contract, const QString& topics, bool active);
         Q_INVOKABLE void setFilterActive(int index, bool active);
         Q_INVOKABLE void deleteFilter(int index);
     public slots:

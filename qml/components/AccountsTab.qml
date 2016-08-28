@@ -211,33 +211,15 @@ Tab {
                 }*/
             }
 
-            rowDelegate: Item {
-                SystemPalette {
-                    id: osPalette
-                    colorGroup: SystemPalette.Active
-                }
+            MouseArea {
+                anchors.fill: parent
+                propagateComposedEvents: true
+                acceptedButtons: Qt.RightButton
 
-                height: 0.3 * dpi
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                    }
-                    height: parent.height
-                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
-                    MouseArea {
-                        anchors.fill: parent
-                        propagateComposedEvents: true
-                        acceptedButtons: Qt.RightButton
-
-                        onReleased: {
-                            if ( accountView.currentRow >= 0 ) {
-                                accountModel.selectedAccountRow = accountView.currentRow
-                                rowMenu.popup()
-                            }
-                        }
+                onReleased: {
+                    if ( accountView.currentRow >= 0 ) {
+                        accountModel.selectedAccountRow = accountView.currentRow
+                        rowMenu.popup()
                     }
                 }
             }

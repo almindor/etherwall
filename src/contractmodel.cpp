@@ -142,9 +142,7 @@ namespace Etherwall {
             return QStringList();
         }
 
-        QStringList list(fList.at(index).functionList());
-        list.insert(0, "Select function");
-        return list;
+        return fList.at(index).functionList();
     }
 
     const QString ContractModel::getMethodID(int index, const QString& functionName) const {
@@ -179,7 +177,6 @@ namespace Etherwall {
             const QString encoded = "0x" + fList.at(index).function(functionName).callData(params);
             emit callEncoded(encoded);
         } catch ( QString err ) {
-            EtherLog::logMsg(err, LS_Error);
             emit callError(err);
         }
     }

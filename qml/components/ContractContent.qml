@@ -18,20 +18,37 @@ Item {
             id: calls
         }
 
-        Button {
-            id: addButton
-            text: "Add Contract"
-            width: parent.width
+        Item {
+            id: controlsRow
             height: 1 * dpi
+            width: parent.width
 
-            onClicked: details.open(-1)
+            Button {
+                id: addButton
+                text: qsTr("Add Contract")
+                width: parent.width / 2.0
+                height: parent.height
+
+                onClicked: details.open(-1)
+            }
+
+            Button {
+                id: invokeButton
+                anchors.left: addButton.right
+                text: qsTr("Invoke ") + contractModel.getName(contractView.currentRow)
+                visible: contractView.currentRow >= 0
+                width: parent.width / 2.0
+                height: parent.height
+
+                onClicked: calls.open(contractView.currentRow)
+            }
         }
 
         TableView {
             id: contractView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing - addButton.height
+            height: parent.height - parent.spacing - controlsRow.height
 
             TableViewColumn {
                 role: "name"
@@ -41,15 +58,16 @@ Item {
             TableViewColumn {
                 role: "address"
                 title: qsTr("Address")
-                width: 5 * dpi
+                width: 4 * dpi
             }
+
             model: contractModel
 
             Menu {
                 id: rowMenu
 
                 MenuItem {
-                    text: qsTr("Call")
+                    text: qsTr("Invoke")
                     onTriggered: {
                         calls.open(contractView.currentRow)
                     }
@@ -85,32 +103,14 @@ Item {
                 }
             }
 
-            rowDelegate: Item {
-                SystemPalette {
-                    id: osPalette
-                    colorGroup: SystemPalette.Active
-                }
+            MouseArea {
+                anchors.fill: parent
+                propagateComposedEvents: true
+                acceptedButtons: Qt.RightButton
 
-                height: 0.2 * dpi
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                    }
-                    height: parent.height
-                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
-                    MouseArea {
-                        anchors.fill: parent
-                        propagateComposedEvents: true
-                        acceptedButtons: Qt.RightButton
-
-                        onReleased: {
-                            if ( contractView.currentRow >= 0 ) {
-                                rowMenu.popup()
-                            }
-                        }
+                onReleased: {
+                    if ( contractView.currentRow >= 0 ) {
+                        rowMenu.popup()
                     }
                 }
             }

@@ -130,6 +130,10 @@ namespace Etherwall {
         return fName;
     }
 
+    bool ContractArg::indexed() const {
+        return fIndexed;
+    }
+
     const QString ContractArg::toString() const {
         return "Type: " + fType + " Length: " + QString::number(fLength) + " M: " + QString::number(fM) + " N: " + QString::number(fN);
     }
@@ -138,6 +142,7 @@ namespace Etherwall {
         QVariantMap result;
         result["name"] = fName;
         result["type"] = fType;
+        result["indexed"] = fIndexed;
         result["length"] = fLength;
         result["placeholder"] = getPlaceholder();
         result["valrex"] = getValRex();
@@ -149,15 +154,22 @@ namespace Etherwall {
         return (fBaseType == "string" || fBaseType == "bytes" || fLength == 0);
     }
 
-    const QVariant ContractArg::decode(const QString& data) const {
-        if ( fLength >= 0 ) {
-            return "TODO: array support";
+    const QVariant ContractArg::decode(const QString& data, bool inArray) const {
+        if ( !inArray && fLength >= 0 ) {
+            ulong size = fLength > 0 ? fLength : decodeInt(data.left(64), false).toUlong();
+
+            QVariantList result;
+            for ( ulong i = 1; i <= size; i++ ) {
+                result.append(decode(data.mid(i * 64, 64), true));
+            }
+
+            return result;
         }
 
         // we decode most types to string due to bigint's limits and the fact
         // that we only display them, never use them directly
         if ( fBaseType == "address" ) {
-            return data;
+            return "0x" + data.right(40);
         }
 
         if ( fBaseType == "uint" || fBaseType == "int" ) {
@@ -179,12 +191,30 @@ namespace Etherwall {
         }
 
         if ( fBaseType == "string" ) {
-            return QString(QByteArray::fromHex(data.toUtf8()));
+            // get byte count
+            ulong bytes = decodeInt(data.left(64), false).toUlong();
+            return QString(QByteArray::fromHex(data.mid(64, bytes * 2).toUtf8()));
         }
 
         if ( fBaseType == "bytes" ) {
-            return data; // no idea what this might be so just keep as hex coded
-        }
+            // TODO
+            // get byte count
+            ulong bytes = decodeInt(data.left(64), false).toUlong();
+            const QString hexStr = data.mid(64, bytes * 2).toUtf8();
+            const QByteArray raw = QByteArray::fromHex(hexStr.toUtf8());
+            bool isAscii = true;
+            foreach ( uchar b, raw ) {
+                if ( b < 32 || b > 126 ) {
+                    isAscii = false;
+                    break;
+                }
+            }
+
+            if ( isAscii ) {
+                return QString(raw);
+            }
+            return hexStr;
+       }
 
         if ( fBaseType == "bool" ) {
             const BigInt::Rossi ival(data.toStdString(), 16);
@@ -194,9 +224,9 @@ namespace Etherwall {
         throw QString(QString("DECODE => Unknown type: ") + fBaseType);
     }
 
-    const QString ContractArg::encode(const QVariant& val, bool internal) const {
+    const QString ContractArg::encode(const QVariant& val, bool inArray) const {
         // if we're an array of anything consider a string, split and encode individually
-        if ( fLength >= 0 && !internal ) {
+        if ( fLength >= 0 && !inArray ) {
             const QString arrStr = val.toString().remove('[').remove(']'); // optional []
             const QStringList arr = arrStr.split(',');
             if ( fLength > 0 && arr.length() != fLength ) {
@@ -209,6 +239,20 @@ namespace Etherwall {
             }
 
             return result;
+        }
+
+        if ( fBaseType == "address" ) {
+            QString hexStr = val.toString();
+            const QRegExp re("0x[a-f,A-F,0-9]{40}");
+            if ( !re.exactMatch(hexStr) ) {
+                throw QString("Invalid address: " + hexStr);
+            }
+            if ( hexStr.length() == 42 ) {
+                hexStr.remove(0, 2); // remove 0x
+            }
+            BigInt::Rossi addrNum(hexStr.toStdString(), 16);
+
+            return encodeInt(addrNum);
         }
 
         bool ok = false;
@@ -401,7 +445,7 @@ namespace Etherwall {
         const QJsonArray rets = source.value("outputs").toArray();
 
         foreach ( QJsonValue arg, args ) {
-            const ContractArg carg = ContractArg(getArgName(arg), getArgLiteral(arg));
+            const ContractArg carg = ContractArg(getArgName(arg), getArgLiteral(arg), getArgIndexed(arg));
             fArguments.append(carg);
         }
 
@@ -439,6 +483,20 @@ namespace Etherwall {
         }
 
         return argObj.value("name").toString();
+    }
+
+    bool ContractCallable::getArgIndexed(const QJsonValue& arg) const {
+        if ( !arg.isObject() ) {
+            throw QString("Invalid argument");
+        }
+
+        QJsonObject argObj = arg.toObject();
+
+        if ( !argObj.contains("indexed") ) {
+            return false;
+        }
+
+        return argObj.value("indexed").toBool(false);
     }
 
     const QString ContractCallable::getName() const {
@@ -521,6 +579,7 @@ namespace Etherwall {
     EventInfo::EventInfo(const QJsonObject& source) {
         fBlockNumber = Helpers::toQUInt64(source["blockNumber"]);
         fBlockHash = source["blockHash"].toString();
+        fData = source["data"].toString();
         fAddress = Helpers::vitalizeAddress(source["address"].toString());
         fTransactionHash = source["transactionHash"].toString();
         const QVariantList topics = source["topics"].toArray().toVariantList();
@@ -544,11 +603,38 @@ namespace Etherwall {
 
         fName = event.getName();
         fContract = contract.name();
-        // TODO: handle params
+        fArguments = event.getArguments();
+
+        QString data = QString(fData);
+        data.remove(0, 2); // remove the 0x
+        int n = 0;
+        int t = 1;
+
+        foreach ( const ContractArg arg, event.getArguments() ) {
+            QString val;
+            if ( arg.indexed() ) {
+                val = fTopics.at(t++).right(64);
+            } else {
+                val = data.mid(n, 64);
+                n += 64;
+            }
+
+            if ( arg.dynamic() ) { // value holds "pointer" to data in data
+                ulong ptr = arg.decodeInt(val, false).toUlong() * 2;
+                val = data.mid(ptr);
+                fParams.append(arg.decode(val));
+            } else { // value is direct
+                fParams.append(arg.decode(val));
+            }
+        }
     }
 
     const QString EventInfo::address() const {
         return fAddress;
+    }
+
+    const QString EventInfo::transactionHash() const {
+        return fTransactionHash;
     }
 
     const QString EventInfo::getMethodID() const {
@@ -559,15 +645,23 @@ namespace Etherwall {
         switch ( role ) {
             case EventNameRole: return fName;
             case EventAddressRole: return fAddress;
+            case EventDataRole: return fData;
             case EventContractRole: return fContract;
             case EventBlockHashRole: return fBlockHash;
             case EventBlockNumberRole: return fBlockNumber;
             case EventTransactionHashRole: return fTransactionHash;
-            case EventArgumentsRole: return QVariantList();
-            case EventParamsRole: return QVariantList();
+            case EventTopicsRole: return fTopics.join(",");
         }
 
         return QVariant();
+    }
+
+    const ContractArgs EventInfo::getArguments() const {
+        return fArguments;
+    }
+
+    const QVariantList EventInfo::getParams() const {
+        return fParams;
     }
 
     // ***************************** ContractInfo ***************************** //

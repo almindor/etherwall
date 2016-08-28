@@ -59,14 +59,15 @@ namespace Etherwall {
         int N() const; // size N for two-sized types, e.g. 128 for fixed128x128
         const QString type() const; // the base type e.g. int, text, byte
         const QString name() const;
+        bool indexed() const;
         const QString toString() const;
         const QVariantMap toVariantMap() const;
-        const QString encode(const QVariant& val, bool internal = false) const;
+        const QString encode(const QVariant& val, bool inArray = false) const;
         static const QString encodeBytes(QByteArray bytes);
         static const QString encodeInt(int number);
         static const QString encodeInt(const BigInt::Rossi& number);
         bool dynamic() const;
-        const QVariant decode(const QString& data) const;
+        const QVariant decode(const QString& data, bool inArray = false) const;
         static const BigInt::Rossi decodeInt(const QString& data, bool isSigned);
     private:
         const QString encode(const QString& text) const;
@@ -101,6 +102,7 @@ namespace Etherwall {
     protected:
         const QString getArgLiteral(const QJsonValue& arg) const;
         const QString getArgName(const QJsonValue& arg) const;
+        bool getArgIndexed(const QJsonValue& arg) const;
         const QString buildSignature() const;
         QString fName;
         QString fSignature;
@@ -135,11 +137,11 @@ namespace Etherwall {
         EventNameRole = Qt::UserRole + 1,
         EventAddressRole,
         EventContractRole,
+        EventDataRole,
         EventBlockNumberRole,
         EventTransactionHashRole,
         EventBlockHashRole,
-        EventArgumentsRole,
-        EventParamsRole
+        EventTopicsRole
     };
 
     class ContractInfo;
@@ -151,11 +153,15 @@ namespace Etherwall {
 
         void fillParams(const ContractInfo& contract, const ContractEvent& event);
         const QString address() const;
+        const QString transactionHash() const;
         const QString getMethodID() const;
         const QVariant value(const int role) const;
+        const ContractArgs getArguments() const;
+        const QVariantList getParams() const;
     private:
         QString fName;
         QString fContract;
+        QString fData;
         QString fAddress;
         quint64 fBlockNumber;
         QString fTransactionHash;

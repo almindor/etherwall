@@ -181,6 +181,10 @@ Item {
                     error: errorText.text.length ? errorText.text : null
                 }
 
+                if ( functionField.currentIndex < 0 ) {
+                    result.error = qsTr("No function to call")
+                }
+
                 return result;
             }
 

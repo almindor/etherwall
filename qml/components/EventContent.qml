@@ -10,12 +10,12 @@ Item {
         anchors.topMargin: 0.1 * dpi
         spacing: 0.1 * dpi
 
-        /*FilterDetails {
+        EventDetails {
             id: details
-        }*/
+        }
 
         TableView {
-            id: filterView
+            id: eventView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing
@@ -36,6 +36,36 @@ Item {
                 width: 2.25 * dpi
             }
             model: eventModel
+
+            Menu {
+                id: rowMenu
+
+                MenuItem {
+                    text: qsTr("Details")
+                    onTriggered: {
+                        details.open(eventView.currentRow)
+                    }
+                }
+
+                MenuItem {
+                    text: qsTr("Find on blockchain explorer")
+                    onTriggered: {
+                        var url = "http://" + (ipc.testnet ? "testnet." : "") + "etherscan.io/tx/" + eventModel.getTransactionHash(eventView.currentRow)
+                        Qt.openUrlExternally(url)
+                    }
+                }
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.RightButton
+                propagateComposedEvents: true
+                onReleased: {
+                    if ( parent.currentRow >= 0 ) {
+                        rowMenu.popup();
+                    }
+                }
+            }
         }
     }
 }

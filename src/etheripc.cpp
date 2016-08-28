@@ -658,7 +658,6 @@ namespace Etherwall {
             return bail();
         }
         fBlockFilterID = jv.toString();
-        qDebug() << "new block filter: " << fBlockFilterID << "\n";
 
         if ( fBlockFilterID.isEmpty() ) {
             setError("Block filter ID invalid");
@@ -674,7 +673,6 @@ namespace Etherwall {
             return bail();
         }
         fEventFilterID = jv.toString();
-        qDebug() << "new event filter: " << fEventFilterID << "\n";
 
         if ( fEventFilterID.isEmpty() ) {
             setError("Event filter ID invalid");
@@ -725,8 +723,6 @@ namespace Etherwall {
 
         QJsonArray params;
         params.append(filterID);
-
-        qDebug() << "Getting filter changes for: " << filterID << "\n";
 
         if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params)) ) {
             return bail();

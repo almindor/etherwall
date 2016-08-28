@@ -38,7 +38,7 @@
 #include "filtermodel.h"
 #include "gethlog.h"
 
-#include "contractinfo.h"
+#include "helpers.h"
 
 using namespace Etherwall;
 

@@ -31,6 +31,7 @@ namespace Etherwall {
     private:
         void update(int index);
         void registerFilters() const;
+        void loadLogs() const;
         EtherIPC& fIpc;
         EventFilters fList;
     };

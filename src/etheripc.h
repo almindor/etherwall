@@ -129,6 +129,7 @@ namespace Etherwall {
         Q_INVOKABLE void setInterval(int interval);
         bool closeApp();
         void registerEventFilters(const QStringList& addresses, const QStringList& topics);
+        void loadLogs(const QStringList& addresses, const QStringList& topics);
     signals:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -224,6 +225,7 @@ namespace Etherwall {
         void newBlockFilter();
         void newEventFilter(const QStringList& addresses, const QStringList& topics);
         void uninstallFilter(const QString& filter);
+        void getLogs(const QStringList& addresses, const QStringList& topics);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

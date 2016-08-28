@@ -132,6 +132,7 @@ namespace Etherwall {
     enum EventRoles {
         EventNameRole = Qt::UserRole + 1,
         EventAddressRole,
+        EventContractRole,
         EventBlockNumberRole,
         EventTransactionHashRole,
         EventBlockHashRole,

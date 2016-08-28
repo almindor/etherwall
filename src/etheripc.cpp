@@ -321,7 +321,15 @@ namespace Etherwall {
             fEventFilterID.clear();
         }
 
-        newEventFilter(addresses, topics);
+        if ( addresses.length() > 0 ) {
+            newEventFilter(addresses, topics);
+        }
+    }
+
+    void EtherIPC::loadLogs(const QStringList& addresses, const QStringList& topics) {
+        if ( addresses.length() > 0 ) {
+            getLogs(addresses, topics);
+        }
     }
 
     void EtherIPC::disconnectedFromServer() {
@@ -731,7 +739,6 @@ namespace Etherwall {
             return bail();
         }
 
-        qDebug() << "got filter changes: " << jv << "\n";
         QJsonArray ar = jv.toArray();
 
         foreach( const QJsonValue v, ar ) {
@@ -759,6 +766,22 @@ namespace Etherwall {
         params.append(filter);
 
         if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::getLogs(const QStringList& addresses, const QStringList& topics) {
+        QJsonArray params;
+        QJsonObject o;
+        o["fromBlock"] = "earliest";
+        o["address"] = QJsonArray::fromStringList(addresses);
+        if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
+            o["topics"] = QJsonArray::fromStringList(topics);
+        }
+        params.append(o);
+
+        // we can use getFilterChanges as result is the same
+        if ( !queueRequest(RequestIPC(GetFilterChanges, "eth_getLogs", params)) ) {
             return bail();
         }
     }

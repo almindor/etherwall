@@ -10,6 +10,7 @@ namespace Etherwall {
     QHash<int, QByteArray> EventModel::roleNames() const {
         QHash<int, QByteArray> roles;
         roles[EventNameRole] = "name";
+        roles[EventContractRole] = "contract";
         roles[EventAddressRole] = "address";
         roles[EventBlockHashRole] = "blockhash";
         roles[EventBlockNumberRole] = "blocknumber";

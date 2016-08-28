@@ -184,7 +184,7 @@ namespace Etherwall {
         }
 
         const QByteArray byteAddress = QByteArray::fromHex(address.toUtf8());
-        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256);
+        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256).left(5);
         QBitArray bita(hashed.count() * 8);
         int i = 0;
 
@@ -200,7 +200,7 @@ namespace Etherwall {
             if ( c >= '0' && c <= '9' ) {
                 result += c;
             } else {
-                result += bita.at(i) ? QChar(c).toUpper() : c;
+                result += bita.at(i) ? c.toUpper() : c.toLower();
             }
 
             i++;

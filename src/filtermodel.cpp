@@ -149,6 +149,25 @@ namespace Etherwall {
         fIpc.registerEventFilters(addresses, topics);
     }
 
+    void FilterModel::loadLogs() const {
+        QStringList addresses;
+        QStringList topics;
+
+        foreach ( const FilterInfo info, fList ) {
+            if ( !info.value(FilterActiveRole).toBool() ) {
+                continue;
+            }
+
+            addresses.append(info.value(FilterContractRole).toString());
+            const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
+            if ( infoTopics.length() > 0 ) {
+                topics += infoTopics;
+            }
+        }
+
+        fIpc.loadLogs(addresses, topics);
+    }
+
     void FilterModel::reload() {
         QSettings settings;
         settings.beginGroup("filters" + fIpc.getNetworkPostfix());
@@ -171,6 +190,7 @@ namespace Etherwall {
         settings.endGroup();
 
         registerFilters();
+        loadLogs();
     }
 
 }

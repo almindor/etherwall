@@ -472,7 +472,7 @@ namespace Etherwall {
     // ***************************** ContractEvent ***************************** //
 
     ContractEvent::ContractEvent(const QJsonObject &source) : ContractCallable(source) {
-        // TODO
+        fMethodID = QString(QCryptographicHash::hash(fSignature.toUtf8(), QCryptographicHash::Sha3_256).left(32).toHex());
     }
 
     // ***************************** ContractFunction ***************************** //
@@ -518,14 +518,20 @@ namespace Etherwall {
     EventInfo::EventInfo(const QJsonObject& source) {
         fBlockNumber = Helpers::toQUInt64(source["blockNumber"]);
         fBlockHash = source["blockHash"].toString();
-        fAddress = source["address"].toString();
+        fAddress = Helpers::vitalizeAddress(source["address"].toString());
         fTransactionHash = source["transactionHash"].toString();
         const QVariantList topics = source["topics"].toArray().toVariantList();
         fTopics = QStringList();
         foreach ( const QVariant v, topics ) {
             fTopics.append(v.toString());
         }
-        fMethodID = fTopics.length() > 0 ? fTopics.at(0) : QString("invalid");
+        fMethodID = QString("invalid");
+        if ( fTopics.length() > 0 ) {
+            fMethodID = fTopics.at(0);
+            if ( fMethodID.length() > 1 && fMethodID.at(0) == '0' && fMethodID.at(1) == 'x') {
+                fMethodID.remove(0, 2);
+            }
+        }
     }
 
     void EventInfo::fillParams(const ContractInfo& contract, const ContractEvent& event) {
@@ -550,6 +556,7 @@ namespace Etherwall {
         switch ( role ) {
             case EventNameRole: return fName;
             case EventAddressRole: return fAddress;
+            case EventContractRole: return fContract;
             case EventBlockHashRole: return fBlockHash;
             case EventBlockNumberRole: return fBlockNumber;
             case EventTransactionHashRole: return fTransactionHash;
@@ -570,7 +577,7 @@ namespace Etherwall {
 
     ContractInfo::ContractInfo(const QJsonObject &source) {
         fName = source.value("name").toString();
-        fAddress = source.value("address").toString();
+        fAddress = Helpers::vitalizeAddress(source.value("address").toString());
         fABI = source.value("abi").toArray();
         fFunctions = ContractFunctionList();
 

@@ -154,7 +154,7 @@ Item {
             id: callButton
             width: parent.width
             height: 0.6 * dpi
-            text: errorText.text.length ? errorText.text : qsTr("Setup Transaction")
+            text: errorText.text.length ? qsTr("Invalid Input") : qsTr("Setup Transaction")
 
             Image {
                 id: callIcon

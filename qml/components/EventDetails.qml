@@ -34,7 +34,7 @@ Window {
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 6 * dpi
+    height: 5 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)
@@ -67,7 +67,13 @@ Window {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 0.1 * dpi
-        spacing: 0.2 * dpi
+        spacing: 0.1 * dpi
+
+        Label {
+            text: qsTr("Event Parameters")
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+        }
 
         TableView {
             id: argsField
@@ -78,16 +84,19 @@ Window {
             TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
+                width: 1 * dpi
             }
 
             TableViewColumn {
                 role: "type"
                 title: qsTr("Type")
+                width: 1 * dpi
             }
 
             TableViewColumn {
                 role: "value"
                 title: qsTr("Value")
+                width: argsField.width - 2.1 * dpi
             }
 
             Menu {
@@ -209,7 +218,7 @@ Window {
 
         Row {
             Label {
-                text: qsTr("Transaction hash: ")
+                text: qsTr("Transaction: ")
                 width: 1 * dpi
             }
 

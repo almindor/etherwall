@@ -25,6 +25,7 @@
 #include <QtQml/qqml.h>
 #include <QIcon>
 #include <QPixmap>
+#include <QFile>
 #include <QDebug>
 #include "etherlog.h"
 #include "settings.h"
@@ -38,7 +39,6 @@
 #include "filtermodel.h"
 #include "gethlog.h"
 
-#include "helpers.h"
 
 using namespace Etherwall;
 
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.2.0");
+    QCoreApplication::setApplicationVersion("1.3.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -79,8 +79,12 @@ int main(int argc, char *argv[])
     ClipboardAdapter clipboard;
     EtherLog log;
     GethLog gethLog;
-    EtherIPC ipc(ipcPath, gethLog);
 
+    // get SSL cert for https://data.etherwall.com
+    const QSslCertificate certificate(EtherWall_Cert.toUtf8());
+    QSslSocket::addDefaultCaCertificate(certificate);
+
+    EtherIPC ipc(ipcPath, gethLog);
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
     TransactionModel transactionModel(ipc, accountModel);

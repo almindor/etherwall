@@ -395,7 +395,7 @@ namespace Etherwall {
 
     void TransactionModel::checkVersion() {
         // get latest app version
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/version"));
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/version"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         const QByteArray data = QJsonDocument(objectJson).toJson();
@@ -431,7 +431,7 @@ namespace Etherwall {
         }
 
         // get historical transactions from etherdata
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/transactions"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["accounts"] = fAccountModel.getAccountsJsonArray();

@@ -23,7 +23,7 @@ import QtQuick.Controls 1.1
 
 Tab {
     id: logTab
-    title: qsTr("Logs")
+    title: qsTr("Application")
 
     Column {
         id: col

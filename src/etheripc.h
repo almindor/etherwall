@@ -83,6 +83,8 @@ namespace Etherwall {
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
+        Q_PROPERTY(int netVersion MEMBER fNetVersion NOTIFY netVersionChanged)
+        Q_PROPERTY(bool testnet READ getTestnet NOTIFY netVersionChanged)
         Q_PROPERTY(quint64 currentBlock READ getCurrentBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
@@ -97,6 +99,8 @@ namespace Etherwall {
         bool getHardForkReady() const;
         const QString& getError() const;
         int getCode() const;
+        bool getTestnet() const;
+        const QString getNetworkPostfix() const;
     public slots:
         void init();
         void waitConnect();
@@ -112,7 +116,8 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas = QString(), const QString& gasPrice = QString());
+        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
+                             const QString& gas = QString(), const QString& gasPrice = QString(), const QString& data = QString());
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
         void estimateGas(const QString& from, const QString& to, const QString& value);
@@ -123,6 +128,8 @@ namespace Etherwall {
         void onSocketError(QLocalSocket::LocalSocketError err);
         Q_INVOKABLE void setInterval(int interval);
         bool closeApp();
+        void registerEventFilters(const QStringList& addresses, const QStringList& topics);
+        void loadLogs(const QStringList& addresses, const QStringList& topics);
     signals:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -135,6 +142,7 @@ namespace Etherwall {
         void estimateGasDone(const QString& price);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
+        void newEvent(const QJsonObject& event, bool isNew);
 
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);
@@ -146,11 +154,12 @@ namespace Etherwall {
         void hardForkReadyChanged(bool hfReady);
         void connectionStateChanged();
         void clientVersionChanged(const QString& ver);
+        void netVersionChanged(int ver);
         void error();
     private:
         QString fPath;
         QLocalSocket fSocket;
-        QString fFilterID;
+        QString fBlockFilterID;
         bool fClosingApp;
         quint64 fPeerCount;
         QString fReadBuffer;
@@ -161,6 +170,7 @@ namespace Etherwall {
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
+        int fNetVersion;
         QString fClientVersion;
         QProcess fGeth;
         int fStarting;
@@ -172,6 +182,7 @@ namespace Etherwall {
         int fConnectAttempts;
         QTime fKillTime;
         bool fExternal;
+        QString fEventFilterID;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -184,12 +195,14 @@ namespace Etherwall {
         void handleUnlockAccount();
         void handleGetGasPrice();
         void handleEstimateGas();
-        void handleNewFilter();
+        void handleNewBlockFilter();
+        void handleNewEventFilter();
         void handleGetFilterChanges();
         void handleUninstallFilter();
         void handleGetTransactionByHash();
         void handleGetBlock();
         void handleGetClientVersion();
+        void handleGetNetVersion();
         void handleGetSyncing();
 
         void onTimer();
@@ -198,6 +211,7 @@ namespace Etherwall {
         void getSyncing();
         void getFilterChanges(const QString& filterID);
         void getClientVersion();
+        void getNetVersion();
         bool getSyncingVal() const;
         quint64 getCurrentBlock() const;
         quint64 getHighestBlock() const;
@@ -208,8 +222,10 @@ namespace Etherwall {
         void setError(const QString& error);
         void errorOut();
         void done();
-        void newFilter();
-        void uninstallFilter();
+        void newBlockFilter();
+        void newEventFilter(const QStringList& addresses, const QStringList& topics);
+        void uninstallFilter(const QString& filter);
+        void getLogs(const QStringList& addresses, const QStringList& topics);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

@@ -39,7 +39,7 @@ ApplicationWindow {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    title: qsTr("Etherdyne Ethereum Wallet") + ((settings.valueBool("geth/testnet") && !ipc.external) ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
+    title: qsTr("Etherdyne Ethereum Wallet") + (ipc.testnet ? " !TESTNET! " : " ") + Qt.application.version + ' [' + ipc.clientVersion + ']'
 
     Timer {
         id: closeTimer
@@ -94,6 +94,24 @@ ApplicationWindow {
         }
     }
 
+    Badge {
+        id: badge
+        z: 999
+
+        Connections {
+            target: transactionModel
+
+            onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
+            onConfirmedTransaction: badge.show(qsTr("Confirmed transaction to: ") + toAddress)
+        }
+
+        Connections {
+            target: eventModel
+
+            onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        }
+    }
+
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
@@ -116,13 +134,13 @@ ApplicationWindow {
 
         TransactionsTab {}
 
+        ContractsTab {}
+
         CurrencyTab {}
 
         SettingsTab {}
 
-        LogTab {}
-
-        GethTab {}
+        InfoTab {}
     }
 
     statusBar: StatusBar {

@@ -74,10 +74,10 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
+        fPath(ipcPath), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
-        fConnectAttempts(0), fKillTime(), fExternal(false)
+        fConnectAttempts(0), fKillTime(), fExternal(false), fEventFilterID()
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
@@ -182,22 +182,16 @@ namespace Etherwall {
 
         getClientVersion();
         getBlockNumber(); // initial
-        newFilter();
+        newBlockFilter();
+        getNetVersion();
 
-        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
-        // if we connected to external geth, put that info in geth log
         if ( fStarting == 1 ) {
             fExternal = true;
             emit externalChanged(true);
             fGethLog.append("Attached to external geth, see logs in terminal window.");
         }
         fStarting = 3;
-
         EtherLog::logMsg("Connected to IPC socket");
-        emit startingChanged(fStarting);
-        emit connectToServerDone();
-        emit connectionStateChanged();
-        emit hardForkReadyChanged(getHardForkReady());
     }
 
     void EtherIPC::connectionTimeout() {
@@ -243,6 +237,22 @@ namespace Etherwall {
         fTimer.setInterval(interval);
     }
 
+    bool EtherIPC::getTestnet() const {
+        return fNetVersion == 2;
+    }
+
+    const QString EtherIPC::getNetworkPostfix() const {
+        QSettings settings;
+        QString postfix = settings.value("geth/hardfork", true).toBool() ? "/eth" : "/etc";
+        if ( getTestnet() ) {
+            postfix += "/morden";
+        } else {
+            postfix += "/homestead";
+        }
+
+        return postfix;
+    }
+
     bool EtherIPC::killGeth() {
         if ( fGeth.state() == QProcess::NotRunning ) {
             return true;
@@ -277,9 +287,23 @@ namespace Etherwall {
             return false;
         }
 
-        if ( fSocket.state() == QLocalSocket::ConnectedState && !fFilterID.isEmpty() ) { // remove filter if still connected
-            uninstallFilter();
-            return false;
+        if ( fSocket.state() == QLocalSocket::ConnectedState ) {
+            bool removed = false;
+            if ( !fBlockFilterID.isEmpty() ) { // remove block filter if still connected
+                uninstallFilter(fBlockFilterID);
+                fBlockFilterID.clear();
+                removed = true;
+            }
+
+            if ( !fEventFilterID.isEmpty() ) { // remove event filter if still connected
+                uninstallFilter(fEventFilterID);
+                fEventFilterID.clear();
+                removed = true;
+            }
+
+            if ( removed ) {
+                return false;
+            }
         }
 
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) { // wait for clean disconnect
@@ -289,6 +313,23 @@ namespace Etherwall {
         }
 
         return killGeth();
+    }
+
+    void EtherIPC::registerEventFilters(const QStringList& addresses, const QStringList& topics) {
+        if ( !fEventFilterID.isEmpty() ) {
+            uninstallFilter(fEventFilterID);
+            fEventFilterID.clear();
+        }
+
+        if ( addresses.length() > 0 ) {
+            newEventFilter(addresses, topics);
+        }
+    }
+
+    void EtherIPC::loadLogs(const QStringList& addresses, const QStringList& topics) {
+        if ( addresses.length() > 0 ) {
+            getLogs(addresses, topics);
+        }
     }
 
     void EtherIPC::disconnectedFromServer() {
@@ -456,7 +497,8 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas, const QString& gasPrice) {
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
+                                   const QString& gas, const QString& gasPrice, const QString& data) {
         QJsonArray params;
         const QString valHex = Helpers::toHexWeiStr(valStr);
         EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
@@ -474,10 +516,14 @@ namespace Etherwall {
             p["gasPrice"] = gasPriceHex;
             EtherLog::logMsg(QString("Trans gasPrice: ") + gasPrice + QString(" HexValue: ") + gasPriceHex);
         }
+        if ( !data.isEmpty() ) {
+            p["data"] = data;
+        }
 
         params.append(p);
+        params.append(password);
 
-        if ( !queueRequest(RequestIPC(SendTransaction, "eth_sendTransaction", params)) ) {
+        if ( !queueRequest(RequestIPC(SendTransaction, "personal_signAndSendTransaction", params)) ) {
             return bail(true); // softbail
         }
     }
@@ -582,27 +628,55 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::newFilter() {
-        if ( !fFilterID.isEmpty() ) {
+    void EtherIPC::newBlockFilter() {
+        if ( !fBlockFilterID.isEmpty() ) {
             setError("Filter already set");
             return bail(true);
         }
 
-        if ( !queueRequest(RequestIPC(NewFilter, "eth_newBlockFilter")) ) {
+        if ( !queueRequest(RequestIPC(NewBlockFilter, "eth_newBlockFilter")) ) {
             return bail();
         }
     }
 
-    void EtherIPC::handleNewFilter() {
+    void EtherIPC::newEventFilter(const QStringList& addresses, const QStringList& topics) {
+        QJsonArray params;
+        QJsonObject o;
+        o["address"] = QJsonArray::fromStringList(addresses);
+        if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
+            o["topics"] = QJsonArray::fromStringList(topics);
+        }
+        params.append(o);
+
+        if ( !queueRequest(RequestIPC(NewEventFilter, "eth_newFilter", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleNewBlockFilter() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
             return bail();
         }
-        fFilterID = jv.toString();
-        //qDebug() << "new filter: " << fFilterID << "\n";
+        fBlockFilterID = jv.toString();
 
-        if ( fFilterID.isEmpty() ) {
-            setError("Filter ID invalid");
+        if ( fBlockFilterID.isEmpty() ) {
+            setError("Block filter ID invalid");
+            return bail();
+        }
+
+        done();
+    }
+
+    void EtherIPC::handleNewEventFilter() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+        fEventFilterID = jv.toString();
+
+        if ( fEventFilterID.isEmpty() ) {
+            setError("Event filter ID invalid");
             return bail();
         }
 
@@ -613,10 +687,14 @@ namespace Etherwall {
         getPeerCount();
         getSyncing();
 
-        if ( !fFilterID.isEmpty() && !fSyncing ) {
-            getFilterChanges(fFilterID);
+        if ( !fBlockFilterID.isEmpty() && !fSyncing ) {
+            getFilterChanges(fBlockFilterID);
         } else {
             getBlockNumber();
+        }
+
+        if ( !fEventFilterID.isEmpty() ) {
+            getFilterChanges(fEventFilterID);
         }
     }
 
@@ -659,27 +737,48 @@ namespace Etherwall {
         }
 
         QJsonArray ar = jv.toArray();
-        //qDebug() << "got filter changes: " << ar.size() << "\n";
+
         foreach( const QJsonValue v, ar ) {
-           const QString hash = v.toString("bogus");
-           getBlockByHash(hash);
+            if ( v.isObject() ) { // event filter result
+                const QJsonObject logs = v.toObject();
+                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges); // get logs is not "new"
+            } else { // block filter (we don't use transaction filters yet)
+                const QString hash = v.toString("bogus");
+                getBlockByHash(hash);
+            }
         }
 
         done();
     }
 
-    void EtherIPC::uninstallFilter() {
-        if ( fFilterID.isEmpty() ) {
+    void EtherIPC::uninstallFilter(const QString& filter) {
+        if ( filter.isEmpty() ) {
             setError("Filter not set");
             return bail(true);
         }
 
-        //qDebug() << "uninstalling filter: " << fFilterID << "\n";
+        //qDebug() << "uninstalling filter: " << fBlockFilterID << "\n";
 
         QJsonArray params;
-        params.append(fFilterID);
+        params.append(filter);
 
         if ( !queueRequest(RequestIPC(UninstallFilter, "eth_uninstallFilter", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::getLogs(const QStringList& addresses, const QStringList& topics) {
+        QJsonArray params;
+        QJsonObject o;
+        o["fromBlock"] = "earliest";
+        o["address"] = QJsonArray::fromStringList(addresses);
+        if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
+            o["topics"] = QJsonArray::fromStringList(topics);
+        }
+        params.append(o);
+
+        // we can use getFilterChanges as result is the same
+        if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
             return bail();
         }
     }
@@ -690,13 +789,17 @@ namespace Etherwall {
             return bail();
         }
 
-        fFilterID.clear();
-
         done();
     }
 
     void EtherIPC::getClientVersion() {
         if ( !queueRequest(RequestIPC(NonVisual, GetClientVersion, "web3_clientVersion")) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::getNetVersion() {
+        if ( !queueRequest(RequestIPC(NonVisual, GetNetVersion, "net_version")) ) {
             return bail();
         }
     }
@@ -792,6 +895,32 @@ namespace Etherwall {
         done();
     }
 
+    void EtherIPC::handleGetNetVersion() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+        bool ok = false;
+        fNetVersion = jv.toString().toInt(&ok);
+
+        if ( !ok ) {
+            setError("Unable to parse net version string: " + jv.toString());
+            return bail(true);
+        }
+
+        emit netVersionChanged(fNetVersion);
+        done();
+
+        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        // if we connected to external geth, put that info in geth log
+
+        emit startingChanged(fStarting);
+        emit connectToServerDone();
+        emit connectionStateChanged();
+        emit hardForkReadyChanged(getHardForkReady());
+    }
+
     void EtherIPC::handleGetSyncing() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
@@ -801,8 +930,8 @@ namespace Etherwall {
         if ( jv.isNull() || ( jv.isBool() && !jv.toBool(false) ) ) {
             if ( fSyncing ) {
                 fSyncing = false;
-                if ( fFilterID.isEmpty() ) {
-                    newFilter();
+                if ( fBlockFilterID.isEmpty() ) {
+                    newBlockFilter();
                 }
                 emit syncingChanged(fSyncing);
             }
@@ -815,8 +944,9 @@ namespace Etherwall {
         fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
         fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
         if ( !fSyncing ) {
-            if ( !fFilterID.isEmpty() ) {
-                uninstallFilter();
+            if ( !fBlockFilterID.isEmpty() ) {
+                uninstallFilter(fBlockFilterID);
+                fBlockFilterID.clear();
             }
             fSyncing = true;
         }
@@ -949,6 +1079,11 @@ namespace Etherwall {
 
         result = obj["result"];
 
+        // get filter changes bugged, returns null on result array, see https://github.com/ethereum/go-ethereum/issues/2746
+        if ( result.isNull() && fActiveRequest.getType() == GetFilterChanges ) {
+            result = QJsonValue(QJsonArray());
+        }
+
         if ( result.isUndefined() || result.isNull() ) {
             if ( obj.contains("error") ) {
                 if ( obj["error"].toObject().contains("message") ) {
@@ -1053,8 +1188,12 @@ namespace Etherwall {
                 handleEstimateGas();
                 break;
             }
-        case NewFilter: {
-                handleNewFilter();
+        case NewBlockFilter: {
+                handleNewBlockFilter();
+                break;
+            }
+        case NewEventFilter: {
+                handleNewEventFilter();
                 break;
             }
         case GetFilterChanges: {
@@ -1077,8 +1216,16 @@ namespace Etherwall {
                 handleGetClientVersion();
                 break;
             }
+        case GetNetVersion: {
+                handleGetNetVersion();
+                break;
+            }
         case GetSyncing: {
                 handleGetSyncing();
+                break;
+            }
+        case GetLogs: {
+                handleGetFilterChanges();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

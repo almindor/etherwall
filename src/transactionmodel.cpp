@@ -74,7 +74,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
         QHash<int, QByteArray> roles;
-        roles[THashRole] = "hash";
+        roles[TransactionRoles::THashRole] = "hash";
         roles[NonceRole] = "nonce";
         roles[SenderRole] = "sender";
         roles[ReceiverRole] = "receiver";
@@ -165,10 +165,11 @@ namespace Etherwall {
     }
 
     void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
-                                           const QString& value, const QString& gas, const QString& gasPrice) {
-        fIpc.unlockAccount(from, password, 5, 0);
-        fIpc.sendTransaction(from, to, value, gas, gasPrice);
-        fQueuedTransaction.init(from, to, value, gas, gasPrice);
+                                           const QString& value, const QString& gas, const QString& gasPrice,
+                                           const QString& data) {
+        //fIpc.unlockAccount(from, password, 5, 0);
+        fIpc.sendTransaction(from, to, value, password, gas, gasPrice, data);
+        fQueuedTransaction.init(from, to, value, gas, gasPrice, data);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {
@@ -221,9 +222,13 @@ namespace Etherwall {
                 roles[0] = BlockNumberRole;
                 roles[1] = DepthRole;
                 emit dataChanged(leftIndex, rightIndex, roles);
+                const TransactionInfo info = fTransactionList.at(n);
                 storeTransaction(fTransactionList.at(n));
+                emit confirmedTransaction(info.value(ReceiverRole).toString());
             } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
-                addTransaction(TransactionInfo(to));
+                const TransactionInfo info = TransactionInfo(to);
+                addTransaction(info);
+                emit receivedTransaction(info.value(ReceiverRole).toString());
             }
         }
     }
@@ -302,10 +307,6 @@ namespace Etherwall {
         BigInt::Rossi valRossi = Helpers::etherStrToRossi(value);
         BigInt::Rossi valGas = Helpers::decStrToRossi(gas);
         BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(fGasPrice);
-
-        if ( valRossi == BigInt::Rossi(0) ) {
-            return "0";
-        }
 
         const QString wei = QString((valRossi + valGas * valGasPrice).toStrDec().data());
 
@@ -398,7 +399,7 @@ namespace Etherwall {
 
     void TransactionModel::checkVersion() {
         // get latest app version
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/version"));
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/version"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         const QByteArray data = QJsonDocument(objectJson).toJson();
@@ -434,7 +435,7 @@ namespace Etherwall {
         }
 
         // get historical transactions from etherdata
-        QNetworkRequest request(QUrl("http://data.etherwall.com/api/transactions"));
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/transactions"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["accounts"] = fAccountModel.getAccountsJsonArray();

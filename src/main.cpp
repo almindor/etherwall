@@ -25,6 +25,7 @@
 #include <QtQml/qqml.h>
 #include <QIcon>
 #include <QPixmap>
+#include <QFile>
 #include <QDebug>
 #include "etherlog.h"
 #include "settings.h"
@@ -32,8 +33,12 @@
 #include "accountmodel.h"
 #include "accountproxymodel.h"
 #include "transactionmodel.h"
+#include "contractmodel.h"
+#include "eventmodel.h"
 #include "currencymodel.h"
+#include "filtermodel.h"
 #include "gethlog.h"
+#include "helpers.h"
 
 using namespace Etherwall;
 
@@ -46,7 +51,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.2.0");
+    QCoreApplication::setApplicationVersion("1.3.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -74,11 +79,21 @@ int main(int argc, char *argv[])
     ClipboardAdapter clipboard;
     EtherLog log;
     GethLog gethLog;
-    EtherIPC ipc(ipcPath, gethLog);
 
+    // get SSL cert for https://data.etherwall.com
+    const QSslCertificate certificate(EtherWall_Cert.toUtf8());
+    QSslSocket::addDefaultCaCertificate(certificate);
+
+    EtherIPC ipc(ipcPath, gethLog);
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel);
     TransactionModel transactionModel(ipc, accountModel);
+    ContractModel contractModel(ipc);
+    FilterModel filterModel(ipc);
+    EventModel eventModel(contractModel);
+
+    // for QML only
+    QmlHelpers qmlHelpers;
 
     QQmlApplicationEngine engine;
 
@@ -86,10 +101,14 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
+    engine.rootContext()->setContextProperty("contractModel", &contractModel);
+    engine.rootContext()->setContextProperty("filterModel", &filterModel);
+    engine.rootContext()->setContextProperty("eventModel", &eventModel);
     engine.rootContext()->setContextProperty("currencyModel", &currencyModel);
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
     engine.rootContext()->setContextProperty("geth", &gethLog);
+    engine.rootContext()->setContextProperty("helpers", &qmlHelpers);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 

@@ -17,7 +17,11 @@ SOURCES += src/main.cpp \
     src/currencymodel.cpp \
     src/accountproxymodel.cpp \
     src/gethlog.cpp \
-    src/helpers.cpp
+    src/helpers.cpp \
+    src/contractmodel.cpp \
+    src/contractinfo.cpp \
+    src/eventmodel.cpp \
+    src/filtermodel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -48,7 +52,11 @@ HEADERS += \
     src/currencymodel.h \
     src/accountproxymodel.h \
     src/gethlog.h \
-    src/helpers.h
+    src/helpers.h \
+    src/contractmodel.h \
+    src/contractinfo.h \
+    src/eventmodel.h \
+    src/filtermodel.h
 
 macx {
     ICON=qml/images/icon.icns

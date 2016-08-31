@@ -11,36 +11,29 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file FirstTimeDialog.qml
+/** @file TransactionsTab.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2016
  *
- * FirstTime dialog
+ * Contract Argument Component - number
  */
 
 import QtQuick 2.0
-import QtQuick.Window 2.0
+import QtQuick.Controls 1.1
 
-Window {
-    id: sendDialog
-    title: qsTr("Send Ether")
+Row {
+    property string title : ""
+    property real value : 0
+    property real fieldWidth : 2 * dpi
 
-    modality: Qt.NonModal
-    visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
-    width: 7 * dpi
-    height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
+    Label {
+        width: 1 * dpi
+        text: title
     }
 
-    SendTransactionContent {
-        onDone: {
-            sendDialog.close()
-        }
+    TextField {
+        width: fieldWidth
+        text: value
+        readOnly: true
     }
 }

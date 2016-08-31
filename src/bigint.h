@@ -71,6 +71,7 @@
 #include <limits>
 #include <algorithm>
 #include <stdexcept>
+#include <QString>
 
 
 // ========================================
@@ -141,7 +142,7 @@
 // ========== DISPLAY MACROS (BEGIN) =========
 
 #define PRE_MSG(s, p)       s << p << "[" <<  __FILE__ << ", #" << std::dec << std::setw(3) << __LINE__ << "; " << UNDECORATED_FUNCTION_NAME << "] " << std::flush
-#define SCREEN_MSG(s,p,x,t) { std::ostringstream oo_ss_ss; PRE_MSG(oo_ss_ss,p) << x << t << std::endl; s << std::flush << oo_ss_ss.str() << std::flush; }
+#define SCREEN_MSG(s,p,x,t) { lastError = QString(t.c_str()); std::ostringstream oo_ss_ss; PRE_MSG(oo_ss_ss,p) << x << t << std::endl; s << std::flush << oo_ss_ss.str() << std::flush; }
 #define FATAL_MSG(s, t)     SCREEN_MSG (s, "FATAL   ", "", t)
 #define ERR_MSG(s, t)       SCREEN_MSG (s, "ERROR   ", "", t)
 #define WARN_MSG(s, t)      SCREEN_MSG (s, "WARNING ", "", t)
@@ -155,20 +156,7 @@
 
 // ===========================================
 // ========= ASSERTION MACROS (BEGIN) ========
-#define ASSERTION(x) 	 assert(x); \
-            if (!(x)) \
-            { \
-                std::cerr   << "[" \
-			                << __FILE__ \
-                            << ", " \
-			                << __LINE__  \
-			                << "] assert(" \
-                            << #x \
-                            << ") not working" \
-                            << std::endl  \
-                            << std::flush;  \
-                abort(); \
-			 }
+#define ASSERTION(x)    if (!(x)) throw QString("BigInt assertion failed: " + lastError)
 // ========== ASSERTION MACROS (END) =========
 // ===========================================
 

@@ -24,15 +24,15 @@ import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
 
 Window {
-    property var transaction : new Object({ hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "" });
+    property var transaction : new Object({ hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "", input: "" });
 
     modality: Qt.NonModal
     visible: false
     title: transaction.hash
     width: 7 * dpi
-    height: 3.7 * dpi
+    height: 4 * dpi
     minimumWidth: 7 * dpi
-    minimumHeight: 3.7 * dpi
+    minimumHeight: 4 * dpi
 
     function open( trans ) {
         transaction = trans;
@@ -148,6 +148,16 @@ Window {
         TextField {
             readOnly: true
             text: transaction.nonce
+            Layout.minimumWidth: detailLayout.width * 0.8
+        }
+
+        Label {
+            text: qsTr("Input: ")
+        }
+
+        TextField {
+            readOnly: true
+            text: transaction.input
             Layout.minimumWidth: detailLayout.width * 0.8
         }
 

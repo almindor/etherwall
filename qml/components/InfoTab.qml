@@ -11,36 +11,23 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file FirstTimeDialog.qml
+/** @file AccountsTab.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2016
  *
- * FirstTime dialog
+ * Info tab
  */
 
 import QtQuick 2.0
-import QtQuick.Window 2.0
+import QtQuick.Controls 1.1
 
-Window {
-    id: sendDialog
-    title: qsTr("Send Ether")
+Tab {
+    id: infoTab
+    title: qsTr("Logs")
+    anchors.fill: parent
 
-    modality: Qt.NonModal
-    visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
-    width: 7 * dpi
-    height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
-
-    SendTransactionContent {
-        onDone: {
-            sendDialog.close()
-        }
+    TabView {
+        LogTab {}
+        GethTab {}
     }
 }

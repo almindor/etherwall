@@ -41,6 +41,7 @@ Tab {
         }
 
         Button {
+            id: sendButton
             text: "Send Ether"
             width: parent.width
             height: 1 * dpi
@@ -52,7 +53,7 @@ Tab {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing
+            height: parent.height - parent.spacing - sendButton.height
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
@@ -96,7 +97,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (settings.valueBool("geth/testnet", false) ? "testnet." : "") + "etherscan.io/tx/" + transactionModel.getHash(transactionView.currentRow)
+                        var url = "http://" + (ipc.testnet ? "testnet." : "") + "etherscan.io/tx/" + transactionModel.getHash(transactionView.currentRow)
                         Qt.openUrlExternally(url)
                     }
                 }
@@ -131,32 +132,14 @@ Tab {
                 }
             }
 
-            rowDelegate: Item {
-                SystemPalette {
-                    id: osPalette
-                    colorGroup: SystemPalette.Active
-                }
+            MouseArea {
+                anchors.fill: parent
+                propagateComposedEvents: true
+                acceptedButtons: Qt.RightButton
 
-                height: 0.2 * dpi
-
-                Rectangle {
-                    anchors {
-                        left: parent.left
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                    }
-                    height: parent.height
-                    color: styleData.selected ? osPalette.highlight : (styleData.alternate ? osPalette.alternateBase : osPalette.base)
-                    MouseArea {
-                        anchors.fill: parent
-                        propagateComposedEvents: true
-                        acceptedButtons: Qt.RightButton
-
-                        onReleased: {
-                            if ( transactionView.currentRow >= 0 ) {
-                                rowMenu.popup()
-                            }
-                        }
+                onReleased: {
+                    if ( transactionView.currentRow >= 0 ) {
+                        rowMenu.popup()
                     }
                 }
             }

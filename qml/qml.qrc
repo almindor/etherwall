@@ -20,6 +20,19 @@
         <file>components/AccountDialog.qml</file>
         <file>components/HardForkDialog.qml</file>
         <file>components/TransactionDialog.qml</file>
+        <file>components/ContractsTab.qml</file>
+        <file>components/ContractDetails.qml</file>
+        <file>components/ContractCalls.qml</file>
+        <file>components/ArgNumber.qml</file>
+        <file>components/InfoTab.qml</file>
+        <file>components/SendTransactionContent.qml</file>
+        <file>components/CallContractContent.qml</file>
+        <file>components/ContractContent.qml</file>
+        <file>components/EventContent.qml</file>
+        <file>components/FiltersContent.qml</file>
+        <file>components/FilterDetails.qml</file>
+        <file>components/EventDetails.qml</file>
+        <file>components/Badge.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>
@@ -29,6 +42,7 @@
         <file alias="connected1">images/low_connection.png</file>
         <file alias="connected0">images/no_connection.png</file>
         <file alias="warning">images/warning.png</file>
+        <file alias="error">images/error.png</file>
         <file alias="ok">images/ok.png</file>
         <file alias="locked">images/locked.png</file>
         <file alias="unlocked">images/unlocked.png</file>

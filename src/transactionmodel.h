@@ -73,7 +73,8 @@ namespace Etherwall {
         void estimateGasDone(const QString& num);
         void sendTransactionDone(const QString& hash);
         void sendTransaction(const QString& password, const QString& from, const QString& to,
-                             const QString& value, const QString& gas = QString(), const QString& gasPrice = QString());
+                             const QString& value, const QString& gas = QString(),
+                             const QString& gasPrice = QString(), const QString& data = QString());
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void refresh();
@@ -81,11 +82,13 @@ namespace Etherwall {
         void checkVersionDone(QNetworkReply *reply);
         void httpRequestDone(QNetworkReply *reply);
     signals:
-        void blockNumberChanged(quint64 num);
-        void gasPriceChanged(const QString& price);
-        void gasEstimateChanged(const QString& price);
-        void historyChanged();
-        void latestVersionChanged(const QString& version);
+        void blockNumberChanged(quint64 num) const;
+        void gasPriceChanged(const QString& price) const;
+        void gasEstimateChanged(const QString& price) const;
+        void historyChanged() const;
+        void latestVersionChanged(const QString& version) const;
+        void receivedTransaction(const QString& toAddress) const;
+        void confirmedTransaction(const QString& toAddress) const;
     private:
         EtherIPC& fIpc;
         const AccountModel& fAccountModel;

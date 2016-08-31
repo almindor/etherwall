@@ -209,7 +209,13 @@ namespace Etherwall {
         return "0x" + result;
     }
 
-    bool Helpers::checkAddress(const QString& origAddress) {
+    // ***************************** QmlHelpers ***************************** //
+
+    QmlHelpers::QmlHelpers() : QObject(0) {
+
+    }
+
+    bool QmlHelpers::checkAddress(const QString& origAddress) const {
         QString address = origAddress;
         if ( address.indexOf("0x") == 0 ) {
             address = address.remove(0, 2);
@@ -220,7 +226,7 @@ namespace Etherwall {
         }
 
         const QByteArray byteAddress = QByteArray::fromHex(address.toUtf8());
-        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256);
+        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256).left(5);
         QBitArray bita(hashed.count() * 8);
         int i = 0;
 
@@ -230,7 +236,6 @@ namespace Etherwall {
             }
         }
 
-        QString result = "";
         i = 0;
         foreach ( const QChar c, address ) {
             if ( c >= '0' && c <= '9' ) {

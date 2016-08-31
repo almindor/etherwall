@@ -94,6 +94,24 @@ ApplicationWindow {
         }
     }
 
+    Badge {
+        id: badge
+        z: 999
+
+        Connections {
+            target: transactionModel
+
+            onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
+            onConfirmedTransaction: badge.show(qsTr("Confirmed transaction to: ") + toAddress)
+        }
+
+        Connections {
+            target: eventModel
+
+            onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        }
+    }
+
     BusyIndicator {
         anchors.centerIn: parent
         z: 10

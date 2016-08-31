@@ -4,7 +4,7 @@ namespace Etherwall {
 
     EventModel::EventModel(const ContractModel& contractModel) : QAbstractListModel(0), fContractModel(contractModel), fList()
     {
-        connect(&contractModel, &ContractModel::newEvent, this, &EventModel::newEvent);
+        connect(&contractModel, &ContractModel::newEvent, this, &EventModel::onNewEvent);
     }
 
     QHash<int, QByteArray> EventModel::roleNames() const {
@@ -107,19 +107,7 @@ namespace Etherwall {
         foreach ( const ContractArg arg, args ) {
             map["name"] = arg.name();
             map["type"] = arg.type();
-            const QVariant value = params.at(i++);
-            QString strVal;
-            if ( value.type() == QVariant::StringList ) {
-                strVal = "[" + value.toStringList().join(",") + "]";
-            } else if ( value.type() == QVariant::List ) {
-                QStringList vals;
-                foreach ( const QVariant inner, value.toList() ) {
-                    vals.append(inner.toString());
-                }
-                strVal = "[" + vals.join(",") + "]";
-            } else {
-                strVal = value.toString();
-            }
+            QString strVal = fList.at(index).paramToStr(params.at(i++));
             map["value"] = strVal;
             result.append(map);
         }
@@ -133,26 +121,19 @@ namespace Etherwall {
         }
 
         const QVariant value = fList.at(index).getParams().at(index);
-        QString strVal;
-        if ( value.type() == QVariant::StringList ) {
-            strVal = "[" + value.toStringList().join(",") + "]";
-        } else if ( value.type() == QVariant::List ) {
-            QStringList vals;
-            foreach ( const QVariant inner, value.toList() ) {
-                vals.append(inner.toString());
-            }
-            strVal = "[" + vals.join(",") + "]";
-        } else {
-            strVal = value.toString();
-        }
+        QString strVal = fList.at(index).paramToStr(value);
 
         return strVal;
     }
 
-    void EventModel::newEvent(const EventInfo& info) {
+    void EventModel::onNewEvent(const EventInfo& info, bool isNew) {
         beginInsertRows(QModelIndex(), fList.length(), fList.length());
         fList.append(info);
         endInsertRows();
+
+        if ( isNew ) {
+            emit receivedEvent(info.contract(), info.signature());
+        }
     }
 
 }

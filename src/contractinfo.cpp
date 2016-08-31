@@ -633,6 +633,19 @@ namespace Etherwall {
         return fAddress;
     }
 
+    const QString EventInfo::contract() const {
+        return fContract;
+    }
+
+    const QString EventInfo::signature() const {
+        QStringList vals;
+        foreach ( const QVariant param, fParams ) {
+            vals.append(paramToStr(param));
+        }
+
+        return fName + "(" + vals.join(",") + ")";
+    }
+
     const QString EventInfo::transactionHash() const {
         return fTransactionHash;
     }
@@ -662,6 +675,23 @@ namespace Etherwall {
 
     const QVariantList EventInfo::getParams() const {
         return fParams;
+    }
+
+    const QString EventInfo::paramToStr(const QVariant& value) const {
+        QString strVal;
+        if ( value.type() == QVariant::StringList ) {
+            strVal = "[" + value.toStringList().join(",") + "]";
+        } else if ( value.type() == QVariant::List ) {
+            QStringList vals;
+            foreach ( const QVariant inner, value.toList() ) {
+                vals.append(inner.toString());
+            }
+            strVal = "[" + vals.join(",") + "]";
+        } else {
+            strVal = value.toString();
+        }
+
+        return strVal;
     }
 
     // ***************************** ContractInfo ***************************** //

@@ -49,10 +49,10 @@ namespace Etherwall {
     signals:
         void callEncoded(const QString& encoded) const;
         void callError(const QString& err) const;
-        void newEvent(const EventInfo& info) const;
+        void newEvent(const EventInfo& info, bool isNew) const;
     public slots:
         void reload();
-        void onNewEvent(const QJsonObject& event);
+        void onNewEvent(const QJsonObject& event, bool isNew);
     private:
         const QString getPostfix() const;
 

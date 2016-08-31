@@ -116,8 +116,8 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& gas = QString(),
-                             const QString& gasPrice = QString(), const QString& data = QString());
+        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
+                             const QString& gas = QString(), const QString& gasPrice = QString(), const QString& data = QString());
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
         void estimateGas(const QString& from, const QString& to, const QString& value);
@@ -142,7 +142,7 @@ namespace Etherwall {
         void estimateGasDone(const QString& price);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
-        void newEvent(const QJsonObject& event);
+        void newEvent(const QJsonObject& event, bool isNew);
 
         void peerCountChanged(quint64 num);
         void accountChanged(const AccountInfo& info);

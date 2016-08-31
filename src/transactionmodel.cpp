@@ -167,8 +167,8 @@ namespace Etherwall {
     void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
                                            const QString& value, const QString& gas, const QString& gasPrice,
                                            const QString& data) {
-        fIpc.unlockAccount(from, password, 5, 0);
-        fIpc.sendTransaction(from, to, value, gas, gasPrice, data);
+        //fIpc.unlockAccount(from, password, 5, 0);
+        fIpc.sendTransaction(from, to, value, password, gas, gasPrice, data);
         fQueuedTransaction.init(from, to, value, gas, gasPrice, data);
     }
 
@@ -222,9 +222,13 @@ namespace Etherwall {
                 roles[0] = BlockNumberRole;
                 roles[1] = DepthRole;
                 emit dataChanged(leftIndex, rightIndex, roles);
+                const TransactionInfo info = fTransactionList.at(n);
                 storeTransaction(fTransactionList.at(n));
+                emit confirmedTransaction(info.value(ReceiverRole).toString());
             } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
-                addTransaction(TransactionInfo(to));
+                const TransactionInfo info = TransactionInfo(to);
+                addTransaction(info);
+                emit receivedTransaction(info.value(ReceiverRole).toString());
             }
         }
     }

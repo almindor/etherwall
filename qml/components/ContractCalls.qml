@@ -48,6 +48,7 @@ Window {
 
         cccTab.active = true
         cccTab.children[0].contractIndex = index
+        tabs.currentIndex = 0
         show()
     }
 

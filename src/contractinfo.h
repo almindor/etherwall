@@ -153,11 +153,14 @@ namespace Etherwall {
 
         void fillParams(const ContractInfo& contract, const ContractEvent& event);
         const QString address() const;
+        const QString contract() const;
+        const QString signature() const;
         const QString transactionHash() const;
         const QString getMethodID() const;
         const QVariant value(const int role) const;
         const ContractArgs getArguments() const;
         const QVariantList getParams() const;
+        const QString paramToStr(const QVariant& value) const;
     private:
         QString fName;
         QString fContract;

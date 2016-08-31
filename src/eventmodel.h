@@ -28,7 +28,9 @@ namespace Etherwall {
         Q_INVOKABLE const QVariantList getArgModel(int index) const;
         Q_INVOKABLE const QString getParamValue(int index) const;
     public slots:
-        void newEvent(const EventInfo& info);
+        void onNewEvent(const EventInfo& info, bool isNew);
+    signals:
+        void receivedEvent(const QString& contract, const QString& signature);
     private:
         const ContractModel& fContractModel;
         EventList fList;

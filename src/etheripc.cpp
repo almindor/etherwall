@@ -497,7 +497,7 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr,
+    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
                                    const QString& gas, const QString& gasPrice, const QString& data) {
         QJsonArray params;
         const QString valHex = Helpers::toHexWeiStr(valStr);
@@ -521,8 +521,9 @@ namespace Etherwall {
         }
 
         params.append(p);
+        params.append(password);
 
-        if ( !queueRequest(RequestIPC(SendTransaction, "eth_sendTransaction", params)) ) {
+        if ( !queueRequest(RequestIPC(SendTransaction, "personal_signAndSendTransaction", params)) ) {
             return bail(true); // softbail
         }
     }
@@ -740,7 +741,7 @@ namespace Etherwall {
         foreach( const QJsonValue v, ar ) {
             if ( v.isObject() ) { // event filter result
                 const QJsonObject logs = v.toObject();
-                emit newEvent(logs);
+                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges); // get logs is not "new"
             } else { // block filter (we don't use transaction filters yet)
                 const QString hash = v.toString("bogus");
                 getBlockByHash(hash);
@@ -777,7 +778,7 @@ namespace Etherwall {
         params.append(o);
 
         // we can use getFilterChanges as result is the same
-        if ( !queueRequest(RequestIPC(GetFilterChanges, "eth_getLogs", params)) ) {
+        if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
             return bail();
         }
     }
@@ -1221,6 +1222,10 @@ namespace Etherwall {
             }
         case GetSyncing: {
                 handleGetSyncing();
+                break;
+            }
+        case GetLogs: {
+                handleGetFilterChanges();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

@@ -9,6 +9,28 @@ Item {
     property string contractData : ""
     signal done
 
+    onVisibleChanged: {
+        if ( visible ) {
+            gasCombo.model = contractData.length > 0 ? gasItemsContract : gasItemsTransaction
+        }
+    }
+
+    ListModel {
+        id: gasItemsTransaction
+        ListElement { text: "Default"; value: 90000 }
+        ListElement { text: "Minimal"; value: 21000 }
+        ListElement { text: "Fast"; value: 180000 }
+        ListElement { text: "Custom"; value: 0 }
+    }
+
+    ListModel {
+        id: gasItemsContract
+        ListElement { text: "Default"; value: 180000 }
+        ListElement { text: "Minimal"; value: 90000 }
+        ListElement { text: "Fast"; value: 360000 }
+        ListElement { text: "Custom"; value: 0 }
+    }
+
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
@@ -19,7 +41,7 @@ Item {
         id: mainColumn
         anchors.fill: parent
         anchors.margins: 0.1 * dpi
-        spacing: 0.2 * dpi
+        spacing: 0.1 * dpi
 
         Row {
             Label {
@@ -56,7 +78,6 @@ Item {
                 maximumLength: 42
 
                 onTextChanged: {
-                    if ( !loaded() ) return
                     sendButton.refresh()
                 }
             }
@@ -71,10 +92,16 @@ Item {
             ComboBox {
                 id: gasCombo
                 width: 1.2 * dpi
+                model: gasItemsTransaction
+
                 currentIndex: {
+                    if ( contractData.length > 0 ) {
+                        return 0;
+                    }
+
                     var gas = parseInt(settings.value("gas", 21000))
                     for ( var i = 0; i < 4; i++ ) {
-                        if ( gasItems.get(i).value === gas ) {
+                        if ( gasItemsTransaction.get(i).value === gas ) {
                             return i;
                         }
                     }
@@ -82,18 +109,11 @@ Item {
                     return 3
                 }
 
-                model: ListModel {
-                    id: gasItems
-                    ListElement { text: "Default"; value: 90000 }
-                    ListElement { text: "Minimal"; value: 21000 }
-                    ListElement { text: "Fast"; value: 180000 }
-                    ListElement { text: "Custom"; value: 0 }
-                }
-
                 onCurrentIndexChanged: {
+                    var gasItems = contractData.length > 0 ? gasItemsContract : gasItemsTransaction
                     // custom
                     if ( currentIndex == 3 ) {
-                        gasField.text = settings.value("gas", 21000)
+                        gasField.text = settings.value("gas", contractData.length > 0 ? 90000 : 21000)
                         gasField.readOnly = false
                         return
                     }
@@ -118,6 +138,7 @@ Item {
                 }
 
                 onTextChanged: {
+                    if ( contractData.length > 0 ) return
                     settings.setValue("gas", text)
                 }
             }
@@ -216,6 +237,23 @@ Item {
             }
         }
 
+        Row {
+            id: errorRow
+
+            Label {
+                width: 1 * dpi
+                text: sendButton.status < -1 ? qsTr("Error: ") : qsTr("Warning: ")
+                enabled: sendButton.status < 0
+            }
+
+            TextArea {
+                id: warningField
+                readOnly: true
+                height: 0.5 * dpi
+                width: mainColumn.width - 1 * dpi
+            }
+        }
+
         PasswordDialog {
             id: transactionSendDialog
             title: qsTr("Confirm transaction")
@@ -232,18 +270,13 @@ Item {
             }
         }
 
-        ErrorDialog {
-            id: confirmDialog
-            title: qsTr("Transaction sent")
-            msg: qsTr("Transaction has been successfully sent and is now pending. Check the transactions tab for more information.")
-        }
-
         Button {
             id: sendButton
             enabled: !ipc.syncing && !ipc.closing && !ipc.starting
             width: parent.width
             height: 1.3 * dpi
             text: "Send"
+            property int status : -2
 
             Image {
                 id: sendIcon
@@ -268,6 +301,7 @@ Item {
             function check() {
                 var result = {
                     error: null,
+                    warning: null,
                     from: null,
                     to: null,
                     value: -1
@@ -291,6 +325,10 @@ Item {
                     return result
                 }
 
+                if ( !helpers.checkAddress(result.to) ) {
+                    result.warning = qsTr("Address checksum mismatch. Use only properly checksumed addresses to prevent wrong sends.")
+                }
+
                 result.txtVal = valueField.text.trim() || ""
                 result.value = result.txtVal.length > 0 ? Number(result.txtVal) : NaN
                 if ( isNaN(result.value) || result.value < 0.0 ) {
@@ -308,11 +346,25 @@ Item {
                 var result = check()
                 if ( result.error !== null ) {
                     tooltip = result.error
-                    sendIcon.source = "/images/warning"
+                    sendIcon.source = "/images/error"
+                    status = -2
+                    warningField.text = result.error
                     return result
                 }
 
-                sendIcon.source = "/images/ok"
+                if ( result.warning !== null ) {
+                    toField.textColor = "brown"
+                    warningField.text = result.warning
+                    tooltip = result.warning
+                    sendIcon.source = "/images/warning"
+                    status = -1
+                } else {
+                    warningField.text = ""
+                    toField.textColor = "black"
+                    status = 0
+                    sendIcon.source = "/images/ok"
+                }
+
                 return result
             }
 
@@ -323,7 +375,8 @@ Item {
                 }
 
                 onSendTransactionDone: {
-                    confirmDialog.show()
+                    done()
+                    badge.show(qsTr("New pending transaction to: ") + toField.text)
                 }
             }
 

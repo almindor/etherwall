@@ -1,6 +1,7 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#include <QObject>
 #include <QString>
 #include <QJsonObject>
 #include <QNetworkReply>
@@ -9,7 +10,8 @@
 
 namespace Etherwall {
 
-    class Helpers {
+    class Helpers
+    {
     public:
         static const QString toDecStr(const QJsonValue &jv);
         static const QString toDecStrEther(const QJsonValue &jv);
@@ -27,7 +29,14 @@ namespace Etherwall {
         static int parseAppVersion(const QString& ver);
         static QJsonObject parseHTTPReply(QNetworkReply *reply);
         static const QString vitalizeAddress(const QString& origAddress);
-        static bool checkAddress(const QString& origAddress);
+    };
+
+    class QmlHelpers : public QObject
+    {
+        Q_OBJECT
+    public:
+        QmlHelpers();
+        Q_INVOKABLE bool checkAddress(const QString& origAddress) const;
     };
 
 }

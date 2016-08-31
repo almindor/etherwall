@@ -209,7 +209,7 @@ namespace Etherwall {
         onNewEvent(doc.object());*/
     }
 
-    void ContractModel::onNewEvent(const QJsonObject& event) {
+    void ContractModel::onNewEvent(const QJsonObject& event, bool isNew) {
         EventInfo info(event);
 
         // find the right contract and process/fill the params
@@ -219,7 +219,7 @@ namespace Etherwall {
             }
         }
 
-        emit newEvent(info);
+        emit newEvent(info, isNew);
     }
 
 }

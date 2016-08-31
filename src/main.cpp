@@ -38,7 +38,7 @@
 #include "currencymodel.h"
 #include "filtermodel.h"
 #include "gethlog.h"
-
+#include "helpers.h"
 
 using namespace Etherwall;
 
@@ -92,6 +92,9 @@ int main(int argc, char *argv[])
     FilterModel filterModel(ipc);
     EventModel eventModel(contractModel);
 
+    // for QML only
+    QmlHelpers qmlHelpers;
+
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("settings", &settings);
@@ -105,6 +108,7 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("clipboard", &clipboard);
     engine.rootContext()->setContextProperty("log", &log);
     engine.rootContext()->setContextProperty("geth", &gethLog);
+    engine.rootContext()->setContextProperty("helpers", &qmlHelpers);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 

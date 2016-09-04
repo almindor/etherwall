@@ -111,9 +111,10 @@ namespace Etherwall {
         fIndex(ACC_INDEX++), fHash(Helpers::vitalizeAddress(hash)), fBalance(balance), fTransCount(transCount)
     {
         const QSettings settings;
+        const QString lowerHash = hash.toLower();
 
-        if ( settings.contains("alias/" + hash) ) {
-            fAlias = settings.value("alias/" + hash, QString()).toString();
+        if ( settings.contains("alias/" + lowerHash) ) {
+            fAlias = settings.value("alias/" + lowerHash, QString()).toString();
         }
     }
 

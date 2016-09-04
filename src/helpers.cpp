@@ -174,7 +174,7 @@ namespace Etherwall {
     }
 
     const QString Helpers::vitalizeAddress(const QString& origAddress) {
-        QString address = origAddress;
+        QString address = origAddress.toLower();
         if ( address.indexOf("0x") == 0 ) {
             address = address.remove(0, 2);
         }
@@ -183,24 +183,24 @@ namespace Etherwall {
             return origAddress;
         }
 
-        const QByteArray byteAddress = QByteArray::fromHex(address.toUtf8());
-        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256).left(5);
-        QBitArray bita(hashed.count() * 8);
-        int i = 0;
-
-        for(i = 0; i < hashed.count(); ++i) {
-            for (int b = 0; b < 8; b++) {
-                bita.setBit( i * 8 + b, hashed.at(i) & (1 << (7 - b)) );
-            }
-        }
+        const QByteArray byteAddress = address.toUtf8();
+        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256);
+        const QString hashStr = QString(hashed.toHex());
 
         QString result = "";
-        i = 0;
+        int i = 0;
         foreach ( const QChar c, address ) {
             if ( c >= '0' && c <= '9' ) {
                 result += c;
             } else {
-                result += bita.at(i) ? c.toUpper() : c.toLower();
+                bool ok = false;
+                int cVal = hashStr.mid(i, 1).toInt(&ok, 16);
+                if ( !ok ) {
+                    qDebug() << "error parsing int\n";
+                    return "0x0";
+                }
+
+                result += cVal > 7 ? c.toUpper() : c.toLower();
             }
 
             i++;
@@ -216,40 +216,7 @@ namespace Etherwall {
     }
 
     bool QmlHelpers::checkAddress(const QString& origAddress) const {
-        QString address = origAddress;
-        if ( address.indexOf("0x") == 0 ) {
-            address = address.remove(0, 2);
-        }
-
-        if ( address.length() != 40 ) {
-            return false;
-        }
-
-        const QByteArray byteAddress = QByteArray::fromHex(address.toUtf8());
-        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256).left(5);
-        QBitArray bita(hashed.count() * 8);
-        int i = 0;
-
-        for(i = 0; i < hashed.count(); ++i) {
-            for (int b = 0; b < 8; b++) {
-                bita.setBit( i * 8 + b, hashed.at(i) & (1 << (7 - b)) );
-            }
-        }
-
-        i = 0;
-        foreach ( const QChar c, address ) {
-            if ( c >= '0' && c <= '9' ) {
-                // nothing
-            } else {
-                if ( ( bita.at(i) && !c.isUpper() ) || ( !bita.at(i) && c.isUpper() ) ) {
-                    return false;
-                }
-            }
-
-            i++;
-        }
-
-        return true;
+        return origAddress == Helpers::vitalizeAddress(origAddress);
     }
 
 }

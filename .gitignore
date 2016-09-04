@@ -1,5 +1,7 @@
 # C++ objects and libs
 
+.DS_Store
+
 *.slo
 *.lo
 *.o

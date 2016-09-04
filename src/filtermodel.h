@@ -26,12 +26,12 @@ namespace Etherwall {
         Q_INVOKABLE void addFilter(const QString& name, const QString& address, const QString& contract, const QString& topics, bool active);
         Q_INVOKABLE void setFilterActive(int index, bool active);
         Q_INVOKABLE void deleteFilter(int index);
+        Q_INVOKABLE void loadLogs() const;
     public slots:
         void reload();
     private:
         void update(int index);
         void registerFilters() const;
-        void loadLogs() const;
         EtherIPC& fIpc;
         EventFilters fList;
     };

@@ -197,6 +197,28 @@ TabView {
                 }
             }
 
+            Row {
+                id: rowLogBlocks
+                width: parent.width
+
+                Label {
+                    id: logBlocksLabel
+                    text: qsTr("Event history in blocks: ")
+                }
+
+                SpinBox {
+                    id: logBlocksField
+                    width: 1 * dpi
+                    minimumValue: 0
+                    maximumValue: 100000
+                    value: settings.value("geth/logsize", 7200)
+                    onValueChanged: {
+                        settings.setValue("geth/logsize", logBlocksField.value)
+                        filterModel.loadLogs()
+                    }
+                }
+            }
+
         }
     }
 

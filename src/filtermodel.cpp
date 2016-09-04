@@ -154,6 +154,7 @@ namespace Etherwall {
     void FilterModel::loadLogs() const {
         QStringList addresses;
         QStringList topics;
+        const QSettings settings;
 
         foreach ( const FilterInfo info, fList ) {
             if ( !info.value(FilterActiveRole).toBool() ) {
@@ -167,7 +168,7 @@ namespace Etherwall {
             }
         }
 
-        quint64 day = 7200; // day in block count
+        quint64 day = settings.value("geth/logsize", 7200).toLongLong();
         quint64 fromBlock = fIpc.blockNumber() > day ? fIpc.blockNumber() - day : 1;
         fIpc.loadLogs(addresses, topics, fromBlock);
     }

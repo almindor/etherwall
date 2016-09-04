@@ -225,7 +225,7 @@ namespace Etherwall {
 
     void AccountModel::newBlock(const QJsonObject& block) {
         const QJsonArray transactions = block.value("transactions").toArray();
-        const QString miner = block.value("miner").toString("bogus");
+        const QString miner = block.value("miner").toString("bogus").toLower();
         int i1, i2;
         if ( containsAccount(miner, "bogus", i1, i2) ) {
             fIpc.refreshAccount(miner, i1);

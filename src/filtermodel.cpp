@@ -82,6 +82,7 @@ namespace Etherwall {
         endInsertRows();
 
         registerFilters();
+        loadLogs();
     }
 
     void FilterModel::setFilterActive(int index, bool active) {
@@ -166,7 +167,9 @@ namespace Etherwall {
             }
         }
 
-        fIpc.loadLogs(addresses, topics);
+        quint64 day = 7200; // day in block count
+        quint64 fromBlock = fIpc.blockNumber() > day ? fIpc.blockNumber() - day : 1;
+        fIpc.loadLogs(addresses, topics, fromBlock);
     }
 
     void FilterModel::reload() {

@@ -88,6 +88,7 @@ namespace Etherwall {
         Q_PROPERTY(quint64 currentBlock READ getCurrentBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
+        Q_PROPERTY(quint64 blockNumber MEMBER fBlockNumber NOTIFY getBlockNumberDone)
     public:
         EtherIPC(const QString& ipcPath, GethLog& gethLog);
         virtual ~EtherIPC();
@@ -101,6 +102,7 @@ namespace Etherwall {
         int getCode() const;
         bool getTestnet() const;
         const QString getNetworkPostfix() const;
+        quint64 blockNumber() const;
     public slots:
         void init();
         void waitConnect();
@@ -129,7 +131,7 @@ namespace Etherwall {
         Q_INVOKABLE void setInterval(int interval);
         bool closeApp();
         void registerEventFilters(const QStringList& addresses, const QStringList& topics);
-        void loadLogs(const QStringList& addresses, const QStringList& topics);
+        void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
     signals:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -183,6 +185,7 @@ namespace Etherwall {
         QTime fKillTime;
         bool fExternal;
         QString fEventFilterID;
+        quint64 fBlockNumber;
 
         void handleNewAccount();
         void handleDeleteAccount();
@@ -225,7 +228,7 @@ namespace Etherwall {
         void newBlockFilter();
         void newEventFilter(const QStringList& addresses, const QStringList& topics);
         void uninstallFilter(const QString& filter);
-        void getLogs(const QStringList& addresses, const QStringList& topics);
+        void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

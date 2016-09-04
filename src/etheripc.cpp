@@ -326,9 +326,9 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::loadLogs(const QStringList& addresses, const QStringList& topics) {
+    void EtherIPC::loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock) {
         if ( addresses.length() > 0 ) {
-            getLogs(addresses, topics);
+            getLogs(addresses, topics, fromBlock);
         }
     }
 
@@ -478,8 +478,13 @@ namespace Etherwall {
              return bail();
         }
 
+        fBlockNumber = result;
         emit getBlockNumberDone(result);
         done();
+    }
+
+    quint64 EtherIPC::blockNumber() const {
+        return fBlockNumber;
     }
 
     void EtherIPC::getPeerCount() {
@@ -767,10 +772,10 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::getLogs(const QStringList& addresses, const QStringList& topics) {
+    void EtherIPC::getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock) {
         QJsonArray params;
         QJsonObject o;
-        o["fromBlock"] = "earliest";
+        o["fromBlock"] = fromBlock == 0 ? "latest" : Helpers::toHexStr(fromBlock);
         o["address"] = QJsonArray::fromStringList(addresses);
         if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
             o["topics"] = QJsonArray::fromStringList(topics);

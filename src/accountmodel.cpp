@@ -234,8 +234,8 @@ namespace Etherwall {
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const TransactionInfo info(to);
-            const QString& sender = info.value(SenderRole).toString();
-            const QString& receiver = info.value(ReceiverRole).toString();
+            const QString& sender = info.value(SenderRole).toString().toLower();
+            const QString& receiver = info.value(ReceiverRole).toString().toLower();
 
             if ( containsAccount(sender, receiver, i1, i2) ) {
                 if ( i1 >= 0 ) {

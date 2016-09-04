@@ -209,8 +209,8 @@ namespace Etherwall {
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const QString thash = to.value("hash").toString();
-            const QString sender = to.value("from").toString();
-            const QString receiver = to.value("to").toString();
+            const QString sender = to.value("from").toString().toLower();
+            const QString receiver = to.value("to").toString().toLower();
             int i1, i2;
 
             const int n = containsTransaction(thash);

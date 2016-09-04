@@ -235,13 +235,15 @@ namespace Etherwall {
 
     void TransactionInfo::lookupAccountAliases() {
         const QSettings settings;
+        const QString sender = fSender.toLower();
+        const QString receiver = fReceiver.toLower();
 
-        if ( settings.contains("alias/" + fSender) ) {
-            fSenderAlias = settings.value("alias/" + fSender, QString()).toString();
+        if ( settings.contains("alias/" + sender) ) {
+            fSenderAlias = settings.value("alias/" + sender, QString()).toString();
         }
 
-        if ( settings.contains("alias/" + fReceiver) ) {
-            fReceiverAlias = settings.value("alias/" + fReceiver, QString()).toString();
+        if ( settings.contains("alias/" + receiver) ) {
+            fReceiverAlias = settings.value("alias/" + receiver, QString()).toString();
         }
     }
 

@@ -56,6 +56,12 @@ Item {
                 }
             }
 
+            onDoubleClicked: {
+                if ( eventView.currentRow >= 0 ) {
+                    details.open(eventView.currentRow)
+                }
+            }
+
             MouseArea {
                 anchors.fill: parent
                 acceptedButtons: Qt.RightButton

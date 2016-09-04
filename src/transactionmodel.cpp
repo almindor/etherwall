@@ -180,8 +180,8 @@ namespace Etherwall {
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {
         int ai1, ai2;
-        const QString& sender = info.value(SenderRole).toString();
-        const QString& receiver = info.value(ReceiverRole).toString();
+        const QString& sender = info.value(SenderRole).toString().toLower();
+        const QString& receiver = info.value(ReceiverRole).toString().toLower();
         if ( fAccountModel.containsAccount(sender, receiver, ai1, ai2) ) { // either our sent or someone sent to us
             const int n = containsTransaction(info.value(THashRole).toString());
             if ( n >= 0 ) { // ours
@@ -209,8 +209,8 @@ namespace Etherwall {
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const QString thash = to.value("hash").toString();
-            const QString sender = to.value("from").toString();
-            const QString receiver = to.value("to").toString();
+            const QString sender = to.value("from").toString().toLower();
+            const QString receiver = to.value("to").toString().toLower();
             int i1, i2;
 
             const int n = containsTransaction(thash);

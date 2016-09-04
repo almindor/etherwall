@@ -74,7 +74,7 @@ namespace Etherwall {
         i2 = -1;
         int i = 0;
         foreach ( const AccountInfo& a, fAccountList ) {
-            const QString addr = a.value(HashRole).toString();
+            const QString addr = a.value(HashRole).toString().toLower();
             if ( addr == from ) {
                 i1 = i;
             }
@@ -225,7 +225,7 @@ namespace Etherwall {
 
     void AccountModel::newBlock(const QJsonObject& block) {
         const QJsonArray transactions = block.value("transactions").toArray();
-        const QString miner = block.value("miner").toString("bogus");
+        const QString miner = block.value("miner").toString("bogus").toLower();
         int i1, i2;
         if ( containsAccount(miner, "bogus", i1, i2) ) {
             fIpc.refreshAccount(miner, i1);
@@ -234,8 +234,8 @@ namespace Etherwall {
         foreach ( QJsonValue t, transactions ) {
             const QJsonObject to = t.toObject();
             const TransactionInfo info(to);
-            const QString& sender = info.value(SenderRole).toString();
-            const QString& receiver = info.value(ReceiverRole).toString();
+            const QString& sender = info.value(SenderRole).toString().toLower();
+            const QString& receiver = info.value(ReceiverRole).toString().toLower();
 
             if ( containsAccount(sender, receiver, i1, i2) ) {
                 if ( i1 >= 0 ) {

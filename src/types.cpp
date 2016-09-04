@@ -111,9 +111,10 @@ namespace Etherwall {
         fIndex(ACC_INDEX++), fHash(Helpers::vitalizeAddress(hash)), fBalance(balance), fTransCount(transCount)
     {
         const QSettings settings;
+        const QString lowerHash = hash.toLower();
 
-        if ( settings.contains("alias/" + hash) ) {
-            fAlias = settings.value("alias/" + hash, QString()).toString();
+        if ( settings.contains("alias/" + lowerHash) ) {
+            fAlias = settings.value("alias/" + lowerHash, QString()).toString();
         }
     }
 
@@ -235,13 +236,15 @@ namespace Etherwall {
 
     void TransactionInfo::lookupAccountAliases() {
         const QSettings settings;
+        const QString sender = fSender.toLower();
+        const QString receiver = fReceiver.toLower();
 
-        if ( settings.contains("alias/" + fSender) ) {
-            fSenderAlias = settings.value("alias/" + fSender, QString()).toString();
+        if ( settings.contains("alias/" + sender) ) {
+            fSenderAlias = settings.value("alias/" + sender, QString()).toString();
         }
 
-        if ( settings.contains("alias/" + fReceiver) ) {
-            fReceiverAlias = settings.value("alias/" + fReceiver, QString()).toString();
+        if ( settings.contains("alias/" + receiver) ) {
+            fReceiverAlias = settings.value("alias/" + receiver, QString()).toString();
         }
     }
 

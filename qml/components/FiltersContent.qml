@@ -71,6 +71,12 @@ Item {
                 }
             }
 
+            onDoubleClicked: {
+                if ( filterView.currentRow >= 0 ) {
+                    details.open(filterView.currentRow)
+                }
+            }
+
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true

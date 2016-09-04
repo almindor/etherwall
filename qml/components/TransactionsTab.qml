@@ -132,6 +132,12 @@ Tab {
                 }
             }
 
+            onDoubleClicked: {
+                if ( transactionView.currentRow >= 0 ) {
+                    details.open(transactionModel.getJson(transactionView.currentRow, true))
+                }
+            }
+
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true

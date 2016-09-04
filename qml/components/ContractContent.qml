@@ -103,6 +103,12 @@ Item {
                 }
             }
 
+            onDoubleClicked: {
+                if ( contractView.currentRow >= 0 ) {
+                    calls.open(contractView.currentRow)
+                }
+            }
+
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true

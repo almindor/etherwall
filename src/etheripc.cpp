@@ -146,7 +146,7 @@ namespace Etherwall {
             return connectionTimeout();
         }
 
-        if ( ++fConnectAttempts < 60 ) {
+        if ( ++fConnectAttempts < 10 ) {
             if ( fSocket.state() == QLocalSocket::ConnectingState ) {
                 fSocket.abort();
             }

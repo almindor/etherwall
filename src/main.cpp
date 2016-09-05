@@ -63,12 +63,9 @@ int main(int argc, char *argv[])
     bool testnet = settings.value("geth/testnet", false).toBool();
     const QString gethPath = settings.value("geth/path", DefaultGethPath()).toString();
     const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
-    const QString ipcPath = DefaultIPCPath(testnet);
+    const QString ipcPath = DefaultIPCPath(dataPath, testnet);
 
     // set defaults
-    if ( !settings.contains("ipc/path") ) {
-        settings.setValue("ipc/path", ipcPath);
-    }
     if ( !settings.contains("geth/path") ) {
         settings.setValue("geth/path", gethPath);
     }

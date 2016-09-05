@@ -6,14 +6,9 @@ Etherwall is a free software wallet/front-end for Ethereum.
 
 ## Usage
 
-Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main
-website for windows and mac os x.
+Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main website for windows and mac os x.
 
-Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
-
-If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
-
-Ethwerwall will show geth's syncing progress and only process blocks after it's done.
+Default geth path on linux points to `/usr/bin/geth`
 
 ## License
 
@@ -37,7 +32,7 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ### Requirements
 
-Latest Geth (provided if downloaded off site)
+Latest Geth
 
 Qt5.5+ with qmake
 
@@ -47,12 +42,12 @@ qmake -config release && make
 
 ### Roadmap
 
-- 2.0 added contract support
-- 1.1+ add eth support (cancelled)
-- 1.0 add geth account backup and restore (skipped for now)
+- 2.0 use parity as back-end with "internal" transaction watching
+- 1.4 add contract deployment
+- 1.3 added contract support [invoking and watches]
 - 0.9 add transaction history support [done]
 - 0.8 initial release [done]
 
 ### Caveats & bugs
 
-Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.
+Only supported client at the moment is Geth.

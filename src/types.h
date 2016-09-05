@@ -67,7 +67,7 @@ namespace Etherwall {
             "JkX2TxeYmZl+B/qvVorfPzWK7NoalCBvIxyxBeI3e67Ly0lRWAGIsWEtQP4=\n"
             "-----END CERTIFICATE-----\n";
 
-    const QString DefaultIPCPath(bool testnet);
+    const QString DefaultIPCPath(const QString& dataDir, bool testnet);
     const QString DefaultGethPath();
 
     enum LogRoles {

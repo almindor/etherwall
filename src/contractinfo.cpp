@@ -102,6 +102,8 @@ namespace Etherwall {
             if ( fM < 0 ) fM = 128;
             if ( fN < 0 ) fN = 128;
             fType += QString::number(fM, 10) + "x" + QString::number(fN, 10);
+        } else if ( fBaseType == "bytes" && fM > 0 ) {
+            fType += QString::number(fM, 10);
         }
 
         // array to canonical
@@ -151,7 +153,7 @@ namespace Etherwall {
     }
 
     bool ContractArg::dynamic() const {
-        return (fBaseType == "string" || fBaseType == "bytes" || fLength == 0);
+        return (fType == "string" || fType == "bytes" || fLength == 0);
     }
 
     const QVariant ContractArg::decode(const QString& data, bool inArray) const {
@@ -197,10 +199,15 @@ namespace Etherwall {
         }
 
         if ( fBaseType == "bytes" ) {
-            // TODO
             // get byte count
-            ulong bytes = decodeInt(data.left(64), false).toUlong();
-            const QString hexStr = data.mid(64, bytes * 2).toUtf8();
+            QString hexStr;
+            if ( dynamic() ) {
+                ulong bytes = decodeInt(data.left(64), false).toUlong();
+                hexStr = data.mid(64, bytes * 2).toUtf8();
+            } else { // static bytes array
+                ulong bytes = fM;
+                hexStr = data.left(bytes * 2).toUtf8();
+            }
             const QByteArray raw = QByteArray::fromHex(hexStr.toUtf8());
             bool isAscii = true;
             foreach ( uchar b, raw ) {
@@ -372,8 +379,12 @@ namespace Etherwall {
         return BigInt::Rossi(rawData.toStdString(), 16) * multiplier;
     }
 
-    const QString ContractArg::encodeBytes(QByteArray bytes) {
-        const QString size = encodeInt(bytes.size());
+    const QString ContractArg::encodeBytes(QByteArray bytes, int fixedSize) {
+        if ( fixedSize > 0 && bytes.size() > fixedSize ) {
+            throw QString("Byte array too large for static bytes" + QString::number(fixedSize));
+        }
+
+        const QString sizePrefix = fixedSize == 0 ? encodeInt(bytes.size()) : ""; // static has no size prefix
         int coef = bytes.size() / 64;
         int requestedSize = 32 * (coef + 1);
 
@@ -381,7 +392,7 @@ namespace Etherwall {
             bytes.append('\0');
         }
 
-        return size + bytes.toHex();
+        return sizePrefix + bytes.toHex();
     }
 
     const QRegExp ContractArg::getValRex() const {
@@ -516,14 +527,13 @@ namespace Etherwall {
     }
 
     const QString ContractCallable::buildSignature() const {
-        QString list;
+        QStringList list;
 
         foreach ( const ContractArg arg, fArguments ) {
-            list = list + arg.type() + ",";
+            list.append(arg.type());
         }
-        list.remove(list.length() - 1, 1); // remove trailing ","
 
-        return fName + "(" + list + ")";
+        return fName + "(" + list.join(',') + ")";
     }
 
     const QString ContractCallable::getSignature() const {
@@ -596,13 +606,17 @@ namespace Etherwall {
         }
     }
 
+    void EventInfo::fillContract(const ContractInfo& contract) {
+        fContract = contract.name();
+    }
+
     void EventInfo::fillParams(const ContractInfo& contract, const ContractEvent& event) {
         if ( fMethodID != event.getMethodID() ) {
             throw QString("Event methodID mismatch");
         }
 
+        fillContract(contract);
         fName = event.getName();
-        fContract = contract.name();
         fArguments = event.getArguments();
 
         QString data = QString(fData);
@@ -694,6 +708,10 @@ namespace Etherwall {
         return strVal;
     }
 
+    quint64 EventInfo::blockNumber() const {
+        return fBlockNumber;
+    }
+
     // ***************************** ContractInfo ***************************** //
 
     ContractInfo::ContractInfo(const QString &name, const QString& address, const QJsonArray &abi) :
@@ -778,6 +796,9 @@ namespace Etherwall {
                 return;
             }
         }
+
+        // Couldn't match event, fill contract at least
+        info.fillContract(*this);
     }
 
     void ContractInfo::parse() {

@@ -29,6 +29,8 @@ namespace Etherwall {
         Q_INVOKABLE void loadLogs() const;
     public slots:
         void reload();
+    signals:
+        void beforeLoadLogs() const;
     private:
         void update(int index);
         void registerFilters() const;

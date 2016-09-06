@@ -63,7 +63,7 @@ namespace Etherwall {
         const QString toString() const;
         const QVariantMap toVariantMap() const;
         const QString encode(const QVariant& val, bool inArray = false) const;
-        static const QString encodeBytes(QByteArray bytes);
+        static const QString encodeBytes(QByteArray bytes, int fixedSize = 0);
         static const QString encodeInt(int number);
         static const QString encodeInt(const BigInt::Rossi& number);
         bool dynamic() const;
@@ -151,6 +151,7 @@ namespace Etherwall {
     public:
         EventInfo(const QJsonObject& source);
 
+        void fillContract(const ContractInfo& contract);
         void fillParams(const ContractInfo& contract, const ContractEvent& event);
         const QString address() const;
         const QString contract() const;
@@ -161,6 +162,7 @@ namespace Etherwall {
         const ContractArgs getArguments() const;
         const QVariantList getParams() const;
         const QString paramToStr(const QVariant& value) const;
+        quint64 blockNumber() const;
     private:
         QString fName;
         QString fContract;

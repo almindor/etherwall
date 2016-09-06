@@ -48,7 +48,7 @@ namespace Etherwall {
             return QString();
         }
 
-        return fList.at(index).value(FilterTopicsRole).toString();
+        return fList.at(index).value(FilterTopicsRole).toStringList().join(',');
     }
 
     bool FilterModel::getActive(int index) const {
@@ -130,6 +130,9 @@ namespace Etherwall {
         emit dataChanged(leftIndex, rightIndex, roles);
 
         registerFilters();
+        if ( fList.at(index).value(FilterActiveRole).toBool() ) {
+            loadLogs();
+        }
     }
 
     void FilterModel::registerFilters() const {
@@ -170,6 +173,8 @@ namespace Etherwall {
 
         quint64 day = settings.value("geth/logsize", 7200).toLongLong();
         quint64 fromBlock = fIpc.blockNumber() > day ? fIpc.blockNumber() - day : 1;
+
+        emit beforeLoadLogs();
         fIpc.loadLogs(addresses, topics, fromBlock);
     }
 

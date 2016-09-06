@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.3.1");
+    QCoreApplication::setApplicationVersion("1.3.2");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
     TransactionModel transactionModel(ipc, accountModel);
     ContractModel contractModel(ipc);
     FilterModel filterModel(ipc);
-    EventModel eventModel(contractModel);
+    EventModel eventModel(contractModel, filterModel);
 
     // for QML only
     QmlHelpers qmlHelpers;

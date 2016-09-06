@@ -45,7 +45,7 @@ Window {
             nameField.text = filterModel.getName(index);
             //contractField = filterModel.getName(index);
             activeField.checked = filterModel.getActive(index);
-            topicsField.text = filterModel.getTopics(index);
+            topicsField.text = filterModel.getTopics(index)
         }
 
         show()
@@ -120,6 +120,7 @@ Window {
                 id: topicsField
                 width: mainColumn.width - 1 * dpi
                 height: 1.0 * dpi
+                wrapMode: Text.WrapAnywhere
 
                 onTextChanged: saveButton.refresh()
             }

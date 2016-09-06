@@ -708,6 +708,10 @@ namespace Etherwall {
         return strVal;
     }
 
+    quint64 EventInfo::blockNumber() const {
+        return fBlockNumber;
+    }
+
     // ***************************** ContractInfo ***************************** //
 
     ContractInfo::ContractInfo(const QString &name, const QString& address, const QJsonArray &abi) :

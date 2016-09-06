@@ -5,6 +5,7 @@
 #include <QAbstractListModel>
 #include "contractinfo.h"
 #include "contractmodel.h"
+#include "filtermodel.h"
 
 namespace Etherwall {
 
@@ -12,7 +13,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        EventModel(const ContractModel& contractModel);
+        EventModel(const ContractModel& contractModel, const FilterModel& filterModel);
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent __attribute__ ((unused))) const;
@@ -29,6 +30,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getParamValue(int index) const;
     public slots:
         void onNewEvent(const EventInfo& info, bool isNew);
+        void onBeforeLoadLogs();
     signals:
         void receivedEvent(const QString& contract, const QString& signature);
     private:

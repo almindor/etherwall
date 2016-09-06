@@ -162,6 +162,7 @@ namespace Etherwall {
         const ContractArgs getArguments() const;
         const QVariantList getParams() const;
         const QString paramToStr(const QVariant& value) const;
+        quint64 blockNumber() const;
     private:
         QString fName;
         QString fContract;

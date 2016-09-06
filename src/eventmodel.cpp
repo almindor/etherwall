@@ -2,9 +2,11 @@
 
 namespace Etherwall {
 
-    EventModel::EventModel(const ContractModel& contractModel) : QAbstractListModel(0), fContractModel(contractModel), fList()
+    EventModel::EventModel(const ContractModel& contractModel, const FilterModel& filterModel) :
+        QAbstractListModel(0), fContractModel(contractModel), fList()
     {
         connect(&contractModel, &ContractModel::newEvent, this, &EventModel::onNewEvent);
+        connect(&filterModel, &FilterModel::beforeLoadLogs, this, &EventModel::onBeforeLoadLogs);
     }
 
     QHash<int, QByteArray> EventModel::roleNames() const {
@@ -127,13 +129,25 @@ namespace Etherwall {
     }
 
     void EventModel::onNewEvent(const EventInfo& info, bool isNew) {
-        beginInsertRows(QModelIndex(), fList.length(), fList.length());
-        fList.append(info);
+        // sort by block number descending
+        int index = 0;
+        while ( index < fList.length() && fList.at(index).blockNumber() > info.blockNumber() ) {
+            index++;
+        }
+
+        beginInsertRows(QModelIndex(), index, index);
+        fList.insert(index, info);
         endInsertRows();
 
         if ( isNew ) {
             emit receivedEvent(info.contract(), info.signature());
         }
+    }
+
+    void EventModel::onBeforeLoadLogs() {
+        beginResetModel();
+        fList.clear();
+        endResetModel();
     }
 
 }

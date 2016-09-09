@@ -23,6 +23,7 @@
 
 #include <QObject>
 #include <QAbstractListModel>
+#include <QNetworkAccessManager>
 #include "contractinfo.h"
 #include "etheripc.h"
 
@@ -31,6 +32,7 @@ namespace Etherwall {
     class ContractModel : public QAbstractListModel
     {
         Q_OBJECT
+        Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
     public:
         ContractModel(EtherIPC& ipc);
 
@@ -46,18 +48,24 @@ namespace Etherwall {
         Q_INVOKABLE const QString getMethodID(int index, const QString& functionName) const;
         Q_INVOKABLE const QVariantList getArguments(int index, const QString& functionName) const;
         Q_INVOKABLE void encodeCall(int index, const QString& functionName, const QVariantList& params);
+        Q_INVOKABLE void requestAbi(const QString& address);
     signals:
         void callEncoded(const QString& encoded) const;
         void callError(const QString& err) const;
         void newEvent(const EventInfo& info, bool isNew) const;
+        void abiResult(const QString& abi) const;
+        void busyChanged(bool busy) const;
     public slots:
         void reload();
         void onNewEvent(const QJsonObject& event, bool isNew);
+        void httpRequestDone(QNetworkReply *reply);
     private:
         const QString getPostfix() const;
 
         ContractList fList;
         EtherIPC& fIpc;
+        QNetworkAccessManager fNetManager;
+        bool fBusy;
     };
 
 }

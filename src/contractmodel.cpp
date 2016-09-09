@@ -20,16 +20,18 @@
 
 #include "contractmodel.h"
 #include "etherlog.h"
+#include "helpers.h"
 #include <QSettings>
 #include <QJsonDocument>
 #include <QDebug>
 
 namespace Etherwall {
 
-    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc)
+    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc), fNetManager(), fBusy(false)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
+        connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
     }
 
     QHash<int, QByteArray> ContractModel::roleNames() const {
@@ -181,6 +183,21 @@ namespace Etherwall {
         }
     }
 
+    void ContractModel::requestAbi(const QString& address) {
+        // get contract ABI
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/contracts"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QJsonObject objectJson;
+        objectJson["address"] = address;
+        const QByteArray data = QJsonDocument(objectJson).toJson();
+
+        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+
+        fNetManager.post(request, data);
+        fBusy = true;
+        emit busyChanged(true);
+    }
+
     void ContractModel::reload() {
         QSettings settings;
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
@@ -213,6 +230,25 @@ namespace Etherwall {
         }
 
         emit newEvent(info, isNew);
+    }
+
+    void ContractModel::httpRequestDone(QNetworkReply *reply) {
+        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        const bool success = resObj.value("success").toBool();
+
+        fBusy = false;
+        emit busyChanged(false);
+
+        if ( !success ) {
+            return; // probably just unknown ABI/contract
+        }
+
+        const QJsonValue rv = resObj.value("abi");
+        const QJsonArray arr = rv.toArray();
+        const QJsonDocument doc(arr);
+        const QString result(doc.toJson());
+
+        emit abiResult(result);
     }
 
 }

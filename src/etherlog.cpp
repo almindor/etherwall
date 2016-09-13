@@ -13,7 +13,7 @@ namespace Etherwall {
     {
         sLog = this;
         const QSettings settings;
-        fLogLevel = (LogSeverity)settings.value("log/level", LS_Info).toInt();
+        fLogLevel = (LogSeverity)settings.value("program/loglevel", LS_Info).toInt();
     }
 
     QHash<int, QByteArray> EtherLog::roleNames() const {
@@ -68,7 +68,7 @@ namespace Etherwall {
     void EtherLog::setLogLevel(int ll) {
         fLogLevel = (LogSeverity)ll;
         QSettings settings;
-        settings.setValue("log/level", ll);
+        settings.setValue("program/loglevel", ll);
     }
 
 }

@@ -4,6 +4,7 @@
 #include <QCryptographicHash>
 #include <QBitArray>
 #include <QDataStream>
+#include <QSettings>
 
 namespace Etherwall {
 
@@ -207,6 +208,45 @@ namespace Etherwall {
         }
 
         return "0x" + result;
+    }
+
+    const QByteArray Helpers::exportSettings() {
+        const QSettings settings;
+        QByteArray result;
+
+        foreach ( const QString key, settings.allKeys() ) {
+            if ( key.startsWith("alias/") || key.startsWith("geth/") || key.startsWith("ipc/") || key.startsWith("program") ||
+                 key.startsWith("contracts/") || key.startsWith("filters/") || key.startsWith("transactions") ) {
+                result += key.toUtf8() + '\0' + settings.value(key, "invalid").toString().toUtf8() + '\0';
+            }
+        }
+
+        return result;
+    }
+
+    void Helpers::importSettings(const QByteArray &data) {
+        QSettings settings;
+        QByteArray key;
+        QByteArray value;
+        QByteArray* word = &key;
+
+        // data consists of key\0value\0 combinations
+        foreach ( const char c, data ) {
+            if ( c != 0 ) {
+                word->append(c);
+            } else { // delimiter reached
+                if ( word == &value ) {
+                    settings.setValue(QString(key), QString(value));
+                    word = &key;
+                    value.clear();
+                    key.clear();
+                } else {
+                    word = &value;
+                }
+            }
+        }
+
+        settings.sync();
     }
 
     // ***************************** QmlHelpers ***************************** //

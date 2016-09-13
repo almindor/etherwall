@@ -99,7 +99,7 @@ Item {
                         return 0;
                     }
 
-                    var gas = parseInt(settings.value("gas", 21000))
+                    var gas = parseInt(settings.value("geth/gas", 21000))
                     for ( var i = 0; i < 4; i++ ) {
                         if ( gasItemsTransaction.get(i).value === gas ) {
                             return i;
@@ -113,7 +113,7 @@ Item {
                     var gasItems = contractData.length > 0 ? gasItemsContract : gasItemsTransaction
                     // custom
                     if ( currentIndex == 3 ) {
-                        gasField.text = settings.value("gas", contractData.length > 0 ? 90000 : 21000)
+                        gasField.text = settings.value("geth/gas", contractData.length > 0 ? 90000 : 21000)
                         gasField.readOnly = false
                         return
                     }
@@ -139,7 +139,7 @@ Item {
 
                 onTextChanged: {
                     if ( contractData.length > 0 ) return
-                    settings.setValue("gas", text)
+                    settings.setValue("geth/gas", text)
                 }
             }
 

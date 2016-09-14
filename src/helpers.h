@@ -5,6 +5,7 @@
 #include <QString>
 #include <QJsonObject>
 #include <QNetworkReply>
+#include <QDir>
 #include "bigint.h"
 #include "types.h"
 
@@ -30,7 +31,11 @@ namespace Etherwall {
         static QJsonObject parseHTTPReply(QNetworkReply *reply);
         static const QString vitalizeAddress(const QString& origAddress);
         static const QByteArray exportSettings();
-        static void importSettings(const QByteArray &data);
+        static void importSettings(const QByteArray& data);
+        static const QByteArray exportAddresses(const QDir& keystore);
+        static void importAddresses(QByteArray& data, const QDir& keystore);
+        static const QByteArray createBackup(const QDir& keystore);
+        static void restoreBackup(QByteArray& data, const QDir& keystore);
     };
 
     class QmlHelpers : public QObject
@@ -39,6 +44,7 @@ namespace Etherwall {
     public:
         QmlHelpers();
         Q_INVOKABLE bool checkAddress(const QString& origAddress) const;
+        Q_INVOKABLE const QString localURLToString(const QUrl& url);
     };
 
 }

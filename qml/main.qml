@@ -19,7 +19,8 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick.Controls 1.4
+import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.0
 import "components"
 
@@ -56,6 +57,45 @@ ApplicationWindow {
 
         if ( !close.accepted && !closeTimer.running ) {
             closeTimer.start()
+        }
+    }
+
+    FileDialog {
+        id: exportFileDialog
+        title: qsTr("Export wallet backup")
+        selectFolder: false
+        selectExisting: false
+        selectMultiple: false
+        folder: shortcuts.documents
+        nameFilters: [ "Etherwall backup files (*.etherwall)", "All files (*)" ]
+
+        onAccepted: accountModel.exportWallet(exportFileDialog.fileUrl)
+    }
+
+    FileDialog {
+        id: importFileDialog
+        title: qsTr("Import wallet from backup")
+        selectFolder: false
+        selectExisting: true
+        selectMultiple: false
+        folder: shortcuts.documents
+        nameFilters: [ "Etherwall backup files (*.etherwall)", "All files (*)" ]
+
+        onAccepted: accountModel.importWallet(importFileDialog.fileUrl)
+    }
+
+    menuBar: MenuBar {
+        Menu {
+            title: "Wallet"
+            MenuItem {
+                text: "Export"
+                onTriggered: exportFileDialog.open()
+            }
+
+            MenuItem {
+                text: "Import"
+                onTriggered: importFileDialog.open()
+            }
         }
     }
 
@@ -110,12 +150,20 @@ ApplicationWindow {
 
             onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
         }
+
+        Connections {
+            target: accountModel
+
+            onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
+            onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
+            onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
+        }
     }
 
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.starting || ipc.busy || ipc.syncing
+        running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy
     }
 
     FirstTimeDialog {

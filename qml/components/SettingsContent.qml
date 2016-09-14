@@ -47,7 +47,7 @@ TabView {
                     selectMultiple: false
 
                     onAccepted: {
-                        gethDDField.text = ddFileDialog.fileUrl.toString().replace(/^(file:\/{2})/,"") // gotta love QML
+                        gethDDField.text = helpers.localURLToString(ddFileDialog.fileUrl)
                     }
                 }
             }

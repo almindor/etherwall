@@ -896,6 +896,11 @@ namespace Etherwall {
             emit error();
         }
 
+        if ( vn > 0 && vn < 104012 ) {
+            setError("Geth version 1.4.11 and older contain a DOS vulnerability. Please update geth to 1.4.12+");
+            emit error();
+        }
+
         emit clientVersionChanged(fClientVersion);
         done();
     }

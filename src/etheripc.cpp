@@ -877,6 +877,26 @@ namespace Etherwall {
         done();
     }
 
+    void EtherIPC::getTransactionReceipt(const QString& hash) {
+        QJsonArray params;
+        params.append(hash);
+
+        if ( !queueRequest(RequestIPC(GetBlock, "eth_getTransactionReceipt", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetTransactionReceipt() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+
+        emit getTransactionReceiptDone(jv.toObject());
+        done();
+    }
+
     void EtherIPC::handleGetClientVersion() {
         QJsonValue jv;
         if ( !readReply(jv) ) {

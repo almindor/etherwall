@@ -18,6 +18,10 @@ Item {
             id: calls
         }
 
+        ContractDeploy {
+            id: deploy
+        }
+
         Item {
             id: controlsRow
             height: 1 * dpi
@@ -29,7 +33,7 @@ Item {
                 width: parent.width / 2.0
                 height: parent.height
 
-                onClicked: details.open(-1)
+                onClicked: deploy.open() // details.open(-1)
             }
 
             Button {

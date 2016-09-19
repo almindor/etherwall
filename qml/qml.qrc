@@ -33,6 +33,8 @@
         <file>components/FilterDetails.qml</file>
         <file>components/EventDetails.qml</file>
         <file>components/Badge.qml</file>
+        <file>components/ContractDeploy.qml</file>
+        <file>components/DeployContractContent.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

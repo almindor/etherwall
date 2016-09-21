@@ -26,6 +26,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
+#include <QUrl>
 #include "types.h"
 #include "currencymodel.h"
 #include "etheripc.h"
@@ -39,6 +40,7 @@ namespace Etherwall {
         Q_PROPERTY(int selectedAccountRow READ getSelectedAccountRow WRITE setSelectedAccountRow NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString total READ getTotal NOTIFY totalChanged)
+        Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
     public:
         AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel);
         QString getError() const;
@@ -54,6 +56,8 @@ namespace Etherwall {
         Q_INVOKABLE void renameAccount(const QString& name, int index);
         Q_INVOKABLE void deleteAccount(const QString& pw, int index);
         Q_INVOKABLE const QString getAccountHash(int index) const;
+        Q_INVOKABLE void exportWallet(const QUrl& fileName) const;
+        Q_INVOKABLE void importWallet(const QUrl& fileName);
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -63,15 +67,21 @@ namespace Etherwall {
         void newBlock(const QJsonObject& block);
         void currencyChanged();
         void syncingChanged(bool syncing);
+        void importWalletDone();
     signals:
-        void accountSelectionChanged(int);
-        void totalChanged();
+        void accountSelectionChanged(int) const;
+        void totalChanged() const;
+        void walletErrorEvent(const QString& error) const;
+        void walletExportedEvent() const;
+        void walletImportedEvent() const;
+        void busyChanged(bool busy) const;
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;
         int fSelectedAccountRow;
         QString fSelectedAccount;
         const CurrencyModel& fCurrencyModel;
+        bool fBusy;
 
         int getSelectedAccountRow() const;
         void setSelectedAccountRow(int row);

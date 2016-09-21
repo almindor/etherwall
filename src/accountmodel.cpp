@@ -24,11 +24,12 @@
 #include <QDebug>
 #include <QSettings>
 #include <QDateTime>
+#include <QFile>
 
 namespace Etherwall {
 
     AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1), fCurrencyModel(currencyModel)
+        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
@@ -137,6 +138,61 @@ namespace Etherwall {
         }
 
         return QString();
+    }
+
+    void AccountModel::exportWallet(const QUrl& fileName) const {
+        const QSettings settings;
+        QDir keystore(settings.value("geth/datadir").toString());
+        keystore.cd("keystore");
+
+        try {
+            QByteArray backupData = Helpers::createBackup(keystore);
+            QFile file(fileName.toLocalFile());
+            if ( !file.open(QFile::WriteOnly) ) {
+                throw file.errorString();
+            }
+            if ( file.write(backupData) < backupData.size() ) {
+                throw file.errorString();
+            }
+            file.close();
+        } catch ( QString err ) {
+            emit walletErrorEvent(err);
+            return;
+        }
+
+        emit walletExportedEvent();
+    }
+
+    void AccountModel::importWallet(const QUrl& fileName) {
+        const QSettings settings;
+        try {
+            QDir keystore(settings.value("geth/datadir").toString());
+            keystore.cd("keystore");
+            QFile file(fileName.toLocalFile());
+            if ( !file.exists() ) {
+                throw QString("Wallet backup file not found");
+            }
+            if ( !file.open(QFile::ReadOnly) ) {
+                throw file.errorString();
+            }
+            QByteArray backupData = file.readAll();
+            Helpers::restoreBackup(backupData, keystore);
+            file.close();
+        } catch ( QString err ) {
+            emit walletErrorEvent(err);
+            return;
+        }
+
+        fBusy = true;
+        emit busyChanged(true);
+        QTimer::singleShot(2000, this, SLOT(importWalletDone()));
+    }
+
+    void AccountModel::importWalletDone() {
+        fBusy = false;
+        emit busyChanged(false);
+        fIpc.getAccounts();
+        emit walletImportedEvent();
     }
 
     void AccountModel::connectToServerDone() {

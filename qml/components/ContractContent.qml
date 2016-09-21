@@ -18,6 +18,10 @@ Item {
             id: calls
         }
 
+        ContractDeploy {
+            id: deploy
+        }
+
         Item {
             id: controlsRow
             height: 1 * dpi
@@ -25,11 +29,21 @@ Item {
 
             Button {
                 id: addButton
-                text: qsTr("Add Contract")
+                text: qsTr("Add Existing Contract")
                 width: parent.width / 2.0
-                height: parent.height
+                height: parent.height / 2.0
 
                 onClicked: details.open(-1)
+            }
+
+            Button {
+                id: deployButton
+                text: qsTr("Deploy New Contract")
+                anchors.top: addButton.bottom
+                width: parent.width / 2.0
+                height: parent.height / 2.0
+
+                onClicked: deploy.open()
             }
 
             Button {
@@ -76,7 +90,7 @@ Item {
                 MenuItem {
                     text: qsTr("Edit")
                     onTriggered: {
-                        details.open(transactionModel.getJson(contractView.currentRow, true))
+                        details.open(contractView.currentRow)
                     }
                 }
 

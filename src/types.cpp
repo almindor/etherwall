@@ -218,7 +218,7 @@ namespace Etherwall {
         fHash = source.value("hash").toString("invalid");
         fNonce = Helpers::toQUInt64(source.value("nonce"));
         fSender = Helpers::vitalizeAddress(source.value("from").toString("invalid"));
-        fReceiver = Helpers::vitalizeAddress(source.value("to").toString("invalid"));
+        fReceiver = Helpers::vitalizeAddress(source.value("to").toString());
         fBlockHash = source.value("blockHash").toString("invalid");
         fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
         fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));

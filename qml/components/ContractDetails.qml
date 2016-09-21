@@ -60,7 +60,7 @@ Window {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.starting || ipc.busy || ipc.syncing
+        running: ipc.starting || ipc.busy || ipc.syncing || contractModel.busy
     }
 
     Column {
@@ -100,7 +100,13 @@ Window {
 
                 maximumLength: 42
 
-                onTextChanged: saveButton.refresh()
+                onTextChanged: {
+                    saveButton.refresh()
+                    // if we have a full address on ETH main chain, we can query etherscan.io for the ABI
+                    if ( text.length == 42 && settings.valueBool("geth/hardfork") && !ipc.testnet ) {
+                        contractModel.requestAbi(text)
+                    }
+                }
             }
         }
 
@@ -114,8 +120,17 @@ Window {
                 id: abiField
                 width: mainColumn.width - 1 * dpi
                 height: 1.0 * dpi
+                wrapMode: TextEdit.WrapAnywhere
 
                 onTextChanged: saveButton.refresh()
+
+                Connections {
+                    target: contractModel
+
+                    onAbiResult: {
+                        abiField.text = abi
+                    }
+                }
             }
         }
 

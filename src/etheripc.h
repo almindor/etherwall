@@ -122,10 +122,12 @@ namespace Etherwall {
                              const QString& gas = QString(), const QString& gasPrice = QString(), const QString& data = QString());
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
-        void estimateGas(const QString& from, const QString& to, const QString& value);
+        Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
+                                     const QString& gas, const QString& gasPrice, const QString& data);
         void getTransactionByHash(const QString& hash);
         void getBlockByHash(const QString& hash);
         void getBlockByNumber(quint64 blockNum);
+        Q_INVOKABLE void getTransactionReceipt(const QString& hash);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         Q_INVOKABLE void setInterval(int interval);
@@ -134,30 +136,31 @@ namespace Etherwall {
         void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
     signals:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list);
-        void newAccountDone(const QString& result, int index);
-        void deleteAccountDone(bool result, int index);
-        void getBlockNumberDone(quint64 num);
-        void sendTransactionDone(const QString& hash);
-        void unlockAccountDone(bool result, int index);
-        void getGasPriceDone(const QString& price);
-        void estimateGasDone(const QString& price);
-        void newTransaction(const TransactionInfo& info);
-        void newBlock(const QJsonObject& block);
-        void newEvent(const QJsonObject& event, bool isNew);
+        void getAccountsDone(const AccountList& list) const;
+        void newAccountDone(const QString& result, int index) const;
+        void deleteAccountDone(bool result, int index) const;
+        void getBlockNumberDone(quint64 num) const;
+        void sendTransactionDone(const QString& hash) const;
+        void unlockAccountDone(bool result, int index) const;
+        void getGasPriceDone(const QString& price) const;
+        void estimateGasDone(const QString& price) const;
+        void newTransaction(const TransactionInfo& info) const;
+        void newBlock(const QJsonObject& block) const;
+        void newEvent(const QJsonObject& event, bool isNew) const;
+        void getTransactionReceiptDone(const QJsonObject& receipt) const;
 
-        void peerCountChanged(quint64 num);
-        void accountChanged(const AccountInfo& info);
-        void busyChanged(bool busy);
-        void externalChanged(bool external);
-        void startingChanged(bool starting);
-        void syncingChanged(bool syncing);
-        void closingChanged(bool closing);
-        void hardForkReadyChanged(bool hfReady);
-        void connectionStateChanged();
-        void clientVersionChanged(const QString& ver);
-        void netVersionChanged(int ver);
-        void error();
+        void peerCountChanged(quint64 num) const;
+        void accountChanged(const AccountInfo& info) const;
+        void busyChanged(bool busy) const;
+        void externalChanged(bool external) const;
+        void startingChanged(bool starting) const;
+        void syncingChanged(bool syncing) const;
+        void closingChanged(bool closing) const;
+        void hardForkReadyChanged(bool hfReady) const;
+        void connectionStateChanged() const;
+        void clientVersionChanged(const QString& ver) const;
+        void netVersionChanged(int ver) const;
+        void error() const;
     private:
         QString fPath;
         QLocalSocket fSocket;
@@ -204,6 +207,7 @@ namespace Etherwall {
         void handleUninstallFilter();
         void handleGetTransactionByHash();
         void handleGetBlock();
+        void handleGetTransactionReceipt();
         void handleGetClientVersion();
         void handleGetNetVersion();
         void handleGetSyncing();

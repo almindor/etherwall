@@ -506,12 +506,12 @@ namespace Etherwall {
                                    const QString& gas, const QString& gasPrice, const QString& data) {
         QJsonArray params;
         const QString valHex = Helpers::toHexWeiStr(valStr);
-        EtherLog::logMsg(QString("Trans Value: ") + valStr + QString(" HexValue: ") + valHex);
-
         QJsonObject p;
         p["from"] = from;
-        p["to"] = to;
         p["value"] = valHex;
+        if ( !to.isEmpty() ) {
+            p["to"] = to;
+        }
         if ( !gas.isEmpty() ) {
             const QString gasHex = Helpers::decStrToHexStr(gas);
             p["gas"] = gasHex;
@@ -606,15 +606,29 @@ namespace Etherwall {
         return fPeerCount;
     }
 
-    void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& value) {
+    void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& valStr,
+                                   const QString& gas, const QString& gasPrice, const QString& data) {
+        const QString valHex = Helpers::toHexWeiStr(valStr);
         QJsonArray params;
-        QJsonObject o;
-        o["to"] = to;
-        o["from"] = from;
-        o["value"] = Helpers::toHexWeiStr(value);
-        o["gas"] = Helpers::toHexStr(90000);
-        params.append(o);
-        params.append(QString("latest"));
+        QJsonObject p;
+        p["from"] = from;
+        p["value"] = valHex;
+        if ( !to.isEmpty() ) {
+            p["to"] = to;
+        }
+        if ( !gas.isEmpty() ) {
+            const QString gasHex = Helpers::decStrToHexStr(gas);
+            p["gas"] = gasHex;
+        }
+        if ( !gasPrice.isEmpty() ) {
+            const QString gasPriceHex = Helpers::toHexWeiStr(gasPrice);
+            p["gasPrice"] = gasPriceHex;
+        }
+        if ( !data.isEmpty() ) {
+            p["data"] = data;
+        }
+
+        params.append(p);
         if ( !queueRequest(RequestIPC(EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
@@ -623,7 +637,7 @@ namespace Etherwall {
     void EtherIPC::handleEstimateGas() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
-            return bail();
+            return bail(true); // probably gas too low
         }
 
         const QString price = Helpers::toDecStr(jv);
@@ -874,6 +888,26 @@ namespace Etherwall {
         const quint64 num = Helpers::toQUInt64(block.value("number"));
         emit getBlockNumberDone(num);
         emit newBlock(block);
+        done();
+    }
+
+    void EtherIPC::getTransactionReceipt(const QString& hash) {
+        QJsonArray params;
+        params.append(hash);
+
+        if ( !queueRequest(RequestIPC(GetTransactionReceipt, "eth_getTransactionReceipt", params)) ) {
+            return bail();
+        }
+    }
+
+    void EtherIPC::handleGetTransactionReceipt() {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail();
+        }
+
+
+        emit getTransactionReceiptDone(jv.toObject());
         done();
     }
 
@@ -1231,6 +1265,10 @@ namespace Etherwall {
             }
         case GetLogs: {
                 handleGetFilterChanges();
+                break;
+            }
+        case GetTransactionReceipt: {
+                handleGetTransactionReceipt();
                 break;
             }
         default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;

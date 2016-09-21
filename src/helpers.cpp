@@ -4,9 +4,11 @@
 #include <QCryptographicHash>
 #include <QBitArray>
 #include <QDataStream>
+#include <QSettings>
+#include <QFile>
+#include <QDataStream>
 
 namespace Etherwall {
-
 
 // ***************************** Helpers ***************************** //
 
@@ -209,6 +211,206 @@ namespace Etherwall {
         return "0x" + result;
     }
 
+    const QByteArray Helpers::exportSettings() {
+        const QSettings settings;
+        QByteArray result;
+
+        foreach ( const QString key, settings.allKeys() ) {
+            if ( key.startsWith("alias/") || key.startsWith("geth/") || key.startsWith("ipc/") || key.startsWith("program") ||
+                 key.startsWith("contracts/") || key.startsWith("filters/") || key.startsWith("transactions") ) {
+                result += key.toUtf8() + '\0' + settings.value(key, "invalid").toString().toUtf8() + '\0';
+            }
+        }
+
+        return result;
+    }
+
+    void Helpers::importSettings(const QByteArray &data) {
+        QSettings settings;
+        QByteArray key;
+        QByteArray value;
+        QByteArray* word = &key;
+
+        // data consists of key\0value\0 combinations
+        foreach ( const char c, data ) {
+            if ( c != 0 ) {
+                word->append(c);
+            } else { // delimiter reached
+                if ( word == &value ) {
+                    settings.setValue(QString(key), QString(value));
+                    word = &key;
+                    value.clear();
+                    key.clear();
+                } else {
+                    word = &value;
+                }
+            }
+        }
+
+        settings.sync();
+    }
+
+    const QByteArray Helpers::exportAddresses(const QDir& keystore) {
+        if ( !keystore.exists() ) {
+            throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
+        }
+
+        QByteArray result;
+        QDataStream stream(&result, QIODevice::WriteOnly);
+        const QStringList nameFilter("UTC*");
+
+        foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
+            QFile file(keystore.filePath(fileName));
+            file.open(QFile::ReadOnly);
+            const QByteArray raw = file.readAll();
+            file.close();
+            const QJsonDocument doc = QJsonDocument::fromJson(raw);
+            const QJsonObject contents = doc.object();
+            QJsonObject wrapper;
+            wrapper["address"] = contents.value("address").toString("invalid");
+            wrapper["filename"] = fileName;
+            wrapper["contents"] = contents;
+            const QByteArray binary = QJsonDocument(wrapper).toBinaryData();
+
+            quint32 qSize = binary.size();
+            stream << qSize;
+            stream << binary;
+        }
+
+        return result;
+    }
+
+    void Helpers::importAddresses(QByteArray &data, const QDir& keystore) {
+        QStringList existingList;
+        const QStringList nameFilter("UTC*");
+        foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
+            QFile file(keystore.filePath(fileName));
+            file.open(QFile::ReadOnly);
+            const QByteArray raw = file.readAll();
+            file.close();
+            const QJsonDocument doc = QJsonDocument::fromJson(raw);
+            const QJsonObject contents = doc.object();
+            existingList.append(contents.value("address").toString("invalid"));
+        }
+
+        QDataStream stream(&data, QIODevice::ReadOnly);
+        while ( !stream.atEnd() ) {
+            quint32 size = 0;
+            stream >> size;
+
+            if ( size == 0 ) {
+                throw QString("Invalid size in address datastream: " + QString::number(size, 10));
+            }
+
+            QByteArray raw(size, '\0');
+            stream >> raw;
+            const QJsonObject wrapper = QJsonDocument::fromBinaryData(raw).object();
+
+            // check for existing address NOTE: filename can differ! using address to address check
+            const QString address = wrapper.value("address").toString();
+            if ( existingList.contains(address, Qt::CaseInsensitive) ) {
+                continue;
+            }
+
+            const QJsonObject contents = wrapper.value("contents").toObject();
+            QFile file(keystore.filePath(wrapper.value("filename").toString("invalid")));
+            file.open(QFile::WriteOnly);
+            file.write(QJsonDocument(contents).toJson(QJsonDocument::Compact));
+            file.close();
+        }
+    }
+
+    const QByteArray Helpers::createBackup(const QDir& keystore) {
+        const QByteArray settingsData = exportSettings();
+        const QByteArray addressData = exportAddresses(keystore);
+        QByteArray testnetData;
+
+        QDir testnet(keystore);
+        // can't use && because C++ doesn't enforce execution order AFAIK
+        if ( testnet.cd("../testnet") ) {
+            if ( testnet.cd("keystore") ) {
+                testnetData = exportAddresses(testnet);
+            }
+        }
+
+        QByteArray all; // all without checksum
+        QByteArray result; // full result with 16bit checksum
+        QDataStream allStream(&all, QIODevice::WriteOnly);
+        QDataStream resultStream(&result, QIODevice::WriteOnly);
+        quint32 segmentSize;
+
+        segmentSize = settingsData.size();
+        allStream << segmentSize;
+        allStream << settingsData;
+        segmentSize = addressData.size();
+        allStream << segmentSize;
+        allStream << addressData;
+        // add testnet addresses if present
+        if ( testnetData.size() > 0 ) {
+            segmentSize = testnetData.size();
+            allStream << segmentSize;
+            allStream << testnetData;
+        }
+
+        quint32 allSize = all.size();
+        quint16 crc = qChecksum(all.data(), all.size());
+        resultStream << allSize;
+        resultStream << crc;
+        resultStream << all;
+
+        return qCompress(result, 9);
+    }
+
+    void Helpers::restoreBackup(QByteArray& data, const QDir& keystore) {
+        QByteArray raw = qUncompress(data);
+        QDataStream totalStream(&raw, QIODevice::ReadOnly);
+
+        quint32 allSize;
+        quint16 crc;
+        totalStream >> allSize;
+        totalStream >> crc;
+        QByteArray all(allSize, '\0');
+        totalStream >> all;
+
+        quint32 segmentSize;
+        quint16 checkSum = qChecksum(all.data(), all.size());
+
+        // do CRC check
+        if ( crc != checkSum ) {
+            throw QString("CRC check mismatch: " + QString::number(crc) + " != " + QString::number(checkSum));
+        } else if ( !totalStream.atEnd() ) {
+            throw QString("Unexpected data at end of restore stream");
+        }
+
+        QByteArray testnetData;
+
+        QDataStream allStream(&all, QIODevice::ReadOnly);
+        allStream >> segmentSize;
+        QByteArray settingsData(segmentSize, '\0');
+        allStream >> settingsData;
+        allStream >> segmentSize;
+        QByteArray addressData(segmentSize, '\0');
+        allStream >> addressData;
+        if ( !allStream.atEnd() ) { // testnet addresses are present
+            allStream >> segmentSize;
+            testnetData = QByteArray(segmentSize, '\0');
+            allStream >> testnetData;
+        }
+
+        importSettings(settingsData);
+        importAddresses(addressData, keystore);
+        QDir testnet(keystore);
+        // can't use && because C++ doesn't enforce execution order AFAIK
+        if ( testnetData.size() > 0 ) {
+            if ( !testnet.cd("..") ) throw QString("Unable to reach main datadir");
+            testnet.mkdir("testnet");
+            if ( !testnet.cd("testnet") ) throw QString("Unable to reach testnet datadir");;
+            testnet.mkdir("keystore");
+            if ( !testnet.cd("keystore") ) throw QString("Unable to reach testnet keystore");;
+            importAddresses(testnetData, testnet);
+        }
+    }
+
     // ***************************** QmlHelpers ***************************** //
 
     QmlHelpers::QmlHelpers() : QObject(0) {
@@ -217,6 +419,10 @@ namespace Etherwall {
 
     bool QmlHelpers::checkAddress(const QString& origAddress) const {
         return origAddress == Helpers::vitalizeAddress(origAddress);
+    }
+
+    const QString QmlHelpers::localURLToString(const QUrl& url) {
+        return url.toLocalFile();
     }
 
 }

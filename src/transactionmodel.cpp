@@ -224,7 +224,7 @@ namespace Etherwall {
                 emit dataChanged(leftIndex, rightIndex, roles);
                 const TransactionInfo info = fTransactionList.at(n);
                 storeTransaction(fTransactionList.at(n));
-                emit confirmedTransaction(info.value(ReceiverRole).toString());
+                emit confirmedTransaction(info.value(ReceiverRole).toString(), info.value(THashRole).toString());
             } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
                 const TransactionInfo info = TransactionInfo(to);
                 addTransaction(info);
@@ -430,8 +430,8 @@ namespace Etherwall {
 
     void TransactionModel::loadHistory() {
         QSettings settings;
-        if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() ) {
-            return; // don't try with empty request or on test net
+        if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() || !settings.value("geth/hardfork", true).toBool() ) {
+            return; // don't try with empty request or on test net/ETC
         }
 
         // get historical transactions from etherdata

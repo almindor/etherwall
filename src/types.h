@@ -138,7 +138,8 @@ namespace Etherwall {
         GetClientVersion,
         GetNetVersion,
         GetSyncing,
-        GetLogs
+        GetLogs,
+        GetTransactionReceipt
     };
 
     enum AccountRoles {

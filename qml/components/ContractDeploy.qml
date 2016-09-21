@@ -24,8 +24,8 @@ import QtQuick.Controls.Styles 1.1
 import QtQuick.Window 2.0
 
 Window {
-    id: contractCalls
-    title: qsTr("Call Contract")
+    id: contractDeploy
+    title: qsTr("Deploy Contract")
 
     modality: Qt.NonModal
     visible: false
@@ -40,16 +40,16 @@ Window {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    function open( index ) {
+    function open() {
         stcTab.active = true
-        stcTab.children[0].toAddress = contractModel.getAddress(index)
+        //stcTab.children[0].toAddress = contractModel.getAddress(index)
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
         stcTab.enabled = false
 
         cccTab.active = true
-        cccTab.children[0].contractIndex = index
+        //cccTab.children[0].contractIndex = index
         tabs.currentIndex = 0
         show()
     }
@@ -60,10 +60,10 @@ Window {
 
         Tab {
             id: cccTab
-            title: qsTr("Function")
-            CallContractContent {
+            title: qsTr("Contract")
+            DeployContractContent {
                 onDone: {
-                    contractCalls.close()
+                    contractDeploy.close()
                 }
 
                 onContractError: {
@@ -73,6 +73,8 @@ Window {
 
                 onContractReady: {
                     stcTab.children[0].contractData = encoded
+                    stcTab.children[0].contractName = name
+                    stcTab.children[0].contractAbi = abi
                     stcTab.enabled = true
                     if ( next ) {
                         tabs.currentIndex = 1
@@ -86,7 +88,7 @@ Window {
             title: qsTr("Transaction")
             SendTransactionContent {
                 onDone: {
-                    contractCalls.close()
+                    contractDeploy.close()
                 }
             }
         }

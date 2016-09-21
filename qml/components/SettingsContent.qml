@@ -1,6 +1,6 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.0
-import QtQuick.Dialogs 1.0
+import QtQuick.Controls 1.4
+import QtQuick.Dialogs 1.2
 import QtQuick.Extras 1.4
 
 TabView {
@@ -47,7 +47,7 @@ TabView {
                     selectMultiple: false
 
                     onAccepted: {
-                        gethDDField.text = ddFileDialog.fileUrl.toString().replace(/^(file:\/{3})/,""); // fugly but gotta love QML on this one
+                        gethDDField.text = helpers.localURLToString(ddFileDialog.fileUrl)
                     }
                 }
             }

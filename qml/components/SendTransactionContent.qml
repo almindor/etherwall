@@ -7,28 +7,20 @@ Item {
     anchors.fill: parent
     property string toAddress : ""
     property string contractData : ""
+    // deployment properties
+    property string contractName : ""
+    property string contractAbi : ""
     signal done
 
     onVisibleChanged: {
         if ( visible ) {
-            gasCombo.model = contractData.length > 0 ? gasItemsContract : gasItemsTransaction
+            if ( contractName.length ) {
+                gasField.text = "3141592"
+            } else {
+                gasField.text = "21000"
+            }
+            sendButton.refresh()
         }
-    }
-
-    ListModel {
-        id: gasItemsTransaction
-        ListElement { text: "Default"; value: 90000 }
-        ListElement { text: "Minimal"; value: 21000 }
-        ListElement { text: "Fast"; value: 180000 }
-        ListElement { text: "Custom"; value: 0 }
-    }
-
-    ListModel {
-        id: gasItemsContract
-        ListElement { text: "Default"; value: 180000 }
-        ListElement { text: "Minimal"; value: 90000 }
-        ListElement { text: "Fast"; value: 360000 }
-        ListElement { text: "Custom"; value: 0 }
     }
 
     BusyIndicator {
@@ -61,6 +53,7 @@ Item {
         }
 
         Row {
+            visible: contractName.length === 0
             Label {
                 width: 1 * dpi
                 text: qsTr("To: ")
@@ -89,58 +82,21 @@ Item {
                 width: 1 * dpi
             }
 
-            ComboBox {
-                id: gasCombo
-                width: 1.2 * dpi
-                model: gasItemsTransaction
-
-                currentIndex: {
-                    if ( contractData.length > 0 ) {
-                        return 0;
-                    }
-
-                    var gas = parseInt(settings.value("gas", 21000))
-                    for ( var i = 0; i < 4; i++ ) {
-                        if ( gasItemsTransaction.get(i).value === gas ) {
-                            return i;
-                        }
-                    }
-
-                    return 3
-                }
-
-                onCurrentIndexChanged: {
-                    var gasItems = contractData.length > 0 ? gasItemsContract : gasItemsTransaction
-                    // custom
-                    if ( currentIndex == 3 ) {
-                        gasField.text = settings.value("gas", contractData.length > 0 ? 90000 : 21000)
-                        gasField.readOnly = false
-                        return
-                    }
-
-                    if ( currentIndex < 0 || currentIndex > 3 ) {
-                        return // ???
-                    }
-
-                    var gas = gasItems.get(currentIndex).value
-                    gasField.text = gas
-                    gasField.readOnly = true
-                }
-            }
-
             TextField {
                 id: gasField
-                readOnly: true
                 width: 0.9 * dpi
                 validator: IntValidator {
                     bottom: 21000
                     top: 99999999
                 }
 
-                onTextChanged: {
-                    if ( contractData.length > 0 ) return
-                    settings.setValue("gas", text)
-                }
+                text: "3141592" // max, will go lower on estimates
+            }
+
+            Button {
+                id: estimateButton
+                text: "Estimate"
+                onClicked: sendButton.refresh()
             }
 
             Label {
@@ -150,7 +106,7 @@ Item {
 
             TextField {
                 id: gasPriceField
-                width: mainColumn.width - gasField.width - gasCombo.width - 2 * dpi - gasButton.width
+                width: mainColumn.width - gasField.width - estimateButton.width - 2 * dpi - gasButton.width
                 text: transactionModel.gasPrice
                 validator: DoubleValidator {
                     bottom: 0.000000000000000001 // should be 1 wei
@@ -162,6 +118,7 @@ Item {
                     // prevent updates from now on until they press gasPrice refresh if value is new
                     if ( text !== transactionModel.gasPrice ) {
                         text = String(text)
+                        sendButton.refresh()
                     }
                 }
             }
@@ -174,6 +131,7 @@ Item {
                 tooltip: qsTr("Apply current gas price")
                 onClicked: {
                     gasPriceField.text = Qt.binding(function() { return transactionModel.gasPrice })
+                    sendButton.refresh()
                 }
             }
         }
@@ -197,6 +155,7 @@ Item {
                 onTextChanged: {
                     if ( !loaded() ) return
                     sendButton.refresh()
+                    estimate()
                 }
                 text: "0"
             }
@@ -320,12 +279,12 @@ Item {
                 }
 
                 result.to = toField.text || ""
-                if ( !result.to.match(/0x[a-f,A-Z,0-9]{40}/) ) {
+                if ( contractName.length === 0 && !result.to.match(/0x[a-f,A-Z,0-9]{40}/) ) {
                     result.error = qsTr("Recipient account invalid")
                     return result
                 }
 
-                if ( !helpers.checkAddress(result.to) ) {
+                if ( result.to.length && !helpers.checkAddress(result.to) ) {
                     result.warning = qsTr("Address checksum mismatch. Use only properly checksumed addresses to prevent wrong sends.")
                 }
 
@@ -365,6 +324,8 @@ Item {
                     sendIcon.source = "/images/ok"
                 }
 
+                ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+
                 return result
             }
 
@@ -374,9 +335,18 @@ Item {
                     sendButton.enabled = true
                 }
 
+                onEstimateGasDone: {
+                    gasField.text = price
+                }
+
                 onSendTransactionDone: {
                     done()
-                    badge.show(qsTr("New pending transaction to: ") + toField.text)
+                    if ( contractName.length > 0 ) {
+                        contractModel.addPendingContract(contractName, contractAbi, hash)
+                        badge.show(qsTr("New pending contract deployment: ") + contractName)
+                    } else {
+                        badge.show(qsTr("New pending transaction to: ") + toField.text)
+                    }
                 }
             }
 

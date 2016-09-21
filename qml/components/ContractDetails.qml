@@ -120,6 +120,7 @@ Window {
                 id: abiField
                 width: mainColumn.width - 1 * dpi
                 height: 1.0 * dpi
+                wrapMode: TextEdit.WrapAnywhere
 
                 onTextChanged: saveButton.refresh()
 

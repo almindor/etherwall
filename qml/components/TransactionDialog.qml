@@ -39,6 +39,9 @@ Window {
     }
 
     SendTransactionContent {
+        contractData: ""
+        contractAbi: ""
+        contractName: ""
         onDone: {
             sendDialog.close()
         }

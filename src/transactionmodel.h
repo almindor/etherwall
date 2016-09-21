@@ -88,7 +88,7 @@ namespace Etherwall {
         void historyChanged() const;
         void latestVersionChanged(const QString& version) const;
         void receivedTransaction(const QString& toAddress) const;
-        void confirmedTransaction(const QString& toAddress) const;
+        void confirmedTransaction(const QString& toAddress, const QString& hash) const;
     private:
         EtherIPC& fIpc;
         const AccountModel& fAccountModel;

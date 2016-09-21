@@ -6,7 +6,7 @@ Item {
     anchors.fill: parent
 
     signal done
-    signal contractReady(string encoded, bool next)
+    signal contractReady(string name, string abi, string encoded, bool next)
     signal contractError
 
     BusyIndicator {
@@ -46,6 +46,7 @@ Item {
             TextArea {
                 id: abiField
                 width: mainColumn.width - 1 * dpi
+                wrapMode: TextEdit.WrapAnywhere
                 height: 1.0 * dpi
 
                 onTextChanged: deployButton.refresh()
@@ -60,11 +61,38 @@ Item {
 
             TextArea {
                 id: bcField
+                wrapMode: TextEdit.WrapAnywhere
                 width: mainColumn.width - 1 * dpi
-                height: 1.5 * dpi
+                height: 1.0 * dpi
 
                 onTextChanged: deployButton.refresh()
             }
+        }
+
+        Row {
+            id: errorRow
+            visible: errorText.length > 0
+
+            Label {
+                text: qsTr("Error: ")
+                width: 1 * dpi
+            }
+
+            TextField {
+                id: errorText
+                width: mainColumn.width - 1 * dpi
+                readOnly: true
+
+                style: TextFieldStyle {
+                    textColor: "black"
+                    background: Rectangle {
+                        radius: 2
+                        border.color: "red"
+                        border.width: 1
+                    }
+                }
+            }
+
         }
 
         Button {
@@ -88,18 +116,29 @@ Item {
                 renderType: Text.NativeRendering
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: callButton.height / 2.0
+                font.pixelSize: deployButton.height / 2.0
                 text: control.text
               }
             }
 
             function check() {
                 var result = {
-                    error: errorText.text.length ? errorText.text : null
+                    error: null
                 }
 
-                if ( functionField.currentIndex < 0 ) {
-                    result.error = qsTr("No function to call")
+                if ( !nameField.text.length ) {
+                    result.error = "Name not defined"
+                    return result
+                }
+
+                if ( !abiField.text.length ) {
+                    result.error = "ABI not defined"
+                    return result
+                }
+
+                if ( !bcField.text.length ) {
+                    result.error = "Bytecode not defined"
+                    return result
                 }
 
                 return result
@@ -108,7 +147,9 @@ Item {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
-
+                    errorText.text = result.error
+                } else {
+                    errorText.text = ""
                 }
             }
 
@@ -120,7 +161,7 @@ Item {
                     return
                 }
 
-                contractReady(encodedText.text, true)
+                contractReady(nameField.text, abiField.text, bcField.text, true)
             }
         }
 

@@ -27,7 +27,17 @@
 
 namespace Etherwall {
 
-    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc), fNetManager(), fBusy(false)
+    PendingContract::PendingContract() {
+        fName = "invalid";
+        fAbi = "invalid";
+    }
+
+    PendingContract::PendingContract(const QString& name, const QString& abi)
+        : fName(name), fAbi(abi)
+    {
+    }
+
+    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts()
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
@@ -69,8 +79,12 @@ namespace Etherwall {
         const ContractInfo info(name, address, jsonDoc.array());
 
         QSettings settings;
+        const QString lowerAddr = info.value(AddressRole).toString().toLower();
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
-        settings.setValue(info.value(AddressRole).toString(), info.toJsonString());
+        if ( settings.contains(info.value(AddressRole).toString()) ) { // we didn't lowercase before
+            settings.remove(info.value(AddressRole).toString());
+        }
+        settings.setValue(lowerAddr, info.toJsonString());
         settings.endGroup();
 
         int at = 0;
@@ -98,6 +112,36 @@ namespace Etherwall {
         return true;
     }
 
+    bool ContractModel::addPendingContract(const QString& name, const QString& abi, const QString& hash) {
+        fPendingContracts[hash] = PendingContract(name, abi);
+        return true;
+    }
+
+    const QString ContractModel::contractDeployed(const QJsonObject& receipt) {
+        const QString hash = receipt.value("transactionHash").toString("invalid");
+        if ( hash == "invalid" ) {
+            EtherLog::logMsg("Contract deployment receipt missing transaction hash", LS_Error);
+            return QString();
+        }
+
+        if ( !fPendingContracts.contains(hash) ) {
+            EtherLog::logMsg("Contract deployment transaction hash mismatch", LS_Error);
+            return QString();
+        }
+
+        const QString address = receipt.value("contractAddress").toString("invalid");
+        if ( address == "invalid" || address.isEmpty() ) {
+            EtherLog::logMsg("Contract address invalid in tx receipt", LS_Error);
+            return QString();
+        }
+
+        const PendingContract pc = fPendingContracts.value(hash);
+        addContract(pc.fName, address, pc.fAbi);
+        fPendingContracts.remove(hash);
+
+        return pc.fName;
+    }
+
     bool ContractModel::deleteContract(int index) {
         if ( index < 0 || index >= fList.size() ) {
             return false;
@@ -105,7 +149,8 @@ namespace Etherwall {
 
         QSettings settings;
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
-        settings.remove(fList.at(index).address());
+        settings.remove(fList.at(index).address()); // we didn't lowercase before
+        settings.remove(fList.at(index).address().toLower());
         settings.endGroup();
 
         beginRemoveRows(QModelIndex(), index, index);

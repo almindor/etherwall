@@ -25,7 +25,7 @@ import QtQuick.Window 2.0
 
 Window {
     id: contractDeploy
-    title: qsTr("Call Contract")
+    title: qsTr("Deploy Contract")
 
     modality: Qt.NonModal
     visible: false
@@ -44,6 +44,8 @@ Window {
         stcTab.active = true
         //stcTab.children[0].toAddress = contractModel.getAddress(index)
         stcTab.children[0].contractData = "0x"
+        stcTab.children[0].contractName = ""
+        stcTab.children[0].contractAbi = ""
         stcTab.enabled = false
 
         cccTab.active = true
@@ -71,6 +73,8 @@ Window {
 
                 onContractReady: {
                     stcTab.children[0].contractData = encoded
+                    stcTab.children[0].contractName = name
+                    stcTab.children[0].contractAbi = abi
                     stcTab.enabled = true
                     if ( next ) {
                         tabs.currentIndex = 1

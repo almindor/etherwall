@@ -29,6 +29,16 @@
 
 namespace Etherwall {
 
+    class PendingContract {
+    public:
+        PendingContract();
+        PendingContract(const QString& name, const QString& abi);
+        QString fName;
+        QString fAbi;
+    };
+
+    typedef QMap<QString, PendingContract> PendingContracts;
+
     class ContractModel : public QAbstractListModel
     {
         Q_OBJECT
@@ -40,6 +50,8 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         Q_INVOKABLE bool addContract(const QString& name, const QString& address, const QString& abi);
+        Q_INVOKABLE bool addPendingContract(const QString& name, const QString& abi, const QString& hash);
+        Q_INVOKABLE const QString contractDeployed(const QJsonObject& receipt);
         Q_INVOKABLE bool deleteContract(int index);
         Q_INVOKABLE const QString getName(int index) const;
         Q_INVOKABLE const QString getAddress(int index) const;
@@ -66,6 +78,7 @@ namespace Etherwall {
         EtherIPC& fIpc;
         QNetworkAccessManager fNetManager;
         bool fBusy;
+        PendingContracts fPendingContracts;
     };
 
 }

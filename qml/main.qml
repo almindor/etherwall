@@ -142,7 +142,13 @@ ApplicationWindow {
             target: transactionModel
 
             onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
-            onConfirmedTransaction: badge.show(qsTr("Confirmed transaction to: ") + toAddress)
+            onConfirmedTransaction: {
+                if ( toAddress.length ) {
+                    badge.show(qsTr("Confirmed transaction to: ") + toAddress)
+                } else { // contract creation
+                    ipc.getTransactionReceipt(hash)
+                }
+            }
         }
 
         Connections {
@@ -157,6 +163,17 @@ ApplicationWindow {
             onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
             onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
             onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
+        }
+
+        Connections {
+            target: ipc
+
+            onGetTransactionReceiptDone: {
+                var cname = contractModel.contractDeployed(receipt)
+                if ( cname.length ) {
+                    badge.show(qsTr("Contract ") + cname + qsTr(" succesfully deployed: " + receipt.contractAddress))
+                }
+            }
         }
     }
 

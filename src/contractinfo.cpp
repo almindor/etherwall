@@ -715,7 +715,7 @@ namespace Etherwall {
     // ***************************** ContractInfo ***************************** //
 
     ContractInfo::ContractInfo(const QString &name, const QString& address, const QJsonArray &abi) :
-        fName(name), fAddress(address), fABI(abi), fFunctions()
+        fName(name), fAddress(Helpers::vitalizeAddress(address)), fABI(abi), fFunctions()
     {
         parse();
     }

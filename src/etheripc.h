@@ -122,11 +122,12 @@ namespace Etherwall {
                              const QString& gas = QString(), const QString& gasPrice = QString(), const QString& data = QString());
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
-        void estimateGas(const QString& from, const QString& to, const QString& value);
+        Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
+                                     const QString& gas, const QString& gasPrice, const QString& data);
         void getTransactionByHash(const QString& hash);
         void getBlockByHash(const QString& hash);
         void getBlockByNumber(quint64 blockNum);
-        void getTransactionReceipt(const QString& hash);
+        Q_INVOKABLE void getTransactionReceipt(const QString& hash);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
         Q_INVOKABLE void setInterval(int interval);

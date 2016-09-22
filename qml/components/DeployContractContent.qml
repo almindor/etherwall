@@ -39,7 +39,7 @@ Item {
 
         Row {
             Label {
-                text: qsTr("ABI: ")
+                text: qsTr("Interface: ")
                 width: 1 * dpi
             }
 
@@ -55,7 +55,14 @@ Item {
 
         Row {
             Label {
-                text: qsTr("Bytecode: ")
+                id: byteCodeLabel
+                text: qsTr("Bytecode:") + '<a href="http://www.etherwall.com/faq.html"> ?</a>'
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
+                onLinkActivated: Qt.openUrlExternally(link)
                 width: 1 * dpi
             }
 
@@ -132,12 +139,30 @@ Item {
                 }
 
                 if ( !abiField.text.length ) {
-                    result.error = "ABI not defined"
+                    result.error = "Interface not defined"
                     return result
                 }
 
                 if ( !bcField.text.length ) {
                     result.error = "Bytecode not defined"
+                    return result
+                }
+
+                if ( !bcField.text.match(/^(0\x)?[a-f,A-Z,0-9]+$/) ) {
+                    result.error = qsTr("Invalid bytecode")
+                    return result
+                }
+
+                try {
+                    var parsed = JSON.parse(abiField.text)
+                    if ( !parsed || !parsed.length ) {
+                        result.error = "API not an array"
+                        return result
+                    }
+
+                    result.abi = abiField.text
+                } catch ( err ) {
+                    result.error = "Interface parse error: " + err
                     return result
                 }
 

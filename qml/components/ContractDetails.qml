@@ -112,7 +112,7 @@ Window {
 
         Row {
             Label {
-                text: qsTr("ABI: ")
+                text: qsTr("Interface: ")
                 width: 1 * dpi
             }
 
@@ -189,7 +189,7 @@ Window {
 
                     result.abi = abiField.text
                 } catch ( err ) {
-                    result.error = "ABI parse error: " + err
+                    result.error = "Interface parse error: " + err
                     return result
                 }
 

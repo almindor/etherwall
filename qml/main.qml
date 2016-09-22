@@ -87,6 +87,12 @@ ApplicationWindow {
     menuBar: MenuBar {
         Menu {
             title: "Wallet"
+
+            MenuItem {
+                text: "About"
+                onTriggered: aboutDialog.open()
+            }
+
             MenuItem {
                 text: "Export"
                 onTriggered: exportFileDialog.open()
@@ -97,6 +103,13 @@ ApplicationWindow {
                 onTriggered: importFileDialog.open()
             }
         }
+    }
+
+    ErrorDialog {
+        id: aboutDialog
+        width: 5 * dpi
+        title: qsTr("About Etherwall")
+        msg: '<html><body>Etherwall copyright 2015-2016 by Aleš Katona. For more info please visit the <a href="http://etherwall.com">homepage</a></body></html>'
     }
 
     ErrorDialog {

@@ -19,9 +19,10 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
 import AccountProxyModel 0.1
+import QtQuick.Dialogs 1.2
 
 Tab {
     id: accountsTab
@@ -131,6 +132,14 @@ Tab {
             }
         }
 
+        QRExportDialog {
+            id: qrExportDialog
+        }
+
+        FileDialog {
+            id: fileExportDialog
+        }
+
         TableView {
             id: accountView
             anchors.left: parent.left
@@ -203,12 +212,19 @@ Tab {
                     }
                 }
 
-                /*MenuItem {
-                    text: qsTr("Delete")
+                MenuItem {
+                    text: qsTr("Export to file")
                     onTriggered: {
-                        accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
+                        fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                     }
-                }*/
+                }
+
+                MenuItem {
+                    text: qsTr("Export to QR Code")
+                    onTriggered: {
+                        qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
+                    }
+                }
             }
 
             MouseArea {

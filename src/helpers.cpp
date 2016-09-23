@@ -250,6 +250,34 @@ namespace Etherwall {
         settings.sync();
     }
 
+    const QString Helpers::exportAddress(const QDir& keystore, QString& address) {
+        if ( !keystore.exists() ) {
+            throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
+        }
+
+        address = address.toLower();
+        if ( address.startsWith("0x") ) {
+            address = address.remove(0, 2);
+        }
+
+        const QStringList nameFilter("UTC*");
+
+        foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
+            QFile file(keystore.filePath(fileName));
+            file.open(QFile::ReadOnly);
+            const QByteArray raw = file.readAll();
+            file.close();
+            const QJsonDocument doc = QJsonDocument::fromJson(raw);
+            const QJsonObject contents = doc.object();
+
+            if ( contents.value("address").toString("invalid").toLower() == address ) {
+                return QString(raw);
+            }
+        }
+
+        return QString();
+    }
+
     const QByteArray Helpers::exportAddresses(const QDir& keystore) {
         if ( !keystore.exists() ) {
             throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
@@ -423,6 +451,18 @@ namespace Etherwall {
 
     const QString QmlHelpers::localURLToString(const QUrl& url) {
         return url.toLocalFile();
+    }
+
+    const QString QmlHelpers::exportAddress(const QString& address, bool testnet) {
+        const QSettings settings;
+        QDir keystore(settings.value("geth/datadir").toString());
+        if ( testnet ) {
+            keystore.cd("testnet");
+        }
+        keystore.cd("keystore");
+
+        QString tmp(address);
+        return Helpers::exportAddress(keystore, tmp);
     }
 
 }

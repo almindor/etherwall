@@ -147,6 +147,10 @@ ApplicationWindow {
         }
     }
 
+    function showBadge(val) {
+        badge.show(val)
+    }
+
     Badge {
         id: badge
         z: 999

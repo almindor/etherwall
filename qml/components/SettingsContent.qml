@@ -145,7 +145,7 @@ TabView {
                     selectMultiple: false
 
                     onAccepted: {
-                        gethPathField.text = gethFileDialog.fileUrl.toString().replace(/^(file:\/{3})/,""); // fugly but gotta love QML on this one
+                        gethPathField.text = helpers.localURLToString(gethFileDialog.fileUrl)
                     }
                 }
             }

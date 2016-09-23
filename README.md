@@ -2,22 +2,22 @@
 
 Ethereum Classic QT5 Wallet
 
-Etherwall is a free software wallet/front-end for Ethereum Classic  .
+Etherwall Classic is a free software wallet/front-end for Ethereum Classic  .
 
 ## Usage
 
-Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main Ehereum Classic
+Latest geth is required to be running for Etherwall Classic to work. Geth is provided if downloaded from the main Ethereum Classic
 website for windows and mac os x.
 
-Etherwall should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
+Etherwall Classic should auto-detect geth's IPC file/name and work "out of the box" as long as geth is running.
 
-If Etherwall fails to detect the IPC file/name you can specify it in the settings panel.
+If Etherwall Classic fails to detect the IPC file/name you can specify it in the settings panel.
 
-Ethwerwall will show geth's syncing progress and only process blocks after it's done.
+Ethwerwall Classic will show geth's syncing progress and only process blocks after it's done.
 
 ## License
 
-Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
+Etherwall Classic is licensed under the GPLv3 license. See LICENSE for more info.
 
 ## Donations
 
@@ -31,6 +31,8 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 `0xe290b5cb85d66afc1c2ea8800b7caab55a5a0006`
 
 ## Development
+Fell free to request/commit changes/features.
+
 
 ### Requirements
 

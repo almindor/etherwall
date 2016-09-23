@@ -138,6 +138,17 @@ Tab {
 
         FileDialog {
             id: fileExportDialog
+            selectFolder: true
+            selectExisting: true
+            selectMultiple: false
+            folder: shortcuts.documents
+            onAccepted: {
+                if ( accountModel.exportAccount(fileUrl, accountView.currentRow) ) {
+                    appWindow.showBadge(qsTr("Account ") + accountModel.selectedAccount + qsTr(" saved to ") + helpers.localURLToString(fileUrl))
+                } else {
+                    appWindow.showBadge(qsTr("Error exporting account ") + accountModel.selectedAccount)
+                }
+            }
         }
 
         TableView {

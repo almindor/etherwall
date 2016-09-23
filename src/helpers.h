@@ -32,6 +32,7 @@ namespace Etherwall {
         static const QString vitalizeAddress(const QString& origAddress);
         static const QByteArray exportSettings();
         static void importSettings(const QByteArray& data);
+        static const QString getAddressFilename(const QDir& keystore, QString& address);
         static const QString exportAddress(const QDir& keystore, QString& address);
         static const QByteArray exportAddresses(const QDir& keystore);
         static void importAddresses(QByteArray& data, const QDir& keystore);

@@ -58,6 +58,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString getAccountHash(int index) const;
         Q_INVOKABLE void exportWallet(const QUrl& fileName) const;
         Q_INVOKABLE void importWallet(const QUrl& fileName);
+        Q_INVOKABLE bool exportAccount(const QUrl& fileName, int index);
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);

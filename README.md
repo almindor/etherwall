@@ -41,15 +41,15 @@ Qt5.5+ with qmake
 ### Building
 
 qmake -config release && make
+Tested with Ubuntu 14.04 LTS
 
 ### Roadmap
 
-- 2.0 added contract support
-- 1.1+ add eth support (cancelled)
-- 1.0 add geth account backup and restore (skipped for now)
-- 0.9 add transaction history support [done]
-- 0.8 initial release [done]
+-Integrate with other clients out of the box
+-Alingn UI to match ETC 
+-Translate to multiple languages
 
 ### Caveats & bugs
 
 Only supported client at the moment is Geth. Eth and others should work if you go to settings and set the IPC path/name properly.
+

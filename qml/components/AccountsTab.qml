@@ -224,14 +224,14 @@ Tab {
                 }
 
                 MenuItem {
-                    text: qsTr("Export to file")
+                    text: qsTr("Export geth account to directory")
                     onTriggered: {
                         fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                     }
                 }
 
                 MenuItem {
-                    text: qsTr("Export to QR Code")
+                    text: qsTr("Export geth account to QR Code")
                     onTriggered: {
                         qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                     }

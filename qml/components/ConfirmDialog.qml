@@ -23,6 +23,8 @@ import QtQuick.Controls 1.1
 
 BaseDialog {
     title: qsTr("Confirm")
+    property string yesText : qsTr("Yes")
+    property string noText : qsTr("No")
 
     Row {
         anchors.right: parent.right
@@ -30,7 +32,7 @@ BaseDialog {
         anchors.margins: 0.1 * dpi
 
         Button {
-            text: "Yes"
+            text: yesText
             onClicked: {
                close()
                yes()
@@ -38,7 +40,7 @@ BaseDialog {
         }
 
         Button {
-            text: "No"
+            text: noText
             onClicked: {
                close()
             }

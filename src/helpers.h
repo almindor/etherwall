@@ -46,8 +46,9 @@ namespace Etherwall {
     public:
         QmlHelpers();
         Q_INVOKABLE bool checkAddress(const QString& origAddress) const;
-        Q_INVOKABLE const QString localURLToString(const QUrl& url);
-        Q_INVOKABLE const QString exportAddress(const QString& address, bool testnet);
+        Q_INVOKABLE const QString localURLToString(const QUrl& url) const;
+        Q_INVOKABLE const QString exportAddress(const QString& address, bool testnet) const;
+        Q_INVOKABLE int parseAppVersion(const QString& ver) const;
     };
 
 }

@@ -62,6 +62,7 @@ namespace Etherwall {
         Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
         Q_INVOKABLE const QString getMaxValue(int row, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void lookupAccountsAliases();
+        Q_INVOKABLE void checkVersion();
         double getHistoryProgress() const;
         quint64 getFirstBlock() const;
         quint64 getLastBlock() const;
@@ -87,6 +88,7 @@ namespace Etherwall {
         void gasEstimateChanged(const QString& price) const;
         void historyChanged() const;
         void latestVersionChanged(const QString& version) const;
+        void latestVersionSame(const QString& version) const;
         void receivedTransaction(const QString& toAddress) const;
         void confirmedTransaction(const QString& toAddress, const QString& hash) const;
     private:
@@ -102,7 +104,6 @@ namespace Etherwall {
         QNetworkAccessManager fNetManager;
         QString fLatestVersion;
 
-        void checkVersion();
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);
         void storeTransaction(const TransactionInfo& info);

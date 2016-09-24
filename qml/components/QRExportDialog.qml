@@ -7,8 +7,11 @@ Window {
     id: exportWindow
     width: 6 * dpi
     height: 7 * dpi
+    title: qsTr("QR code for: ") + address
+    property string address
 
-    function open( val ) {
+    function open( val, addr ) {
+        address = addr
         code.value = val
         visible = true
     }

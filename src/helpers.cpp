@@ -477,11 +477,11 @@ namespace Etherwall {
         return origAddress == Helpers::vitalizeAddress(origAddress);
     }
 
-    const QString QmlHelpers::localURLToString(const QUrl& url) {
+    const QString QmlHelpers::localURLToString(const QUrl& url) const {
         return url.toLocalFile();
     }
 
-    const QString QmlHelpers::exportAddress(const QString& address, bool testnet) {
+    const QString QmlHelpers::exportAddress(const QString& address, bool testnet) const {
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
         if ( testnet ) {
@@ -491,6 +491,10 @@ namespace Etherwall {
 
         QString tmp(address);
         return Helpers::exportAddress(keystore, tmp);
+    }
+
+    int QmlHelpers::parseAppVersion(const QString& ver) const {
+        return Helpers::parseAppVersion(ver);
     }
 
 }

@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QDateTime>
 #include <QFile>
+#include <QFileInfo>
 
 namespace Etherwall {
 
@@ -174,7 +175,13 @@ namespace Etherwall {
 
         try {
             QByteArray backupData = Helpers::createBackup(keystore);
-            QFile file(fileName.toLocalFile());
+            QString strName = fileName.toLocalFile();
+            const QFileInfo fileInfo(strName);
+            if ( fileInfo.completeSuffix() != "etherwall" ) {
+                strName += ".etherwall"; // force suffix
+            }
+
+            QFile file(strName);
             if ( !file.open(QFile::WriteOnly) ) {
                 throw file.errorString();
             }

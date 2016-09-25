@@ -35,6 +35,9 @@
         <file>components/Badge.qml</file>
         <file>components/ContractDeploy.qml</file>
         <file>components/DeployContractContent.qml</file>
+        <file>js/qqr.js</file>
+        <file>components/QRCode.qml</file>
+        <file>components/QRExportDialog.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

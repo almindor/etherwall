@@ -26,6 +26,7 @@ import "components"
 
 ApplicationWindow {
     property int dpi: Screen.pixelDensity * 25.4;
+    property bool manualVersionCheck: false
 
     id: appWindow
     visible: true
@@ -105,11 +106,17 @@ ApplicationWindow {
         }
     }
 
-    ErrorDialog {
+    ConfirmDialog {
         id: aboutDialog
         width: 5 * dpi
         title: qsTr("About Etherwall")
+        yesText: qsTr("Check for updates")
+        noText: qsTr("OK")
         msg: '<html><body>Etherwall copyright 2015-2016 by Aleš Katona. For more info please visit the <a href="http://etherwall.com">homepage</a></body></html>'
+        onYes: {
+            manualVersionCheck = true
+            transactionModel.checkVersion()
+        }
     }
 
     ErrorDialog {
@@ -128,23 +135,10 @@ ApplicationWindow {
     ErrorDialog {
         id: versionDialog
         width: 5 * dpi
+    }
 
-        Connections {
-            target: transactionModel
-            onLatestVersionChanged: {
-                console.log("latest version changed")
-                var now = new Date()
-                var bumpTime = settings.value("program/versionbump", now.valueOf())
-                if ( bumpTime > now.valueOf() ) {
-                    return; // don't bump more than once a day!
-                }
-
-                settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
-                versionDialog.title = qsTr("Update available")
-                versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
-                versionDialog.open()
-            }
-        }
+    function showBadge(val) {
+        badge.show(val)
     }
 
     Badge {
@@ -153,6 +147,32 @@ ApplicationWindow {
 
         Connections {
             target: transactionModel
+
+            onLatestVersionChanged: {
+                if ( !manualVersionCheck ) {
+                    var now = new Date()
+                    var bumpTime = settings.value("program/versionbump", now.valueOf())
+                    if ( bumpTime > now.valueOf() ) {
+                        return; // don't bump more than once a day!
+                    }
+                    settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
+                }
+
+                manualVersionCheck = false
+                versionDialog.title = qsTr("Update available")
+                versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
+                versionDialog.open()
+            }
+            onLatestVersionSame: {
+                if ( !manualVersionCheck ) {
+                    return
+                }
+
+                manualVersionCheck = false
+                versionDialog.title = qsTr("Etherwall up to date")
+                versionDialog.msg = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
+                versionDialog.open()
+            }
 
             onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
             onConfirmedTransaction: {

@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QDateTime>
 #include <QFile>
+#include <QFileInfo>
 
 namespace Etherwall {
 
@@ -140,6 +141,33 @@ namespace Etherwall {
         return QString();
     }
 
+    bool AccountModel::exportAccount(const QUrl& dir, int index) {
+        if ( index < 0 || index >= fAccountList.length() ) {
+            return false;
+        }
+
+        const QSettings settings;
+        QDir keystore(settings.value("geth/datadir").toString());
+        if ( fIpc.getTestnet() ) {
+            keystore.cd("testnet");
+        }
+        keystore.cd("keystore");
+
+        QString address = fAccountList.at(index).value(HashRole).toString();
+        const QString data = Helpers::exportAddress(keystore, address);
+        const QString fileName = Helpers::getAddressFilename(keystore, address);
+        QDir directory(dir.toLocalFile());
+        QFile file(directory.absoluteFilePath(fileName));
+        if ( !file.open(QFile::WriteOnly) ) {
+            return false;
+        }
+        QTextStream stream( &file );
+        stream << data;
+        file.close();
+
+        return true;
+    }
+
     void AccountModel::exportWallet(const QUrl& fileName) const {
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
@@ -147,7 +175,13 @@ namespace Etherwall {
 
         try {
             QByteArray backupData = Helpers::createBackup(keystore);
-            QFile file(fileName.toLocalFile());
+            QString strName = fileName.toLocalFile();
+            const QFileInfo fileInfo(strName);
+            if ( fileInfo.completeSuffix() != "etherwall" ) {
+                strName += ".etherwall"; // force suffix
+            }
+
+            QFile file(strName);
             if ( !file.open(QFile::WriteOnly) ) {
                 throw file.errorString();
             }

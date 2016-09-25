@@ -418,13 +418,14 @@ namespace Etherwall {
             return EtherLog::logMsg("Response error: " + error, LS_Error);
         }
         const QJsonValue rv = resObj.value("result");
-        const QString result = rv.toString(fLatestVersion);
+        fLatestVersion = rv.toString("0.0.0");
         int latestIntVer = Helpers::parseAppVersion(fLatestVersion);
-        int intVer = Helpers::parseAppVersion(result);
+        int intVer = Helpers::parseAppVersion(QCoreApplication::applicationVersion());
 
-        if ( latestIntVer < intVer ) {
-            fLatestVersion = result;
-            emit latestVersionChanged(result);
+        if ( intVer < latestIntVer ) {
+            emit latestVersionChanged(fLatestVersion);
+        } else {
+            emit latestVersionSame(fLatestVersion);
         }
     }
 

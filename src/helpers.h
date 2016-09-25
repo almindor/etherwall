@@ -32,6 +32,8 @@ namespace Etherwall {
         static const QString vitalizeAddress(const QString& origAddress);
         static const QByteArray exportSettings();
         static void importSettings(const QByteArray& data);
+        static const QString getAddressFilename(const QDir& keystore, QString& address);
+        static const QString exportAddress(const QDir& keystore, QString& address);
         static const QByteArray exportAddresses(const QDir& keystore);
         static void importAddresses(QByteArray& data, const QDir& keystore);
         static const QByteArray createBackup(const QDir& keystore);
@@ -44,7 +46,9 @@ namespace Etherwall {
     public:
         QmlHelpers();
         Q_INVOKABLE bool checkAddress(const QString& origAddress) const;
-        Q_INVOKABLE const QString localURLToString(const QUrl& url);
+        Q_INVOKABLE const QString localURLToString(const QUrl& url) const;
+        Q_INVOKABLE const QString exportAddress(const QString& address, bool testnet) const;
+        Q_INVOKABLE int parseAppVersion(const QString& ver) const;
     };
 
 }

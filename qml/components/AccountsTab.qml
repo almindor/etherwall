@@ -19,9 +19,10 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
 import AccountProxyModel 0.1
+import QtQuick.Dialogs 1.2
 
 Tab {
     id: accountsTab
@@ -131,6 +132,25 @@ Tab {
             }
         }
 
+        QRExportDialog {
+            id: qrExportDialog
+        }
+
+        FileDialog {
+            id: fileExportDialog
+            selectFolder: true
+            selectExisting: true
+            selectMultiple: false
+            folder: shortcuts.documents
+            onAccepted: {
+                if ( accountModel.exportAccount(fileUrl, accountView.currentRow) ) {
+                    appWindow.showBadge(qsTr("Account ") + accountModel.selectedAccount + qsTr(" saved to ") + helpers.localURLToString(fileUrl))
+                } else {
+                    appWindow.showBadge(qsTr("Error exporting account ") + accountModel.selectedAccount)
+                }
+            }
+        }
+
         TableView {
             id: accountView
             anchors.left: parent.left
@@ -203,12 +223,19 @@ Tab {
                     }
                 }
 
-                /*MenuItem {
-                    text: qsTr("Delete")
+                MenuItem {
+                    text: qsTr("Export geth account to directory")
                     onTriggered: {
-                        accountDeleteDialog.openFocused("Delete " + accountModel.selectedAccount)
+                        fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                     }
-                }*/
+                }
+
+                MenuItem {
+                    text: qsTr("Export geth account to QR Code")
+                    onTriggered: {
+                        qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
+                    }
+                }
             }
 
             MouseArea {

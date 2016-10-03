@@ -87,11 +87,13 @@ namespace Etherwall {
 
         QJsonObject objectJson;
         QJsonArray currencies;
+        currencies.append(QJsonValue(QString("BTC")));
         currencies.append(QJsonValue(QString("EUR")));
         currencies.append(QJsonValue(QString("CAD")));
         currencies.append(QJsonValue(QString("USD")));
         currencies.append(QJsonValue(QString("GBP")));
         objectJson["currencies"] = currencies;
+        objectJson["version"] = 2;
         const QByteArray data = QJsonDocument(objectJson).toJson();
 
         EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);

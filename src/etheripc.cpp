@@ -198,6 +198,7 @@ namespace Etherwall {
         if ( fSocket.state() != QLocalSocket::ConnectedState ) {
             fSocket.abort();
             fStarting = -1;
+            emit startingChanged(fStarting);
             setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
             bail();
         }

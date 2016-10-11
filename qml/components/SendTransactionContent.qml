@@ -301,7 +301,7 @@ Item {
                 return result;
             }
 
-            function refresh() {
+            function refresh(skip_estimate) {
                 var result = check()
                 if ( result.error !== null ) {
                     tooltip = result.error
@@ -324,7 +324,9 @@ Item {
                     sendIcon.source = "/images/ok"
                 }
 
-                ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                if ( !skip_estimate ) {
+                    ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                }
 
                 return result
             }
@@ -351,7 +353,7 @@ Item {
             }
 
             onClicked: {
-                var result = refresh()
+                var result = refresh(true)
                 if ( result.error !== null ) {
                     errorDialog.msg = result.error
                     errorDialog.open()

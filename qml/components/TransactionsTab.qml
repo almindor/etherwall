@@ -122,14 +122,6 @@ Tab {
                         clipboard.setText(transactionModel.getReceiver(transactionView.currentRow))
                     }
                 }
-
-                MenuItem {
-                    text: qsTr("Resend")
-                    onTriggered: {
-                        toField.text = transactionModel.getReceiver(transactionView.currentRow)
-                        valueField.text = transactionModel.getValue(transactionView.currentRow)
-                    }
-                }
             }
 
             onDoubleClicked: {

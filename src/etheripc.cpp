@@ -921,18 +921,8 @@ namespace Etherwall {
         fClientVersion = jv.toString();
 
         const int vn = parseVersionNum();
-        if ( vn > 0 && vn < 100002 ) {
-            setError("Geth version 1.0.1 and older contain a critical bug! Please update immediately.");
-            emit error();
-        }
-
-        if ( vn > 0 && vn < 103005 ) {
-            setError("Geth version 1.3.4 and older are Frontier versions. Please update to Homestead (1.3.5+)");
-            emit error();
-        }
-
-        if ( vn > 0 && vn < 104013 ) {
-            setError("Geth version 1.4.12 and older contain DOS vulnerabilities. Please update to 1.4.13+");
+        if ( vn > 0 && vn < 104018 ) {
+            setError("Geth version 1.4.17 and older are not ready for the upcoming EIP150 hard fork. Please update Geth to ensure you are ready.");
             emit error();
         }
 

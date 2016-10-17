@@ -192,7 +192,7 @@ Item {
                     locale: "en_US"
                 }
 
-                text: transactionModel.estimateTotal(valueField.text, gasField.text)
+                text: transactionModel.estimateTotal(valueField.text, gasField.text, gasPriceField.text)
             }
         }
 

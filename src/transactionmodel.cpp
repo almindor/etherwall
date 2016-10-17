@@ -303,10 +303,10 @@ namespace Etherwall {
         qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
     }
 
-    const QString TransactionModel::estimateTotal(const QString& value, const QString& gas) const {
+    const QString TransactionModel::estimateTotal(const QString& value, const QString& gas, const QString& gasPrice) const {
         BigInt::Rossi valRossi = Helpers::etherStrToRossi(value);
         BigInt::Rossi valGas = Helpers::decStrToRossi(gas);
-        BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(fGasPrice);
+        BigInt::Rossi valGasPrice = Helpers::etherStrToRossi(gasPrice);
 
         const QString wei = QString((valRossi + valGas * valGasPrice).toStrDec().data());
 

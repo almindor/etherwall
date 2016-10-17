@@ -523,7 +523,7 @@ namespace Etherwall {
             EtherLog::logMsg(QString("Trans gasPrice: ") + gasPrice + QString(" HexValue: ") + gasPriceHex);
         }
         if ( !data.isEmpty() ) {
-            p["data"] = data;
+            p["data"] = Helpers::hexPrefix(data);
         }
 
         params.append(p);
@@ -626,7 +626,7 @@ namespace Etherwall {
             p["gasPrice"] = gasPriceHex;
         }
         if ( !data.isEmpty() ) {
-            p["data"] = data;
+            p["data"] = Helpers::hexPrefix(data);
         }
 
         params.append(p);

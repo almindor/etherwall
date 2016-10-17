@@ -12,6 +12,10 @@ namespace Etherwall {
 
 // ***************************** Helpers ***************************** //
 
+    const QString Helpers::hexPrefix(const QString& val) {
+        return val.indexOf("0x") == 0 ? val : ("0x" + val);
+    }
+
     const QString Helpers::toDecStr(const QJsonValue& jv) {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         const BigInt::Vin bv(hexStr, 16);
@@ -59,7 +63,7 @@ namespace Etherwall {
         BigInt::Vin vinVal(decStr.toUtf8().data(), 10);
         QString res = QString(vinVal.toStr0xHex().data());
 
-        return QString(vinVal.toStr0xHex().data());
+        return res;
     }
 
     const QString Helpers::toHexWeiStr(quint64 val) {
@@ -69,7 +73,7 @@ namespace Etherwall {
 
     const QString Helpers::decStrToHexStr(const QString &dec) {
         BigInt::Vin vinVal(dec.toStdString(), 10);
-        return QString(vinVal.toStrDec().data());
+        return QString(vinVal.toStr0xHex().data());
     }
 
     const QString Helpers::weiStrToEtherStr(const QString& wei) {

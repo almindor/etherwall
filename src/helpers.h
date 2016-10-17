@@ -14,6 +14,7 @@ namespace Etherwall {
     class Helpers
     {
     public:
+        static const QString hexPrefix(const QString& val);
         static const QString toDecStr(const QJsonValue &jv);
         static const QString toDecStrEther(const QJsonValue &jv);
         static const QString toDecStr(quint64 val);

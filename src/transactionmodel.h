@@ -53,7 +53,7 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         int containsTransaction(const QString& hash);
-        Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas) const;
+        Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void loadHistory();
         Q_INVOKABLE const QString getHash(int index) const;
         Q_INVOKABLE const QString getSender(int index) const;

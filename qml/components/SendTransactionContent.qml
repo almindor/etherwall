@@ -83,6 +83,8 @@ Item {
             }
 
             TextField {
+                property bool manual : false
+
                 id: gasField
                 width: 0.9 * dpi
                 validator: IntValidator {
@@ -91,12 +93,17 @@ Item {
                 }
 
                 text: "3141592" // max, will go lower on estimates
+
+                onEditingFinished: manual = true
             }
 
             Button {
                 id: estimateButton
                 text: "Estimate"
-                onClicked: sendButton.refresh()
+                onClicked: {
+                    gasField.manual = false // allow overrides
+                    sendButton.refresh()
+                }
             }
 
             Label {
@@ -155,7 +162,6 @@ Item {
                 onTextChanged: {
                     if ( !loaded() ) return
                     sendButton.refresh()
-                    estimate()
                 }
                 text: "0"
             }
@@ -173,7 +179,6 @@ Item {
             }
         }
 
-        // -- estimate is broken in geth 1.0.1- must wait for later release
         Row {
             id: lastRow
             Label {
@@ -338,7 +343,9 @@ Item {
                 }
 
                 onEstimateGasDone: {
-                    gasField.text = price
+                    if ( !gasField.manual ) {
+                        gasField.text = price
+                    }
                 }
 
                 onSendTransactionDone: {

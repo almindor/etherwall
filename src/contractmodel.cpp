@@ -46,9 +46,9 @@ namespace Etherwall {
 
     QHash<int, QByteArray> ContractModel::roleNames() const {
         QHash<int, QByteArray> roles;
-        roles[ContractRoles::ContractNameRole] = "name";
-        roles[ContractRoles::AddressRole] = "address";
-        roles[ContractRoles::ABIRole] = "abi";
+        roles[ContractNameRole] = "name";
+        roles[AddressRole] = "address";
+        roles[ABIRole] = "abi";
 
         return roles;
     }

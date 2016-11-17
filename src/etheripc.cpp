@@ -921,8 +921,8 @@ namespace Etherwall {
         fClientVersion = jv.toString();
 
         const int vn = parseVersionNum();
-        if ( vn > 0 && vn < 104018 ) {
-            setError("Geth version 1.4.17 and older are not ready for the upcoming EIP150 hard fork. Please update Geth to ensure you are ready.");
+        if ( vn > 0 && vn < 104019 ) {
+            setError("Geth version 1.4.18 and older are not ready for the upcoming 4th hard fork. Please update Geth to ensure you are ready.");
             emit error();
         }
 

@@ -731,9 +731,9 @@ namespace Etherwall {
 
     const QVariant ContractInfo::value(const int role) const {
         switch ( role ) {
-            case ContractRoles::ContractNameRole: return QVariant(fName);
-            case ContractRoles::AddressRole: return QVariant(fAddress);
-            case ContractRoles::ABIRole: return QVariant(QString(QJsonDocument(fABI).toJson()));
+            case ContractNameRole: return QVariant(fName);
+            case AddressRole: return QVariant(fAddress);
+            case ABIRole: return QVariant(QString(QJsonDocument(fABI).toJson()));
         }
 
         return QVariant();

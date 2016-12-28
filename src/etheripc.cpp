@@ -115,9 +115,7 @@ namespace Etherwall {
             args.append("--testnet");
         }
         bool hardfork = settings.value("geth/hardfork", true).toBool();
-        if ( hardfork ) {
-            args.append("--support-dao-fork");
-        } else {
+        if ( !hardfork ) {
             args.append("--oppose-dao-fork");
         }
 

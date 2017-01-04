@@ -114,10 +114,7 @@ namespace Etherwall {
         if ( testnet ) {
             args.append("--testnet");
         }
-        bool hardfork = settings.value("geth/hardfork", true).toBool();
-        if ( !hardfork ) {
-            args.append("--oppose-dao-fork");
-        }
+        // no more hard fork settings
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {

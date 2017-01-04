@@ -78,27 +78,6 @@ TabView {
                 title: qsTr("Warning")
                 msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
             }
-
-            Row {
-                width: parent.width
-
-                Label {
-                    text: qsTr("Support DAO hard fork: ")
-                }
-
-                ToggleButton {
-                    id: hfButton
-
-                    checked: settings.valueBool("geth/hardfork", true)
-                    text: checked ? qsTr("support") : qsTr("oppose")
-                    onClicked: {
-                        settings.setValue("geth/hardfork", checked)
-                        if ( settings.contains("program/firstrun") ) {
-                            hfConfirmDialog.show()
-                        }
-                    }
-                }
-            }
         }
     }
 

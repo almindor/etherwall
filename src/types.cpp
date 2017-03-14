@@ -33,6 +33,8 @@ namespace Etherwall {
 
     const QString DefaultIPCPath(const QString& dataDir, bool testnet) {
     #ifdef Q_OS_WIN32
+        Q_UNUSED(dataDir);
+        Q_UNUSED(testnet);
         return "\\\\.\\pipe\\geth.ipc";
     #else
         const QString mid_fix = testnet ? "/testnet" : "";

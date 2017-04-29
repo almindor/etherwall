@@ -44,7 +44,7 @@ namespace Etherwall {
 #endif
 
     static const quint64 SYNC_DEPTH = 10;
-    static const QString DefaultGethArgs = "--fast --cache 512";
+    static const QString DefaultGethArgs = "--syncmode=fast --cache 512";
     static const QString EtherWall_Cert = "-----BEGIN CERTIFICATE-----\n"
             "MIIDiDCCAnACCQCXJXqGOlAorjANBgkqhkiG9w0BAQsFADCBhTELMAkGA1UEBhMC\n"
             "Q0ExEDAOBgNVBAgMB0FsYmVydGExEDAOBgNVBAcMB0NhbGdhcnkxEjAQBgNVBAoM\n"

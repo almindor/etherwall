@@ -659,7 +659,7 @@ namespace Etherwall {
         QJsonObject o;
         o["address"] = QJsonArray::fromStringList(addresses);
         if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
-            o["topics"] = QJsonArray::fromStringList(topics);
+            o["topics"] = parseTopics(topics);
         }
         params.append(o);
 
@@ -725,6 +725,20 @@ namespace Etherwall {
         return 0;
     }
 
+    const QJsonArray EtherIPC::parseTopics(const QStringList &topics)
+    {
+        QJsonArray result;
+        foreach (const QString& topic, topics) {
+            if ( topic == "null" ) {
+                result.append(QJsonValue());
+            } else {
+                result.append(topic);
+            }
+        }
+
+        return result;
+    }
+
     void EtherIPC::getSyncing() {
         if ( !queueRequest(RequestIPC(NonVisual, GetSyncing, "eth_syncing")) ) {
             return bail();
@@ -788,9 +802,10 @@ namespace Etherwall {
         o["fromBlock"] = fromBlock == 0 ? "latest" : Helpers::toHexStr(fromBlock);
         o["address"] = QJsonArray::fromStringList(addresses);
         if ( topics.length() > 0 && topics.at(0).length() > 0 ) {
-            o["topics"] = QJsonArray::fromStringList(topics);
+            o["topics"] = parseTopics(topics);
         }
         params.append(o);
+        qDebug() << params << "\n";
 
         // we can use getFilterChanges as result is the same
         if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {

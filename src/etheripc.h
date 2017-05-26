@@ -215,6 +215,7 @@ namespace Etherwall {
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
+        const QJsonArray parseTopics(const QStringList& topics);
         void getSyncing();
         void getFilterChanges(const QString& filterID);
         void getClientVersion();

@@ -179,7 +179,7 @@ Window {
                 var topics = topicsField.text.length ? topicsField.text.split(",") : []
                 for ( var i = 0; i < topics.length; i++ ) {
                     var topic = topics[i];
-                    if ( !topic.match(/0x[a-f,A-Z,0-9]{32}/) ) {
+                    if ( topic !== "null" && !topic.match(/0x[a-f,A-Z,0-9]{32}/) ) {
                         result.error = qsTr("Filter topic " + topic + " invalid")
                         return result
                     }

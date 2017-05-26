@@ -805,7 +805,6 @@ namespace Etherwall {
             o["topics"] = parseTopics(topics);
         }
         params.append(o);
-        qDebug() << params << "\n";
 
         // we can use getFilterChanges as result is the same
         if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {

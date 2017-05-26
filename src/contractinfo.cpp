@@ -283,6 +283,12 @@ namespace Etherwall {
         }
 
         if ( fBaseType == "bytes" ) {
+            QString sVal = val.toString();
+            if ( sVal.startsWith("0x") && sVal.size() > 2 ) { // hex value
+                sVal.remove(0, 2);
+                return encode(QByteArray::fromHex(sVal.toUtf8()));
+            }
+            // otherwise consider binary (strings)
             return encode(val.toByteArray());
         }
 

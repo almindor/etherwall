@@ -42,9 +42,9 @@ Window {
 
     function open( index ) {
         if ( index >= 0 ) {
-            nameField.text = filterModel.getName(index);
-            //contractField = filterModel.getName(index);
-            activeField.checked = filterModel.getActive(index);
+            nameField.text = filterModel.getName(index)
+            contractField.currentIndex = contractModel.getIndex(filterModel.getContract(index))
+            activeField.checked = filterModel.getActive(index)
             topicsField.text = filterModel.getTopics(index)
         }
 

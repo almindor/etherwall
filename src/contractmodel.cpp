@@ -168,6 +168,17 @@ namespace Etherwall {
         return fList.at(index).name();
     }
 
+    int ContractModel::getIndex(const QString name) const
+    {
+        for ( int i = 0; i < fList.size(); i++ ) {
+            if ( fList.at(i).name() == name ) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
     const QString ContractModel::getAddress(int index) const {
         if ( index < 0 || index >= fList.size() ) {
             return QString();

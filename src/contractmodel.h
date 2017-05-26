@@ -54,6 +54,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString contractDeployed(const QJsonObject& receipt);
         Q_INVOKABLE bool deleteContract(int index);
         Q_INVOKABLE const QString getName(int index) const;
+        Q_INVOKABLE int getIndex(const QString name) const;
         Q_INVOKABLE const QString getAddress(int index) const;
         Q_INVOKABLE const QString getABI(int index) const;
         Q_INVOKABLE const QStringList getFunctions(int index) const;

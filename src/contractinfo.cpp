@@ -312,7 +312,7 @@ namespace Etherwall {
             throw QString("Invalid argument encode value for " + fBaseType + " expected bytes");
         }
 
-        return encodeBytes(bytes);
+        return encodeBytes(bytes, fM);
     }
 
     const QString ContractArg::encode(int number) const {
@@ -390,7 +390,7 @@ namespace Etherwall {
             throw QString("Byte array too large for static bytes" + QString::number(fixedSize));
         }
 
-        const QString sizePrefix = fixedSize == 0 ? encodeInt(bytes.size()) : ""; // static has no size prefix
+        const QString sizePrefix = (fixedSize <= 0 ? encodeInt(bytes.size()) : ""); // static has no size prefix
         int coef = bytes.size() / 64;
         int requestedSize = 32 * (coef + 1);
 

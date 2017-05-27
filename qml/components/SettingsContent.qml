@@ -169,7 +169,7 @@ TabView {
                 TextField {
                     id: gethArgsField
                     width: parent.width - gethArgsLabel.width
-                    text: settings.value("geth/args", "--fast --cache 512")
+                    text: settings.value("geth/args", "--syncmode=fast --cache 512")
                     onTextChanged: {
                         settings.setValue("geth/args", gethArgsField.text)
                     }

@@ -109,10 +109,13 @@ namespace Etherwall {
         const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
         const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
         const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
-        QStringList args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
+        QStringList args;
         bool testnet = settings.value("geth/testnet", false).toBool();
-        if ( testnet ) {
+        if ( testnet ) { // geth 1.6.0 only
+            args = (argStr + " --datadir " + ddStr + "/testnet").split(' ', QString::SkipEmptyParts);
             args.append("--testnet");
+        } else {
+            args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
         }
         // no more hard fork settings
 
@@ -157,7 +160,7 @@ namespace Etherwall {
         emit busyChanged(getBusy());
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
             setError("Already connected");
-            return bail();
+            return bail(true);
         }
 
         fSocket.connectToServer(fPath);
@@ -935,6 +938,11 @@ namespace Etherwall {
             emit error();
         }
 
+        if ( vn > 0 && vn < 106000 ) {
+            setError("Geth version older than 1.6.0 is no longer supported. Please upgrade geth to 1.6.0+.");
+            emit error();
+        }
+
         emit clientVersionChanged(fClientVersion);
         done();
     }
@@ -1124,7 +1132,7 @@ namespace Etherwall {
         result = obj["result"];
 
         // get filter changes bugged, returns null on result array, see https://github.com/ethereum/go-ethereum/issues/2746
-        if ( result.isNull() && fActiveRequest.getType() == GetFilterChanges ) {
+        if ( result.isNull() && (fActiveRequest.getType() == GetFilterChanges || fActiveRequest.getType() == GetAccountRefs) ) {
             result = QJsonValue(QJsonArray());
         }
 

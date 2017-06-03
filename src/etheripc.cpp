@@ -104,14 +104,23 @@ namespace Etherwall {
             return connectToServer();
         }
 
-        const QSettings settings;
+        QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
-        const QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
+        QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
         const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
+
+        // check deprecated options and replace them
+        if ( argStr.contains("--light") || argStr.contains("--fast") ) {
+            argStr = argStr.replace("--light", "--syncmode=light");
+            argStr = argStr.replace("--fast", "--syncmode=fast");
+            settings.setValue("geth/args", argStr);
+            qDebug() << "replaced args\n";
+        }
+
         QStringList args;
         bool testnet = settings.value("geth/testnet", false).toBool();
-        if ( testnet ) { // geth 1.6.0 only
+        if ( testnet ) { // geth 1.6.0+ only
             args = (argStr + " --datadir " + ddStr + "/testnet").split(' ', QString::SkipEmptyParts);
             args.append("--testnet");
         } else {

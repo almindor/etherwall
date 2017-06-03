@@ -48,6 +48,13 @@ BaseDialog {
         password = ""
     }
 
+    function submit() {
+        if (accountPW0.text === accountPW1.text && accountPW0.text.length > 0) {
+            password = accountPW0.text
+            doAccept()
+        }
+    }
+
     Row {
         id: topRow
         anchors.bottom: bottomRow.top
@@ -94,20 +101,23 @@ BaseDialog {
             text: qsTr("Repeat: ", "password") + "    "
         }
 
+        function submit() {
+
+        }
+
         TextField {
             id: accountPW1
             echoMode: TextInput.Password
             width: parent.parent.width * 0.6
+            Keys.onReturnPressed: submit()
+            Keys.onEnterPressed: submit()
         }
 
         Button {
             id: okButton
             text: "OK"
             enabled: accountPW0.text === accountPW1.text && accountPW0.text.length > 0
-            onClicked: {
-                password = accountPW0.text
-                doAccept()
-            }
+            onClicked: submit()
         }
     }
 }

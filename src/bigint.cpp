@@ -863,13 +863,11 @@ bool BigInt::BaseBigInt::isEmpty() const
 void BigInt::BaseBigInt::maximize()
 {
     m_units.clear();
-    std::vector<BigInt::Ulong>::size_type unitsSize = 0; 
 
     const BigInt::Ulong maxUlong = std::numeric_limits<BigInt::Ulong>::max();
 
     while (true)
     {
-        unitsSize = m_units.size();
         try
         {
             m_units.push_back(maxUlong);

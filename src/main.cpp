@@ -13,7 +13,7 @@
 */
 /** @file main.cpp
  * @author Ales Katona <almindor@gmail.com>
- * @date 2015
+ * @date 2017
  *
  * Main entry point
  */
@@ -51,7 +51,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.4.9");
+    QCoreApplication::setApplicationVersion("1.5.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;

@@ -158,8 +158,8 @@ Tab {
             height: parent.height - newAccountButton.height - parent.spacing
 
             TableViewColumn {
-                role: "index"
-                title: qsTr("#")
+                role: "default"
+                title: qsTr("*")
                 width: 0.3 * dpi
             }
 
@@ -175,6 +175,7 @@ Tab {
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
                 width: 2.5 * dpi
             }
+
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "transactions"
@@ -202,39 +203,36 @@ Tab {
                 id: rowMenu
 
                 MenuItem {
+                    text: qsTr("Set as default")
+                    onTriggered: accountModel.setAsDefault(accountModel.selectedAccount)
+                }
+
+                MenuItem {
                     text: qsTr("Alias Account Name")
-                    onTriggered: {
-                        accountRenameDialog.openFocused("Rename " + accountModel.selectedAccount)
-                    }
+                    onTriggered: accountRenameDialog.openFocused("Rename " + accountModel.selectedAccount)
                 }
 
                 MenuItem {
                     text: qsTr("Copy")
-                    onTriggered: {
-                        clipboard.setText(accountModel.selectedAccount)
-                    }
+                    onTriggered: clipboard.setText(accountModel.selectedAccount)
                 }
 
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (ipc.testnet ? "testnet." : "") + "etherscan.io/address/" + accountModel.selectedAccount
+                        var url = "http://" + (ipc.testnet ? "ropsten." : "") + "etherscan.io/address/" + accountModel.selectedAccount
                         Qt.openUrlExternally(url)
                     }
                 }
 
                 MenuItem {
                     text: qsTr("Export geth account to directory")
-                    onTriggered: {
-                        fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
-                    }
+                    onTriggered: fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                 }
 
                 MenuItem {
                     text: qsTr("Export geth account to QR Code")
-                    onTriggered: {
-                        qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
-                    }
+                    onTriggered: qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
                 }
             }
 

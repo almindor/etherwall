@@ -245,6 +245,9 @@ namespace Etherwall {
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["address"] = address;
+        if ( fIpc.getTestnet() ) {
+            objectJson["testnet"] = true;
+        }
         const QByteArray data = QJsonDocument(objectJson).toJson();
 
         EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);

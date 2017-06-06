@@ -144,6 +144,7 @@ namespace Etherwall {
 
     enum AccountRoles {
         HashRole = Qt::UserRole + 1,
+        DefaultRole,
         BalanceRole,
         TransCountRole,
         SummaryRole,
@@ -163,6 +164,7 @@ namespace Etherwall {
         void unlock();
         bool isLocked() const;
         void alias(const QString& name);
+        const QString hash() const;
     private:
         int fIndex;
         QString fHash;

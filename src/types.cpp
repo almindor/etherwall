@@ -117,13 +117,18 @@ namespace Etherwall {
     }
 
     const QVariant AccountInfo::value(const int role) const {
+        const QSettings settings;
+        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString defaultAccount = settings.value(defaultKey).toString();
+
         switch ( role ) {
-        case HashRole: return QVariant(fHash);
-        case BalanceRole: return QVariant(fBalance);
-        case TransCountRole: return QVariant(fTransCount);
-        case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
-        case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
-        case IndexRole: return QVariant(fIndex);
+            case HashRole: return QVariant(fHash);
+            case DefaultRole: return QVariant(fHash.toLower() == defaultAccount ? "✓" : "");
+            case BalanceRole: return QVariant(fBalance);
+            case TransCountRole: return QVariant(fTransCount);
+            case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
+            case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
+            case IndexRole: return QVariant(fIndex);
         }
 
         return QVariant();
@@ -142,6 +147,11 @@ namespace Etherwall {
 
         settings.setValue("alias/" + fHash.toLower(), name);
         fAlias = name;
+    }
+
+    const QString AccountInfo::hash() const
+    {
+        return fHash;
     }
 
 // ***************************** TransactionInfo ***************************** //

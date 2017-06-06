@@ -142,7 +142,7 @@ TabView {
 
                 Label {
                     id: gethTestnetLabel
-                    text: "Testnet: "
+                    text: "Ropsten: "
                 }
 
                 CheckBox {

@@ -103,7 +103,7 @@ Window {
                 onTextChanged: {
                     saveButton.refresh()
                     // if we have a full address on ETH main chain, we can query etherscan.io for the ABI
-                    if ( text.length == 42 && settings.valueBool("geth/hardfork") && !ipc.testnet ) {
+                    if ( text.length == 42 && !ipc.testnet ) {
                         contractModel.requestAbi(text)
                     }
                 }

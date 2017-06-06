@@ -46,6 +46,7 @@ Item {
                 width: mainColumn.width - 1 * dpi
                 model: accountModel
                 textRole: "summary"
+                currentIndex: accountModel.defaultIndex
                 onCurrentIndexChanged: {
                     sendButton.refresh()
                 }

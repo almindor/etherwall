@@ -41,6 +41,7 @@ namespace Etherwall {
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString total READ getTotal NOTIFY totalChanged)
         Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
+        Q_PROPERTY(int defaultIndex READ getDefaultIndex NOTIFY defaultIndexChanged)
     public:
         AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel);
         QString getError() const;
@@ -59,6 +60,7 @@ namespace Etherwall {
         Q_INVOKABLE void exportWallet(const QUrl& fileName) const;
         Q_INVOKABLE void importWallet(const QUrl& fileName);
         Q_INVOKABLE bool exportAccount(const QUrl& fileName, int index);
+        Q_INVOKABLE void setAsDefault(const QString& address);
     public slots:
         void connectToServerDone();
         void getAccountsDone(const AccountList& list);
@@ -76,6 +78,7 @@ namespace Etherwall {
         void walletExportedEvent() const;
         void walletImportedEvent() const;
         void busyChanged(bool busy) const;
+        void defaultIndexChanged(int index) const;
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;
@@ -85,6 +88,8 @@ namespace Etherwall {
         bool fBusy;
 
         int getSelectedAccountRow() const;
+        int getDefaultIndex() const;
+        bool hasDefaultIndex() const;
         void setSelectedAccountRow(int row);
         const QString getSelectedAccount() const;
     };

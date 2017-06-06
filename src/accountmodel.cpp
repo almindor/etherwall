@@ -46,6 +46,7 @@ namespace Etherwall {
     QHash<int, QByteArray> AccountModel::roleNames() const {
         QHash<int, QByteArray> roles;
         roles[HashRole] = "hash";
+        roles[DefaultRole] = "default";
         roles[BalanceRole] = "balance";
         roles[TransCountRole] = "transactions";
         roles[SummaryRole] = "summary";
@@ -168,6 +169,19 @@ namespace Etherwall {
         return true;
     }
 
+    void AccountModel::setAsDefault(const QString &address)
+    {
+        beginResetModel();
+        QSettings settings;
+        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
+        settings.beginGroup("accounts");
+        settings.setValue(defaultKey, address.toLower());
+        settings.endGroup();
+
+        defaultIndexChanged(getDefaultIndex());
+        endResetModel();
+    }
+
     void AccountModel::exportWallet(const QUrl& fileName) const {
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
@@ -239,6 +253,10 @@ namespace Etherwall {
             fAccountList.append(AccountInfo(hash, "0.000000000000000000", 0));
             endInsertRows();
             EtherLog::logMsg("New account created");
+
+            if (fAccountList.size() > 0 && !hasDefaultIndex()) {
+                setAsDefault(fAccountList.at(0).hash());
+            }
         } else {
             EtherLog::logMsg("Account create failure");
         }
@@ -277,6 +295,10 @@ namespace Etherwall {
         endResetModel();
 
         refreshAccounts();
+
+        if (fAccountList.size() > 0 && !hasDefaultIndex()) {
+            setAsDefault(fAccountList.at(0).hash());
+        }
     }
 
     void AccountModel::refreshAccounts() {
@@ -343,6 +365,43 @@ namespace Etherwall {
 
     int AccountModel::getSelectedAccountRow() const {
         return fSelectedAccountRow;
+    }
+
+    int AccountModel::getDefaultIndex() const
+    {
+        const QSettings settings;
+        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString address = settings.value(defaultKey).toString();
+
+        if ( address.isEmpty() ) {
+            return 0;
+        }
+
+        for ( int i = 0; i < fAccountList.size(); i++ ) {
+            if ( fAccountList.at(i).hash().toLower() == address ) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    bool AccountModel::hasDefaultIndex() const
+    {
+        const QSettings settings;
+        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString address = settings.value(defaultKey).toString();
+        if ( address.isEmpty() ) {
+            return false;
+        }
+
+        foreach ( const AccountInfo info, fAccountList ) {
+            if ( info.hash().toLower() == address ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     void AccountModel::setSelectedAccountRow(int row) {

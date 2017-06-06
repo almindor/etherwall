@@ -246,7 +246,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::getTestnet() const {
-        return fNetVersion == 2;
+        return fNetVersion == 3;
     }
 
     const QString EtherIPC::getNetworkPostfix() const {

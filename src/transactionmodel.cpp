@@ -43,6 +43,7 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
+        connect(&ipc, &EtherIPC::syncingChanged, this, &TransactionModel::syncingChanged);
 
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
         checkVersion(); // TODO: move this off at some point
@@ -230,6 +231,13 @@ namespace Etherwall {
                 addTransaction(info);
                 emit receivedTransaction(info.value(ReceiverRole).toString());
             }
+        }
+    }
+
+    void TransactionModel::syncingChanged(bool syncing)
+    {
+        if ( !syncing ) {
+            refresh();
         }
     }
 

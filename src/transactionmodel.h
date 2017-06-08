@@ -78,6 +78,7 @@ namespace Etherwall {
                              const QString& gasPrice = QString(), const QString& data = QString());
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
+        void syncingChanged(bool syncing);
         void refresh();
         void loadHistoryDone(QNetworkReply* reply);
         void checkVersionDone(QNetworkReply *reply);
@@ -107,6 +108,7 @@ namespace Etherwall {
         int getInsertIndex(const TransactionInfo& info) const;
         void addTransaction(const TransactionInfo& info);
         void storeTransaction(const TransactionInfo& info);
+        void refreshPendingTransactions();
     };
 
 }

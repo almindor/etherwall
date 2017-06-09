@@ -54,6 +54,20 @@ Window {
         show()
     }
 
+    Badge {
+        id: ccBadge
+        z: 999
+
+        Connections {
+            target: trezor
+            onButtonRequest: {
+                if ( code === 8 && contractCalls.visible ) {
+                    ccBadge.show(ccBadge.button_msg(code))
+                }
+            }
+        }
+    }
+
     TabView {
         id: tabs
         anchors.fill: parent

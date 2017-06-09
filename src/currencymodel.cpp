@@ -20,6 +20,7 @@
 
 #include "currencymodel.h"
 #include <QDebug>
+#include <QSettings>
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QJsonObject>
@@ -52,6 +53,18 @@ namespace Etherwall {
         return QVariant(fCurrencies.at(index.row()).value(role));
     }
 
+    QVariant CurrencyModel::recalculateToHelper(const QVariant &ether) const
+    {
+        int index = getHelperIndex();
+
+        if ( index == 0 ) {
+            return ether; // no change
+        }
+
+        double val = fCurrencies.at(index).recalculate(ether.toDouble());
+        return QVariant(QString::number(val, 'f', 18));
+    }
+
     QString CurrencyModel::getCurrencyName(int index) const {
         if ( index < 0 ) {
             index = fIndex;
@@ -64,7 +77,7 @@ namespace Etherwall {
         return "UNK";
     }
 
-    QVariant CurrencyModel::recalculate(const QVariant ether) const {
+    QVariant CurrencyModel::recalculate(const QVariant& ether) const {
         if ( fIndex == 0 ) {
             return ether; // no change
         }
@@ -138,6 +151,34 @@ namespace Etherwall {
 
         endResetModel();
         emit currencyChanged();
+        emit helperIndexChanged(getHelperIndex());
+    }
+
+    int CurrencyModel::getHelperIndex() const
+    {
+        const QSettings settings;
+
+        const QString currencyName = settings.value("currencies/helper", "USD").toString();
+        int index = 0;
+
+        foreach ( const CurrencyInfo& info, fCurrencies ) {
+            if ( info.name() == currencyName ) {
+                return index;
+            }
+            index++;
+        }
+
+        return 0;
+    }
+
+    const QString CurrencyModel::getHelperName() const
+    {
+        int index = getHelperIndex();
+        if ( index >= 0 && index < fCurrencies.size() ) {
+            return fCurrencies.at(index).name();
+        }
+
+        return QString();
     }
 
     void CurrencyModel::setCurrencyIndex(int index) {
@@ -145,6 +186,17 @@ namespace Etherwall {
             fIndex = index;
             emit currencyChanged();
         }
+    }
+
+    void CurrencyModel::setHelperIndex(int index)
+    {
+        if ( index < 0 || index >= fCurrencies.size() ) {
+            return;
+        }
+
+        const QString name = fCurrencies.at(index).name();
+        QSettings settings;
+        settings.setValue("currencies/helper", name);
     }
 
     int CurrencyModel::getCurrencyIndex() const {

@@ -50,7 +50,7 @@ Item {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (ipc.testnet ? "ropsten." : "") + "etherscan.io/tx/" + eventModel.getTransactionHash(eventView.currentRow)
+                        var url = "http://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/tx/" + eventModel.getTransactionHash(eventView.currentRow)
                         Qt.openUrlExternally(url)
                     }
                 }

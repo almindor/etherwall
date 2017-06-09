@@ -5,6 +5,29 @@ QT += qml quick widgets network
 INCLUDEPATH += src
 DEPENDPATH += src
 
+linux {
+    CONFIG += link_pkgconfig
+    PKGCONFIG += hidapi-libusb protobuf libudev
+}
+
+win32 {
+    INCLUDEPATH += C:\MinGW\msys\1.0\local\include
+    LIBS += C:\MinGW\msys\1.0\local\lib\libprotobuf.a C:\MinGW\msys\1.0\local\lib\libhidapi.a -lhid -lsetupapi -lws2_32
+    RC_ICONS = icon.ico
+}
+
+macx {
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+    INCLUDEPATH += /usr/local/include
+    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/IOKit.framework/Headers
+    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.12.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers
+    QMAKE_LFLAGS += -F/System/Library/Frameworks/CoreFoundation.framework -F/System/Library/Frameworks/IOKit.framework
+    LIBS += -framework CoreFoundation
+    LIBS += -framework IOKit
+    LIBS += /usr/local/lib/libhidapi.a /usr/local/lib/libprotobuf.a
+    ICON=qml/images/icon.icns
+}
+
 SOURCES += src/main.cpp \
     src/accountmodel.cpp \
     src/types.cpp \
@@ -21,7 +44,16 @@ SOURCES += src/main.cpp \
     src/contractmodel.cpp \
     src/contractinfo.cpp \
     src/eventmodel.cpp \
-    src/filtermodel.cpp
+    src/filtermodel.cpp \
+    src/trezor/trezor.cpp \
+    src/trezor/proto/messages.pb.cc \
+    src/trezor/proto/config.pb.cc \
+    src/trezor/proto/storage.pb.cc \
+    src/trezor/proto/types.pb.cc \
+    src/trezor/wire.cpp \
+    src/trezor/hdpath.cpp \
+    src/ethereum/tx.cpp \
+    src/platform/devicemanager.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -56,12 +88,14 @@ HEADERS += \
     src/contractmodel.h \
     src/contractinfo.h \
     src/eventmodel.h \
-    src/filtermodel.h
+    src/filtermodel.h \
+    src/trezor/trezor.h \
+    src/trezor/proto/messages.pb.h \
+    src/trezor/proto/config.pb.h \
+    src/trezor/proto/storage.pb.h \
+    src/trezor/proto/types.pb.h \
+    src/trezor/wire.h \
+    src/trezor/hdpath.h \
+    src/ethereum/tx.h \
+    src/platform/devicemanager.h
 
-macx {
-    ICON=qml/images/icon.icns
-}
-
-win32 {
-    RC_ICONS = icon.ico
-}

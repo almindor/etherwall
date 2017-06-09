@@ -121,8 +121,8 @@ namespace Etherwall {
         QStringList args;
         bool testnet = settings.value("geth/testnet", false).toBool();
         if ( testnet ) { // geth 1.6.0+ only
-            args = (argStr + " --datadir " + ddStr + "/testnet").split(' ', QString::SkipEmptyParts);
-            args.append("--testnet");
+            args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
+            args.append("--rinkeby");
         } else {
             args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
         }
@@ -246,19 +246,11 @@ namespace Etherwall {
     }
 
     bool EtherIPC::getTestnet() const {
-        return fNetVersion == 3;
+        return fNetVersion == 4;
     }
 
     const QString EtherIPC::getNetworkPostfix() const {
-        QSettings settings;
-        QString postfix = settings.value("geth/hardfork", true).toBool() ? "/eth" : "/etc";
-        if ( getTestnet() ) {
-            postfix += "/morden";
-        } else {
-            postfix += "/homestead";
-        }
-
-        return postfix;
+        return Helpers::networkPostfix(fNetVersion);
     }
 
     bool EtherIPC::killGeth() {
@@ -350,7 +342,6 @@ namespace Etherwall {
     }
 
     void EtherIPC::getAccounts() {
-        fAccountList.clear();
         if ( !queueRequest(RequestIPC(GetAccountRefs, "personal_listAccounts", QJsonArray())) ) {
             return bail();
         }
@@ -363,12 +354,13 @@ namespace Etherwall {
         }
 
         QJsonArray refs = jv.toArray();
+        QStringList accounts;
         foreach( QJsonValue r, refs ) {
             const QString hash = r.toString("INVALID");
-            fAccountList.append(AccountInfo(hash, QString(), 0));
+            accounts.append(hash);
         }
 
-        emit getAccountsDone(fAccountList);
+        emit getAccountsDone(accounts);
         done();
     }
 
@@ -413,9 +405,8 @@ namespace Etherwall {
 
         const QString decStr = Helpers::toDecStrEther(jv);
         const int index = fActiveRequest.getIndex();
-        fAccountList[index].setBalance(decStr);
 
-        emit accountChanged(fAccountList.at(index));
+        emit accountBalanceChanged(index, decStr);
         done();
     }
 
@@ -429,9 +420,8 @@ namespace Etherwall {
         const BigInt::Vin bv(hexStr, 16);
         quint64 count = bv.toUlong();
         const int index = fActiveRequest.getIndex();
-        fAccountList[index].setTransactionCount(count);
 
-        emit accountChanged(fAccountList.at(index));
+        emit accountSentTransChanged(index, count);
         done();
     }
 
@@ -495,6 +485,22 @@ namespace Etherwall {
         return fBlockNumber;
     }
 
+    int EtherIPC::network() const
+    {
+        return fNetVersion;
+    }
+
+    quint64 EtherIPC::nonceStart() const
+    {
+        switch ( fNetVersion ) {
+            case 2: return 0x0100000;
+            case 3: return 0x0100000;
+            case 4: return 0;
+        }
+
+        return 0;
+    }
+
     void EtherIPC::getPeerCount() {
         if ( !queueRequest(RequestIPC(NonVisual, GetPeerCount, "net_peerCount")) ) {
             return bail();
@@ -510,33 +516,41 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
-                                   const QString& gas, const QString& gasPrice, const QString& data) {
+    void EtherIPC::sendTransaction(const Ethereum::Tx& tx, const QString& password) {
         QJsonArray params;
-        const QString valHex = Helpers::toHexWeiStr(valStr);
         QJsonObject p;
-        p["from"] = from;
-        p["value"] = valHex;
-        if ( !to.isEmpty() ) {
-            p["to"] = to;
+        p["from"] = tx.fromStr();
+        p["value"] = tx.valueHex();
+        if ( !tx.isContractDeploy() ) {
+            p["to"] = tx.toStr();
         }
-        if ( !gas.isEmpty() ) {
-            const QString gasHex = Helpers::decStrToHexStr(gas);
-            p["gas"] = gasHex;
+        if ( tx.hasDefinedGas() ) {
+            p["gas"] = tx.gasHex();
         }
-        if ( !gasPrice.isEmpty() ) {
-            const QString gasPriceHex = Helpers::toHexWeiStr(gasPrice);
-            p["gasPrice"] = gasPriceHex;
-            EtherLog::logMsg(QString("Trans gasPrice: ") + gasPrice + QString(" HexValue: ") + gasPriceHex);
+        if ( tx.hasDefinedGasPrice() ) {
+            p["gasPrice"] = tx.gasPriceHex();
+            EtherLog::logMsg(QString("Trans gasPrice: ") + tx.gasPriceStr() + QString(" HexValue: ") + tx.gasPriceHex());
         }
-        if ( !data.isEmpty() ) {
-            p["data"] = Helpers::hexPrefix(data);
+        if ( tx.hasData() ) {
+            p["data"] = tx.dataHex();
         }
 
         params.append(p);
         params.append(password);
 
         if ( !queueRequest(RequestIPC(SendTransaction, "personal_signAndSendTransaction", params)) ) {
+            return bail(true); // softbail
+        }
+    }
+
+    void EtherIPC::sendRawTransaction(const Ethereum::Tx& tx)
+    {
+        const QString rlp = Helpers::hexPrefix(tx.encodeRLP(true));
+        qDebug() << "About to send tx: " << rlp << "\n";
+        QJsonArray params;
+        params.append(rlp);
+
+        if ( !queueRequest(RequestIPC(SendRawTransaction, "eth_sendRawTransaction", params)) ) {
             return bail(true); // softbail
         }
     }
@@ -1234,6 +1248,10 @@ namespace Etherwall {
                 break;
             }
         case SendTransaction: {
+                handleSendTransaction();
+                break;
+            }
+        case SendRawTransaction: {
                 handleSendTransaction();
                 break;
             }

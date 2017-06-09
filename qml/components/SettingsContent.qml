@@ -4,6 +4,8 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Extras 1.4
 
 TabView {
+    property bool hideTrezor: false
+
     Tab {
         title: qsTr("Basic")
 
@@ -72,6 +74,25 @@ TabView {
                     }
                 }
             }
+
+            Row {
+                width: parent.width
+
+                Label {
+                    text: qsTr("Helper currency: ")
+                }
+
+                ComboBox {
+                    id: defaultFiatCombo
+                    width: 1 * dpi
+                    model: currencyModel
+                    textRole: "name"
+                    currentIndex: currencyModel.helperIndex
+
+                    onActivated: currencyModel.setHelperIndex(index)
+                }
+            }
+
 
             ErrorDialog {
                 id: hfConfirmDialog
@@ -142,7 +163,7 @@ TabView {
 
                 Label {
                     id: gethTestnetLabel
-                    text: "Testnet (ropsten): "
+                    text: "Testnet (rinkeby): "
                 }
 
                 CheckBox {
@@ -200,5 +221,42 @@ TabView {
 
         }
     }
+
+    Tab {
+        visible: !hideTrezor
+        title: "TREZOR"
+
+        Column {
+            anchors.margins: 0.2 * dpi
+            anchors.fill: parent
+            spacing: 0.1 * dpi
+
+            Row {
+                width: parent.width
+                spacing: 0.05 * dpi
+
+                Label {
+                    text: qsTr("Import addresses: ")
+                }
+
+                SpinBox {
+                    id: addressesSpinBox
+                    width: 1 * dpi
+                    minimumValue: 1
+                    maximumValue: 60
+
+                    value: settings.value("trezor/addresses", 5)
+                    onValueChanged: settings.setValue("trezor/addresses", addressesSpinBox.value)
+                }
+
+                Button {
+                    enabled: trezor.initialized
+                    text: qsTr("Import")
+                    onClicked: accountModel.trezorImport()
+                }
+            }
+        }
+    }
+
 
 }

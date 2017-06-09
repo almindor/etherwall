@@ -68,7 +68,7 @@ namespace Etherwall {
         quint64 getLastBlock() const;
     public slots:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list);
+        void getAccountsDone(const QStringList& list);
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
@@ -76,6 +76,7 @@ namespace Etherwall {
         void sendTransaction(const QString& password, const QString& from, const QString& to,
                              const QString& value, const QString& gas = QString(),
                              const QString& gasPrice = QString(), const QString& data = QString());
+        void onRawTransaction(const Ethereum::Tx& tx);
         void newTransaction(const TransactionInfo& info);
         void newBlock(const QJsonObject& block);
         void syncingChanged(bool syncing);

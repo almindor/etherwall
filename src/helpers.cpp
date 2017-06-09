@@ -16,6 +16,15 @@ namespace Etherwall {
         return val.indexOf("0x") == 0 ? val : ("0x" + val);
     }
 
+    const QString Helpers::clearHexPrefix(const QString &val)
+    {
+        if ( val.startsWith("0x") || val.startsWith("0X") ) {
+            return val.mid(2);
+        }
+
+        return val;
+    }
+
     const QString Helpers::toDecStr(const QJsonValue& jv) {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         const BigInt::Vin bv(hexStr, 16);
@@ -215,6 +224,17 @@ namespace Etherwall {
         return "0x" + result;
     }
 
+    const QString Helpers::networkPostfix(int network)
+    {
+        switch ( network ) {
+            case 1: return "/eth/homestead";
+            case 3: return "/eth/ropsten";
+            case 4: return "/eth/rinkeby";
+        }
+
+        return "/unknown/unknown";
+    }
+
     const QByteArray Helpers::exportSettings() {
         const QSettings settings;
         QByteArray result;
@@ -387,7 +407,7 @@ namespace Etherwall {
 
         QDir testnet(keystore);
         // can't use && because C++ doesn't enforce execution order AFAIK
-        if ( testnet.cd("../testnet") ) {
+        if ( testnet.cd("../rinkeby") ) {
             if ( testnet.cd("keystore") ) {
                 testnetData = exportAddresses(testnet);
             }
@@ -463,8 +483,8 @@ namespace Etherwall {
         // can't use && because C++ doesn't enforce execution order AFAIK
         if ( testnetData.size() > 0 ) {
             if ( !testnet.cd("..") ) throw QString("Unable to reach main datadir");
-            testnet.mkdir("testnet");
-            if ( !testnet.cd("testnet") ) throw QString("Unable to reach testnet datadir");;
+            testnet.mkdir("rinkeby");
+            if ( !testnet.cd("rinkeby") ) throw QString("Unable to reach rinkeby datadir");;
             testnet.mkdir("keystore");
             if ( !testnet.cd("keystore") ) throw QString("Unable to reach testnet keystore");;
             importAddresses(testnetData, testnet);
@@ -489,7 +509,7 @@ namespace Etherwall {
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
         if ( testnet ) {
-            keystore.cd("testnet");
+            keystore.cd("rinkeby");
         }
         keystore.cd("keystore");
 

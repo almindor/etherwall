@@ -15,6 +15,7 @@ namespace Etherwall {
     {
     public:
         static const QString hexPrefix(const QString& val);
+        static const QString clearHexPrefix(const QString& val);
         static const QString toDecStr(const QJsonValue &jv);
         static const QString toDecStrEther(const QJsonValue &jv);
         static const QString toDecStr(quint64 val);
@@ -31,6 +32,7 @@ namespace Etherwall {
         static int parseAppVersion(const QString& ver);
         static QJsonObject parseHTTPReply(QNetworkReply *reply);
         static const QString vitalizeAddress(const QString& origAddress);
+        static const QString networkPostfix(int network);
         static const QByteArray exportSettings();
         static void importSettings(const QByteArray& data);
         static const QString getAddressFilename(const QDir& keystore, QString& address);

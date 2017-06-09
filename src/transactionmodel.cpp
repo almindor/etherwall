@@ -20,6 +20,7 @@
 
 #include "transactionmodel.h"
 #include "helpers.h"
+#include "ethereum/tx.h"
 #include <QDebug>
 #include <QTimer>
 #include <QJsonArray>
@@ -131,7 +132,7 @@ namespace Etherwall {
         fIpc.getGasPrice();
     }
 
-    void TransactionModel::getAccountsDone(const AccountList& list __attribute__((unused))) {
+    void TransactionModel::getAccountsDone(const QStringList& list __attribute__((unused))) {
         refresh();
         loadHistory();
     }
@@ -156,21 +157,32 @@ namespace Etherwall {
     }
 
     void TransactionModel::getGasPriceDone(const QString& num) {
-        fGasPrice = num;
-        emit gasPriceChanged(num);
+        if ( num != fGasEstimate ) {
+            fGasPrice = num;
+            emit gasPriceChanged(num);
+        }
     }
 
     void TransactionModel::estimateGasDone(const QString& num) {
-        fGasEstimate = num;
-        emit gasEstimateChanged(num);
+        if ( num != fGasEstimate ) {
+            fGasEstimate = num;
+            emit gasEstimateChanged(num);
+        }
     }
 
     void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
                                            const QString& value, const QString& gas, const QString& gasPrice,
                                            const QString& data) {
-        //fIpc.unlockAccount(from, password, 5, 0);
-        fIpc.sendTransaction(from, to, value, password, gas, gasPrice, data);
+        const Ethereum::Tx tx(from, to, value, 0, gas, gasPrice, data); // nonce not required here, ipc.sendTransaction doesn't fill it in as it's known to geth
+
+        fIpc.sendTransaction(tx, password);
         fQueuedTransaction.init(from, to, value, gas, gasPrice, data);
+    }
+
+    void TransactionModel::onRawTransaction(const Ethereum::Tx& tx)
+    {
+        fQueuedTransaction.init(tx.fromStr(), tx.toStr(), tx.valueStr(), tx.gasStr(), tx.gasPriceStr(), tx.dataStr());
+        fIpc.sendRawTransaction(tx);
     }
 
     void TransactionModel::sendTransactionDone(const QString& hash) {

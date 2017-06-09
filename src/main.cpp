@@ -21,6 +21,7 @@
 #include <QApplication>
 #include <QTranslator>
 #include <QQmlApplicationEngine>
+#include <QDir>
 #include <QQmlContext>
 #include <QtQml/qqml.h>
 #include <QIcon>
@@ -40,6 +41,9 @@
 #include "gethlog.h"
 #include "helpers.h"
 
+#include "trezor/trezor.h"
+#include "platform/devicemanager.h"
+
 using namespace Etherwall;
 
 int main(int argc, char *argv[])
@@ -51,7 +55,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("1.5.0");
+    QCoreApplication::setApplicationVersion("1.6.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -81,13 +85,21 @@ int main(int argc, char *argv[])
     const QSslCertificate certificate(EtherWall_Cert.toUtf8());
     QSslSocket::addDefaultCaCertificate(certificate);
 
+    Trezor::TrezorDevice trezor;
+    DeviceManager deviceManager(app);
     EtherIPC ipc(ipcPath, gethLog);
     CurrencyModel currencyModel;
-    AccountModel accountModel(ipc, currencyModel);
+    AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);
     ContractModel contractModel(ipc);
     FilterModel filterModel(ipc);
     EventModel eventModel(contractModel, filterModel);
+
+    // main connections
+    QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
+    QObject::connect(&deviceManager, &DeviceManager::deviceInserted, &trezor, &Trezor::TrezorDevice::onDeviceInserted);
+    QObject::connect(&deviceManager, &DeviceManager::deviceRemoved, &trezor, &Trezor::TrezorDevice::onDeviceRemoved);
+    QObject::connect(&trezor, &Trezor::TrezorDevice::transactionReady, &transactionModel, &TransactionModel::onRawTransaction);
 
     // for QML only
     QmlHelpers qmlHelpers;
@@ -96,6 +108,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("settings", &settings);
     engine.rootContext()->setContextProperty("ipc", &ipc);
+    engine.rootContext()->setContextProperty("trezor", &trezor);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);
     engine.rootContext()->setContextProperty("transactionModel", &transactionModel);
     engine.rootContext()->setContextProperty("contractModel", &contractModel);

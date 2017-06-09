@@ -54,6 +54,20 @@ Window {
         show()
     }
 
+    Badge {
+        id: cdBadge
+        z: 999
+
+        Connections {
+            target: trezor
+            onButtonRequest: {
+                if ( code === 8 && contractDeploy.visible ) {
+                    cdBadge.show(cdBadge.button_msg(code))
+                }
+            }
+        }
+    }
+
     TabView {
         id: tabs
         anchors.fill: parent
@@ -76,6 +90,7 @@ Window {
                     stcTab.children[0].contractName = name
                     stcTab.children[0].contractAbi = abi
                     stcTab.enabled = true
+                    stcTab.children[0].prepare()
                     if ( next ) {
                         tabs.currentIndex = 1
                     }

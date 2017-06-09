@@ -108,7 +108,8 @@ namespace Etherwall {
     public:
         CurrencyInfo( const QString name, const float price );
         const QVariant value(const int role) const;
-        double recalculate(const float ether) const;
+        double recalculate(const double ether) const;
+        const QString name() const;
     private:
         QString fName;
         float fPrice;
@@ -126,6 +127,7 @@ namespace Etherwall {
         GetTransactionCount,
         GetPeerCount,
         SendTransaction,
+        SendRawTransaction,
         UnlockAccount,
         GetGasPrice,
         EstimateGas,
@@ -149,13 +151,16 @@ namespace Etherwall {
         TransCountRole,
         SummaryRole,
         AliasRole,
-        IndexRole
+        DeviceRole,
+        DeviceTypeRole,
+        HDPathRole
     };
 
     class AccountInfo
     {
     public:
-        AccountInfo(const QString& hash, const QString& balance, quint64 transCount);
+        AccountInfo(const QString& hash, const QString& alias, const QString& deviceID,
+                    const QString& balance, quint64 transCount, const QString& hdPath, const int network);
 
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
@@ -163,15 +168,25 @@ namespace Etherwall {
         void lock();
         void unlock();
         bool isLocked() const;
-        void alias(const QString& name);
+        void setDeviceID(const QString& deviceID);
+        const QString deviceID() const;
+        void setAlias(const QString& name);
+        const QString alias() const;
         const QString hash() const;
+        quint64 transactionCount() const;
+        const QJsonObject toJson() const;
+        const QString HDPath() const;
     private:
-        int fIndex;
         QString fHash;
+        QString fAlias;
+        QString fDeviceID;
         QString fBalance; // in ether
         quint64 fTransCount;
-        QString fAlias;
+        QString fHDPath;
         bool fLocked;
+        int fNetwork;
+
+        const QString getSummary() const;
     };
 
     typedef QList<AccountInfo> AccountList;

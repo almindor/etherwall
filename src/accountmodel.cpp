@@ -19,28 +19,37 @@
  */
 
 #include "accountmodel.h"
-#include "types.h"
 #include "helpers.h"
+#include "trezor/hdpath.h"
 #include <QDebug>
 #include <QSettings>
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
 
+#define EMPTY_BALANCE "0.000000000000000000"
+#define DEFAULT_DEVICE "geth"
+
 namespace Etherwall {
 
-    AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountList(), fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false)
+    AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
+        QAbstractListModel(0),
+        fIpc(ipc), fAccountList(), fTrezor(trezor),
+        fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
         connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
-        connect(&ipc, &EtherIPC::accountChanged, this, &AccountModel::accountChanged);
+        connect(&ipc, &EtherIPC::accountBalanceChanged, this, &AccountModel::accountBalanceChanged);
+        connect(&ipc, &EtherIPC::accountSentTransChanged, this, &AccountModel::accountSentTransChanged);
         connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
         connect(&ipc, &EtherIPC::syncingChanged, this, &AccountModel::syncingChanged);
 
         connect(&currencyModel, &CurrencyModel::currencyChanged, this, &AccountModel::currencyChanged);
+
+        connect(&trezor, &Trezor::TrezorDevice::initialized, this, &AccountModel::onTrezorInitialized);
+        connect(&trezor, &Trezor::TrezorDevice::addressRetrieved, this, &AccountModel::onTrezorAddressRetrieved);
     }
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
@@ -51,7 +60,8 @@ namespace Etherwall {
         roles[TransCountRole] = "transactions";
         roles[SummaryRole] = "summary";
         roles[AliasRole] = "alias";
-        roles[IndexRole] = "index";
+        roles[DeviceRole] = "device";
+        roles[DeviceTypeRole] = "deviceType";
 
         return roles;
     }
@@ -112,7 +122,7 @@ namespace Etherwall {
 
     void AccountModel::renameAccount(const QString& name, int index) {
         if ( index >= 0 && index < fAccountList.size() ) {
-            fAccountList[index].alias(name);
+            fAccountList[index].setAlias(name);
 
             QVector<int> roles(2);
             roles[0] = AliasRole;
@@ -142,6 +152,24 @@ namespace Etherwall {
         return QString();
     }
 
+    const QString AccountModel::getAccountHDPath(int index) const
+    {
+        if ( index >= 0 && fAccountList.length() > index ) {
+            return fAccountList.at(index).HDPath();
+        }
+
+        return QString();
+    }
+
+    quint64 AccountModel::getAccountNonce(int index) const
+    {
+        if ( index >= 0 && fAccountList.length() > index ) {
+            return fAccountList.at(index).transactionCount() + fIpc.nonceStart();
+        }
+
+        return 0; // TODO: throw
+    }
+
     bool AccountModel::exportAccount(const QUrl& dir, int index) {
         if ( index < 0 || index >= fAccountList.length() ) {
             return false;
@@ -150,7 +178,7 @@ namespace Etherwall {
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
         if ( fIpc.getTestnet() ) {
-            keystore.cd("testnet");
+            keystore.cd("rinkeby");
         }
         keystore.cd("keystore");
 
@@ -173,13 +201,77 @@ namespace Etherwall {
     {
         beginResetModel();
         QSettings settings;
-        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
+        const QString defaultKey = "default/" + fIpc.getNetworkPostfix(); // settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
         settings.beginGroup("accounts");
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();
 
         defaultIndexChanged(getDefaultIndex());
         endResetModel();
+    }
+
+    void AccountModel::trezorImport()
+    {
+        const QSettings settings;
+        bool ok = false;
+        int addresses = settings.value("trezor/addresses", 5).toInt(&ok);
+        if ( !ok ) {
+            qDebug() << "Invalid address count\n";
+            addresses = 5;
+        }
+        const QString hdPathBase = getHDPathBase();
+        qDebug() << "HD path base: " << hdPathBase << "\n";
+
+        for ( int i = 0; i < addresses; i++ ) {
+            const QString fullPath = hdPathBase + "/" + QString::number(i);
+            const Trezor::HDPath hdPath(fullPath);
+            fTrezor.getAddress(hdPath);
+        }
+    }
+
+    const QString AccountModel::getSelectedAccountAlias() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return QString();
+        }
+
+        return fAccountList.at(fSelectedAccountRow).alias();
+    }
+
+    quint64 AccountModel::getSelectedAccountSentTrans() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return 0;
+        }
+
+        return fAccountList.at(fSelectedAccountRow).transactionCount();
+    }
+
+    const QString AccountModel::getSelectedAccountDeviceID() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return QString();
+        }
+
+        return fAccountList.at(fSelectedAccountRow).deviceID();
+    }
+
+    const QString AccountModel::getSelectedAccountHDPath() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return 0;
+        }
+
+        return fAccountList.at(fSelectedAccountRow).HDPath();
+    }
+
+    bool AccountModel::getSelectedAccountDefault() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return false;
+        }
+
+        return fSelectedAccountRow == getDefaultIndex();
     }
 
     void AccountModel::exportWallet(const QUrl& fileName) const {
@@ -243,14 +335,47 @@ namespace Etherwall {
         emit walletImportedEvent();
     }
 
+    void AccountModel::onTrezorInitialized(const QString &deviceID)
+    {
+        foreach ( const AccountInfo& addr, fAccountList ) {
+            if ( deviceID == addr.deviceID() ) {
+                qDebug() << "Existing trezor address found\n";
+                return; // we have some addresses don't prompt for them
+            }
+        }
+
+        emit promptForTrezorImport();
+    }
+
+    void AccountModel::onTrezorAddressRetrieved(const QString &address, const QString& hdPath)
+    {
+        int i1, i2;
+        if ( !containsAccount(address, "unused", i1, i2) ) {
+            beginInsertRows(QModelIndex(), fAccountList.size(), fAccountList.size());
+            fAccountList.append(AccountInfo(address, QString(), fTrezor.getDeviceID(), EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+            endInsertRows();
+
+            storeAccountList();
+        } else if ( fAccountList.at(i1).deviceID() != fTrezor.getDeviceID() ) { // this shouldn't happen unless they reimported to another hd device
+            fAccountList[i1].setDeviceID(fTrezor.getDeviceID());
+
+            QVector<int> roles(1);
+            roles[0] = DeviceRole;
+            const QModelIndex& leftIndex = QAbstractListModel::createIndex(i1, i1);
+            const QModelIndex& rightIndex = QAbstractListModel::createIndex(i1, i1);
+            emit dataChanged(leftIndex, rightIndex, roles);
+        }
+    }
+
     void AccountModel::connectToServerDone() {
+        loadAccountList();
         fIpc.getAccounts();
     }
 
     void AccountModel::newAccountDone(const QString& hash, int index) {
         if ( !hash.isEmpty() ) {
             beginInsertRows(QModelIndex(), index, index);
-            fAccountList.append(AccountInfo(hash, "0.000000000000000000", 0));
+            fAccountList.append(AccountInfo(hash, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
             endInsertRows();
             EtherLog::logMsg("New account created");
 
@@ -289,16 +414,25 @@ namespace Etherwall {
         }
     }
 
-    void AccountModel::getAccountsDone(const AccountList& list) {
+    void AccountModel::getAccountsDone(const QStringList& list) {
         beginResetModel();
-        fAccountList = list;
+        foreach ( const QString& addr, list ) {
+            int i1, i2;
+            if ( !containsAccount(addr, "unused", i1, i2) ) {
+                fAccountList.append(AccountInfo(addr, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
+            }
+        }
         endResetModel();
+
+        storeAccountList();
 
         refreshAccounts();
 
         if (fAccountList.size() > 0 && !hasDefaultIndex()) {
             setAsDefault(fAccountList.at(0).hash());
         }
+
+        emit accountsReady();
     }
 
     void AccountModel::refreshAccounts() {
@@ -312,27 +446,29 @@ namespace Etherwall {
         emit totalChanged();
     }
 
-    void AccountModel::accountChanged(const AccountInfo& info) {
-        int index = 0;
-        const QString infoHash = info.value(HashRole).toString();
-        foreach ( const AccountInfo& a, fAccountList ) {
-            if ( a.value(HashRole).toString() == infoHash ) {
-                fAccountList[index] = info;
-                const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
-                emit dataChanged(leftIndex, rightIndex);
-                emit totalChanged();
-                return;
-            }
-            index++;
+    void AccountModel::accountBalanceChanged(int index, const QString& balanceStr) {
+        if ( fAccountList.size() <= index ) {
+            qDebug() << "Invalid index\n";
+            return;
         }
 
-        const int len = fAccountList.length();
-        beginInsertRows(QModelIndex(), len, len);
-        fAccountList.append(info);
-        endInsertRows();
-
+        fAccountList[index].setBalance(balanceStr);
+        const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
+        const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
+        emit dataChanged(leftIndex, rightIndex);
         emit totalChanged();
+    }
+
+    void AccountModel::accountSentTransChanged(int index, quint64 count) {
+        if ( fAccountList.size() <= index ) {
+            qDebug() << "Invalid index\n";
+            return;
+        }
+
+        fAccountList[index].setTransactionCount(count);
+        const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
+        const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
+        emit dataChanged(leftIndex, rightIndex);
     }
 
     void AccountModel::newBlock(const QJsonObject& block) {
@@ -370,7 +506,7 @@ namespace Etherwall {
     int AccountModel::getDefaultIndex() const
     {
         const QSettings settings;
-        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString defaultKey = "accounts/default/" + fIpc.getNetworkPostfix();
         const QString address = settings.value(defaultKey).toString();
 
         if ( address.isEmpty() ) {
@@ -389,7 +525,7 @@ namespace Etherwall {
     bool AccountModel::hasDefaultIndex() const
     {
         const QSettings settings;
-        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString defaultKey = "accounts/default/" + fIpc.getNetworkPostfix();
         const QString address = settings.value(defaultKey).toString();
         if ( address.isEmpty() ) {
             return false;
@@ -411,6 +547,66 @@ namespace Etherwall {
 
     const QString AccountModel::getSelectedAccount() const {
         return getAccountHash(fSelectedAccountRow);
+    }
+
+    void AccountModel::storeAccountList() const
+    {
+        QSettings settings;
+
+        const QString chain = fIpc.getNetworkPostfix();
+        settings.beginGroup("accounts" + chain);
+        int index = 0;
+        foreach ( const AccountInfo& addr, fAccountList ) {
+            const QString key = addr.hash().toLower();
+
+            QJsonObject json = addr.toJson();
+            json["index"] = index++;
+            const QJsonDocument doc(json);
+            const QString serialized = doc.toJson(QJsonDocument::Compact);
+
+            settings.setValue(key, serialized);
+        }
+        settings.endGroup();
+    }
+
+    void AccountModel::loadAccountList()
+    {
+        QSettings settings;
+
+        const QString chain = fIpc.getNetworkPostfix();
+        settings.beginGroup("accounts" + chain);
+        const QStringList keys = settings.allKeys();
+        QList<QJsonObject> parsedList;
+
+        foreach ( const QString& key, keys ) {
+            const QString serialized = settings.value(key, "invalid").toString();
+            parsedList.append(QJsonDocument::fromJson(serialized.toUtf8()).object());
+        }
+        settings.endGroup();
+
+        // SORT parsed list based on index
+        std::sort(parsedList.begin(), parsedList.end(), [](const QJsonObject& a, const QJsonObject& b) {
+            return a.value("index").toInt() < b.value("index").toInt();
+        });
+
+        foreach ( const QJsonObject json, parsedList ) {
+            const QString hash = json.value("hash").toString();
+            const QString alias = json.value("alias").toString();
+            const QString deviceID = json.value("deviceID").toString();
+            const QString hdPath = json.value("HDPath").toString();
+            fAccountList.append(AccountInfo(hash, alias, deviceID, EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+        }
+    }
+
+    const QString AccountModel::getHDPathBase() const
+    {
+        if ( fIpc.getTestnet() ) {
+            // test net: m/44'/1'/0'/0/<index>
+            return "m/44'/1'/0'/0";
+        }
+
+        // main net: m/44'/60'/0'/0/<index>
+        return "m/44'/60'/0'/0";
     }
 
     const QJsonArray AccountModel::getAccountsJsonArray() const {

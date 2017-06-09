@@ -80,8 +80,8 @@ Tab {
                 height: newAccountButton.height
                 model: currencyModel
                 textRole: "name"
-                onCurrentIndexChanged: {
-                    currencyModel.setCurrencyIndex(currentIndex);
+                onActivated: {
+                    currencyModel.setCurrencyIndex(index);
                 }
             }
 
@@ -151,6 +151,10 @@ Tab {
             }
         }
 
+        AccountDetails {
+            id: accountDetails
+        }
+
         TableView {
             id: accountView
             anchors.left: parent.left
@@ -159,14 +163,24 @@ Tab {
 
             TableViewColumn {
                 role: "default"
-                title: qsTr("*")
+                title: "☑"
                 width: 0.3 * dpi
+                resizable: false
+                horizontalAlignment: Text.AlignHCenter
+            }
+
+            TableViewColumn {
+                role: "deviceType"
+                title: " ⊡"
+                width: 0.3 * dpi
+                resizable: false
+                horizontalAlignment: Text.AlignLeft
             }
 
             TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
-                width: 4 * dpi
+                width: 4.75 * dpi
             }
 
             TableViewColumn {
@@ -174,13 +188,6 @@ Tab {
                 role: "balance"
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
                 width: 2.5 * dpi
-            }
-
-            TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "transactions"
-                title: qsTr("Sent Trans.")
-                width: 1 * dpi
             }
 
             // TODO: fix selection for active row first
@@ -203,6 +210,11 @@ Tab {
                 id: rowMenu
 
                 MenuItem {
+                    text: qsTr("Details", "account")
+                    onTriggered: accountDetails.open()
+                }
+
+                MenuItem {
                     text: qsTr("Set as default")
                     onTriggered: accountModel.setAsDefault(accountModel.selectedAccount)
                 }
@@ -220,7 +232,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (ipc.testnet ? "ropsten." : "") + "etherscan.io/address/" + accountModel.selectedAccount
+                        var url = "http://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/address/" + accountModel.selectedAccount
                         Qt.openUrlExternally(url)
                     }
                 }

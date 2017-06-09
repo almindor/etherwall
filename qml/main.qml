@@ -61,6 +61,35 @@ ApplicationWindow {
         }
     }
 
+    PinMatrixDialog {
+        id: pinMatrixDialog
+        // visible: true
+    }
+
+    ButtonRequestDialog {
+        id: buttonRequestDialog
+    }
+
+    // Trezor main connections
+    Connections {
+        target: trezor
+        onMatrixRequest: pinMatrixDialog.open()
+        onButtonRequest: {
+            if ( code != 8 ) { // tx signing handled in signing windows
+                badge.show(badge.button_msg(code))
+            }
+        }
+        onFailure: {
+            errorDialog.msg = "TREZOR: " + error
+            errorDialog.open()
+        }
+        onError: {
+            log.log(error, 3)
+            errorDialog.msg = "TREZOR critical error: " + error
+            errorDialog.open()
+        }
+    }
+
     FileDialog {
         id: exportFileDialog
         title: qsTr("Export wallet backup")
@@ -118,6 +147,18 @@ ApplicationWindow {
             transactionModel.checkVersion()
         }
     }
+
+
+    ConfirmDialog {
+        id: trezorImportDialog
+        width: 5 * dpi
+        title: qsTr("Import accounts from TREZOR")
+        yesText: qsTr("Import")
+        noText: qsTr("Skip")
+        msg: qsTr("Detected TREZOR device with unimported accounts.") + "\n" + qsTr("Import") + " " + settings.value("trezor/addresses", 5) + " " + qsTr("addresses from TREZOR?")
+        onYes: accountModel.trezorImport()
+    }
+
 
     ErrorDialog {
         id: errorDialog
@@ -196,6 +237,7 @@ ApplicationWindow {
             onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
             onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
             onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
+            onPromptForTrezorImport: trezorImportDialog.open()
         }
 
         Connections {
@@ -213,7 +255,7 @@ ApplicationWindow {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
-        running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy
+        running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy || trezor.busy
     }
 
     FirstTimeDialog {
@@ -239,6 +281,10 @@ ApplicationWindow {
         SettingsTab {}
 
         InfoTab {}
+    }
+
+    BaseDialog {
+        id: trezorDialog
     }
 
     statusBar: StatusBar {
@@ -324,6 +370,20 @@ ApplicationWindow {
         Row {
             id: rightButtonsRow
             anchors.right: parent.right
+
+            ToolButton {
+                iconSource: "/images/trezor"
+                height: 32
+                width: 32
+                enabled: trezor.initialized
+                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
+                onClicked: {
+                    trezorDialog.title = "TREZOR"
+                    trezorDialog.msg = "TREZOR " + qsTr("device id: ") + trezor.deviceID
+                    trezorDialog.open()
+                }
+            }
+
             ToolButton {
                 function getQuality(cs, pc) {
                     if ( cs <= 0 ) {

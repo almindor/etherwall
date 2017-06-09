@@ -46,4 +46,18 @@ Window {
             sendDialog.close()
         }
     }
+
+    Badge {
+        id: sdBadge
+        z: 999
+
+        Connections {
+            target: trezor
+            onButtonRequest: {
+                if ( code === 8 && sendDialog.visible ) {
+                    sdBadge.show(sdBadge.button_msg(code))
+                }
+            }
+        }
+    }
 }

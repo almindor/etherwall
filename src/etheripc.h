@@ -36,6 +36,7 @@
 #include "etherlog.h"
 #include "gethlog.h"
 #include "bigint.h"
+#include "ethereum/tx.h"
 
 namespace Etherwall {
 
@@ -103,6 +104,8 @@ namespace Etherwall {
         bool getTestnet() const;
         const QString getNetworkPostfix() const;
         quint64 blockNumber() const;
+        int network() const;
+        quint64 nonceStart() const;
     public slots:
         void init();
         void waitConnect();
@@ -118,8 +121,8 @@ namespace Etherwall {
         void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
-        void sendTransaction(const QString& from, const QString& to, const QString& valStr, const QString& password,
-                             const QString& gas = QString(), const QString& gasPrice = QString(), const QString& data = QString());
+        void sendTransaction(const Ethereum::Tx& tx, const QString& password);
+        void sendRawTransaction(const Ethereum::Tx& tx);
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         void getGasPrice();
         Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
@@ -136,7 +139,7 @@ namespace Etherwall {
         void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
     signals:
         void connectToServerDone();
-        void getAccountsDone(const AccountList& list) const;
+        void getAccountsDone(const QStringList& list) const;
         void newAccountDone(const QString& result, int index) const;
         void deleteAccountDone(bool result, int index) const;
         void getBlockNumberDone(quint64 num) const;
@@ -150,7 +153,8 @@ namespace Etherwall {
         void getTransactionReceiptDone(const QJsonObject& receipt) const;
 
         void peerCountChanged(quint64 num) const;
-        void accountChanged(const AccountInfo& info) const;
+        void accountBalanceChanged(int index, const QString& balanceStr) const;
+        void accountSentTransChanged(int index, quint64 count) const;
         void busyChanged(bool busy) const;
         void externalChanged(bool external) const;
         void startingChanged(bool starting) const;
@@ -170,7 +174,6 @@ namespace Etherwall {
         QString fReadBuffer;
         QString fError;
         int fCode;
-        AccountList fAccountList;
         TransactionList fTransactionList;
         RequestList fRequestQueue;
         RequestIPC fActiveRequest;

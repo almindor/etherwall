@@ -56,7 +56,7 @@ Item {
         Row {
             Label {
                 id: byteCodeLabel
-                text: qsTr("Bytecode:") + '<a href="http://www.etherwall.com/faq.html"> ?</a>'
+                text: qsTr("Bytecode:") + '<a href="http://www.etherwall.com/faq"> ?</a>'
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text

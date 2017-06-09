@@ -38,6 +38,9 @@
         <file>js/qqr.js</file>
         <file>components/QRCode.qml</file>
         <file>components/QRExportDialog.qml</file>
+        <file>components/PinMatrixDialog.qml</file>
+        <file>components/ButtonRequestDialog.qml</file>
+        <file>components/AccountDetails.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>
@@ -60,5 +63,6 @@
         <file alias="eur">images/eur.png</file>
         <file alias="gbp">images/gbp.png</file>
         <file alias="usd">images/usd.png</file>
+        <file alias="trezor">images/trezor.png</file>
     </qresource>
 </RCC>

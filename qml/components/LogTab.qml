@@ -41,7 +41,7 @@ Tab {
                 id: logLevelCombo
                 currentIndex: log.logLevel
 
-                onCurrentIndexChanged: log.logLevel = currentIndex
+                onActivated: log.logLevel = index
 
                 model: ListModel {
                     id: llItems

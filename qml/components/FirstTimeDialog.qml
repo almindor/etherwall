@@ -70,6 +70,7 @@ Window {
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height / 2.0
+            hideTrezor: true
         }
 
         Row {

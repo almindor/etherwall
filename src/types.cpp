@@ -37,7 +37,7 @@ namespace Etherwall {
         Q_UNUSED(testnet);
         return "\\\\.\\pipe\\geth.ipc";
     #else
-        const QString mid_fix = testnet ? "/testnet" : "";
+        const QString mid_fix = testnet ? "/rinkeby" : "";
         return QDir::cleanPath(dataDir + mid_fix + "/geth.ipc");
     #endif
     }
@@ -96,29 +96,38 @@ namespace Etherwall {
         return QVariant();
     }
 
-    double CurrencyInfo::recalculate(const float ether) const {
+    double CurrencyInfo::recalculate(const double ether) const {
         return ether * fPrice;
+    }
+
+    const QString CurrencyInfo::name() const
+    {
+        return fName;
     }
 
 
 // ***************************** TransactionInfo ***************************** //
 
-    static int ACC_INDEX = 0;
-
-    AccountInfo::AccountInfo(const QString& hash, const QString& balance, quint64 transCount) :
-        fIndex(ACC_INDEX++), fHash(Helpers::vitalizeAddress(hash)), fBalance(balance), fTransCount(transCount)
+    AccountInfo::AccountInfo(const QString &hash, const QString &alias, const QString &deviceID,
+                             const QString &balance, quint64 transCount, const QString& hdPath, int network) :
+         fHash(Helpers::vitalizeAddress(hash)), fAlias(alias), fDeviceID(deviceID),
+         fBalance(balance), fTransCount(transCount), fHDPath(hdPath), fNetwork(network)
     {
-        const QSettings settings;
-        const QString lowerHash = hash.toLower();
+        // old alias compatibility
+        if ( alias.isEmpty() ) {
+            QSettings settings;
+            const QString lowerHash = hash.toLower();
 
-        if ( settings.contains("alias/" + lowerHash) ) {
-            fAlias = settings.value("alias/" + lowerHash, QString()).toString();
+            if ( settings.contains("alias/" + lowerHash) ) {
+                fAlias = settings.value("alias/" + lowerHash, QString()).toString();
+                settings.remove("alias/" + lowerHash);
+            }
         }
     }
 
     const QVariant AccountInfo::value(const int role) const {
         const QSettings settings;
-        const QString defaultKey = settings.value("geth/testnet", false).toBool() ? "accounts/testnetDefault" : "accounts/default";
+        const QString defaultKey = "accounts/default/" + Helpers::networkPostfix(fNetwork);
         const QString defaultAccount = settings.value(defaultKey).toString();
 
         switch ( role ) {
@@ -126,9 +135,11 @@ namespace Etherwall {
             case DefaultRole: return QVariant(fHash.toLower() == defaultAccount ? "✓" : "");
             case BalanceRole: return QVariant(fBalance);
             case TransCountRole: return QVariant(fTransCount);
-            case SummaryRole: return QVariant(value(AliasRole).toString() + " [" + fBalance + "]");
+            case SummaryRole: return QVariant(getSummary());
             case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
-            case IndexRole: return QVariant(fIndex);
+            case DeviceRole: return QVariant(fDeviceID);
+            case DeviceTypeRole: return QVariant(fDeviceID == "geth" ? "" : "⊡");
+            case HDPathRole: return QVariant(fHDPath);
         }
 
         return QVariant();
@@ -142,16 +153,57 @@ namespace Etherwall {
         fTransCount = count;
     }
 
-    void AccountInfo::alias(const QString& name) {
+    void AccountInfo::setDeviceID(const QString &deviceID)
+    {
+        fDeviceID = deviceID;
+    }
+
+    const QString AccountInfo::deviceID() const
+    {
+        return fDeviceID;
+    }
+
+    void AccountInfo::setAlias(const QString& name) {
         QSettings settings;
 
         settings.setValue("alias/" + fHash.toLower(), name);
         fAlias = name;
     }
 
+    const QString AccountInfo::alias() const
+    {
+        return fAlias;
+    }
+
     const QString AccountInfo::hash() const
     {
         return fHash;
+    }
+
+    quint64 AccountInfo::transactionCount() const
+    {
+        return fTransCount;
+    }
+
+    const QJsonObject AccountInfo::toJson() const
+    {
+        QJsonObject result;
+        result["hash"] = fHash.toLower();
+        result["alias"] = fAlias;
+        result["deviceID"] = fDeviceID;
+        result["HDPath"] = fHDPath;
+
+        return result;
+    }
+
+    const QString AccountInfo::HDPath() const
+    {
+        return fHDPath;
+    }
+
+    const QString AccountInfo::getSummary() const
+    {
+        return (fHDPath.isEmpty() ? "   " : "⊡ ") +  value(AliasRole).toString() + " [" + fBalance + "]";
     }
 
 // ***************************** TransactionInfo ***************************** //

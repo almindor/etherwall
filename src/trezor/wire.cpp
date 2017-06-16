@@ -31,6 +31,7 @@ namespace Wire {
 
     Device::Device()
     {
+        hid_version = 0;
         hid_init();
 
         hid = NULL;
@@ -53,12 +54,17 @@ namespace Wire {
 
         hid = hid_open_path(path.toStdString().c_str());
         if (!hid) {
-            throw open_error("HID device open failed");
+            throw wire_error("HID device open failed");
         }
         hid_version = try_hid_version();
         if (hid_version <= 0) {
-            throw open_error("Unknown HID version");
+            throw wire_error("Unknown HID version");
         }
+    }
+
+    bool Device::isInitialized() const
+    {
+        return hid_version > 0;
     }
 
     const QString Device::getDevicePath()
@@ -111,7 +117,7 @@ namespace Wire {
     int Device::try_hid_version()
     {
         if (!hid) {
-            qDebug() << "Try HID version called with null hid handle\n";
+            throw wire_error("Try HID version called with null hid handle");
             return 0;
         }
         int r;
@@ -141,7 +147,7 @@ namespace Wire {
     void Device::read_buffered(char_type *data, size_t len)
     {
         if (!hid) {
-            qDebug() << "Read called with null hid handle\n";
+            throw wire_error("Read called with null hid handle");
         }
 
         for (;;) {
@@ -161,7 +167,7 @@ namespace Wire {
     void Device::write(char_type const *data, size_t len)
     {
         if (!hid) {
-            qDebug() << "Write called with null hid handle\n";
+            throw wire_error("Write called with null hid handle");
         }
 
         for (;;) {
@@ -192,7 +198,7 @@ namespace Wire {
     void Device::buffer_report()
     {
         if (!hid) {
-            qDebug() << "Buffer report called with null hid handle\n";
+            throw wire_error("Buffer report called with null hid handle");
         }
 
         using namespace std;
@@ -205,7 +211,7 @@ namespace Wire {
         } while (r == 0);
 
         if (r < 0) {
-            throw read_error("HID device read failed");
+            throw wire_error("HID device read failed");
         }
         if (r > 0) {
             // copy to the buffer, skip the report number
@@ -242,10 +248,10 @@ namespace Wire {
 
         int r = hid_write(hid, report.data(), report_size);
         if (r < 0) {
-            throw write_error{"HID device write failed"};
+            throw wire_error{"HID device write failed"};
         }
         if ((size_t)r < report_size) {
-            throw write_error{"HID device write was insufficient"};
+            throw wire_error{"HID device write was insufficient"};
         }
 
         return n;
@@ -263,7 +269,7 @@ namespace Wire {
 
         device.read_buffered(buf, 1);
         if (buf[0] != '#') {
-            throw header_read_error{"header bytes are malformed"};
+            throw header_wire_error{"header bytes are malformed"};
         }
 
         device.read_buffered(buf, 6);
@@ -275,7 +281,7 @@ namespace Wire {
         // 1MB of the message size treshold
         static const std::uint32_t max_size = 1024 * 1024;
         if (size > max_size) {
-            throw header_read_error{"message is too big"};
+            throw header_wire_error{"message is too big"};
         }
 
         data.resize(size);

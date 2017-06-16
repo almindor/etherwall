@@ -78,6 +78,10 @@ ApplicationWindow {
         onAccepted: {
             trezor.submitPassphrase(password)
         }
+
+        onRejected: {
+            trezor.cancel()
+        }
     }
 
     // Trezor main connections
@@ -356,14 +360,26 @@ ApplicationWindow {
         }
 
         Text {
-            anchors.centerIn: parent
+            anchors {
+                verticalCenter: parent.verticalCenter
+                left: leftButtonsRow.right
+                right: rightButtonsRow.left
+            }
+
             visible: !ipc.syncing
+            horizontalAlignment: Text.AlignHCenter
             text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : qsTr("Ready"))
         }
 
         Text {
-            anchors.centerIn: parent
+            anchors {
+                verticalCenter: parent.verticalCenter
+                left: leftButtonsRow.right
+                right: rightButtonsRow.left
+            }
+
             visible: ipc.syncing
+            horizontalAlignment: Text.AlignHCenter
             text: qsTr("Synchronized ") + Math.max(0, ipc.currentBlock - ipc.startingBlock) + qsTr(" out of ") + Math.max(0, ipc.highestBlock - ipc.startingBlock) + qsTr(" blocks")
         }
 

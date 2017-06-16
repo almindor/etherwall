@@ -55,7 +55,12 @@ namespace Trezor {
         if ( !isPresent() ) {
             return;
         }
-        fDevice.init();
+
+        try {
+            fDevice.init();
+        } catch ( Trezor::Wire::Device::wire_error err ) {
+            return bail("Error opening TREZOR device: " + QString(err.what()));
+        }
 
         TrezorProtobuf::Initialize request;
         sendMessage(request, TrezorProtobuf::MessageType_Initialize);
@@ -221,6 +226,10 @@ namespace Trezor {
 
     void TrezorDevice::sendNext()
     {
+        if ( !fDevice.isInitialized() ) {
+            return;
+        }
+
         if ( fWorker.isRunning() ) {
             return;
         }

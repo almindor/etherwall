@@ -42,15 +42,7 @@ namespace Wire {
     public:
         typedef std::uint8_t char_type;
 
-        struct open_error
-            : public std::runtime_error
-        { using std::runtime_error::runtime_error; };
-
-        struct read_error
-            : public std::runtime_error
-        { using std::runtime_error::runtime_error; };
-
-        struct write_error
+        struct wire_error
             : public std::runtime_error
         { using std::runtime_error::runtime_error; };
 
@@ -60,6 +52,7 @@ namespace Wire {
         ~Device();
 
         void init();
+        bool isInitialized() const;
         void close();
 
         bool isPresent();
@@ -89,7 +82,7 @@ namespace Wire {
         std::vector<std::uint8_t> data;
         QVariant index; // for keeping track on queue side
 
-        typedef Device::read_error header_read_error;
+        typedef Device::wire_error header_wire_error;
 
         void read_from(Device &device);
         void write_to(Device &device) const;

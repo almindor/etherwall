@@ -25,6 +25,8 @@ BaseDialog {
     width: Math.max(parent.width * 0.6, 6 * dpi)
     property string password
     property bool acceptEmpty: true
+    property bool wasAccepted: false
+    signal rejected
 
     function openFocused(m, ae) {
         title = m || "Confirm operation"
@@ -37,10 +39,19 @@ BaseDialog {
             return;
         }
 
+        wasAccepted = true
         close()
         accepted()
         accountPW.text = ""
         password = ""
+    }
+
+    onVisibleChanged: {
+        if ( !visible && !wasAccepted ) {
+            rejected()
+        } else {
+            wasAccepted = false
+        }
     }
 
     Row {

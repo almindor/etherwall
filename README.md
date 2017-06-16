@@ -44,7 +44,7 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 Udev is required in Linux and mingw needs to be used on Windows to compile the required libraries.
 The project is set to use static (.a) files on Windows and Mac OS X with absolute paths.
-You need to either the paths in the `Etherwall.pro` file to point to your compiled libraries.
+You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
 
 qmake -config release && make
 

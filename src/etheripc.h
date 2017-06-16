@@ -93,6 +93,7 @@ namespace Etherwall {
     public:
         EtherIPC(const QString& ipcPath, GethLog& gethLog);
         virtual ~EtherIPC();
+        void init();
         void setWorker(QThread* worker);
         bool getBusy() const;
         bool getExternal() const;
@@ -106,36 +107,30 @@ namespace Etherwall {
         quint64 blockNumber() const;
         int network() const;
         quint64 nonceStart() const;
-    public slots:
-        void init();
+        void getAccounts();
+        bool refreshAccount(const QString& hash, int index);
+        bool closeApp();
+        void newAccount(const QString& password, int index);
+        void getBlockNumber();
+        void registerEventFilters(const QStringList& addresses, const QStringList& topics);
+        void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
+        void getGasPrice();
+        void sendTransaction(const Ethereum::Tx& tx, const QString& password);
+        void sendRawTransaction(const Ethereum::Tx& tx);
+        void getTransactionByHash(const QString& hash);
+
+        Q_INVOKABLE void setInterval(int interval);
+        Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
+                                     const QString& gas, const QString& gasPrice, const QString& data);
+        Q_INVOKABLE void getTransactionReceipt(const QString& hash);
+    private slots:
         void waitConnect();
         void connectToServer();
         void connectedToServer();
         void connectionTimeout();
         void disconnectedFromServer();
-        void getAccounts();
-        bool refreshAccount(const QString& hash, int index);
-        bool getBalance(const QString& hash, int index);
-        bool getTransactionCount(const QString& hash, int index);
-        void newAccount(const QString& password, int index);
-        void getBlockNumber();
-        void getPeerCount();
-        void sendTransaction(const Ethereum::Tx& tx, const QString& password);
-        void sendRawTransaction(const Ethereum::Tx& tx);
-        void unlockAccount(const QString& hash, const QString& password, int duration, int index);
-        void getGasPrice();
-        Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
-                                     const QString& gas, const QString& gasPrice, const QString& data);
-        void getTransactionByHash(const QString& hash);
-        void getBlockByHash(const QString& hash);
-        void getBlockByNumber(quint64 blockNum);
-        Q_INVOKABLE void getTransactionReceipt(const QString& hash);
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
-        Q_INVOKABLE void setInterval(int interval);
-        bool closeApp();
-        void registerEventFilters(const QStringList& addresses, const QStringList& topics);
-        void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
     signals:
         void connectToServerDone();
         void getAccountsDone(const QStringList& list) const;
@@ -163,7 +158,7 @@ namespace Etherwall {
         void clientVersionChanged(const QString& ver) const;
         void netVersionChanged(int ver) const;
         void error() const;
-    private:
+    protected:
         QString fPath;
         QLocalSocket fSocket;
         QString fBlockFilterID;
@@ -198,7 +193,6 @@ namespace Etherwall {
         void handleGetBlockNumber();
         void handleGetPeerCount();
         void handleSendTransaction();
-        void handleUnlockAccount();
         void handleGetGasPrice();
         void handleEstimateGas();
         void handleNewBlockFilter();
@@ -216,11 +210,16 @@ namespace Etherwall {
         bool killGeth();
         int parseVersionNum() const;
         const QJsonArray parseTopics(const QStringList& topics);
+        bool getBalance(const QString& hash, int index);
+        bool getTransactionCount(const QString& hash, int index);
         void getSyncing();
         void getFilterChanges(const QString& filterID);
         void getClientVersion();
         void getNetVersion();
+        void getPeerCount();
         bool getSyncingVal() const;
+        void getBlockByHash(const QString& hash);
+        void getBlockByNumber(quint64 blockNum);
         quint64 getCurrentBlock() const;
         quint64 getHighestBlock() const;
         quint64 getStartingBlock() const;

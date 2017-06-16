@@ -127,7 +127,6 @@ namespace Etherwall {
         GetPeerCount,
         SendTransaction,
         SendRawTransaction,
-        UnlockAccount,
         GetGasPrice,
         EstimateGas,
         NewBlockFilter,

@@ -555,38 +555,6 @@ namespace Etherwall {
         return 0;
     }
 
-    void EtherIPC::unlockAccount(const QString& hash, const QString& password, int duration, int index) {
-        QJsonArray params;
-        params.append(hash);
-        params.append(password);
-
-        BigInt::Vin vinVal(duration);
-        QString strHex = QString(vinVal.toStr0xHex().data());
-        params.append(strHex);
-
-        if ( !queueRequest(RequestIPC(UnlockAccount, "personal_unlockAccount", params, index)) ) {
-            return bail();
-        }
-    }
-
-    void EtherIPC::handleUnlockAccount() {
-        QJsonValue jv;
-        if ( !readReply(jv) ) {
-            // special case, we def. need to remove all subrequests, but not stop timer
-            fRequestQueue.clear();
-            return bail(true);
-        }
-
-        const bool result = jv.toBool(false);
-
-        if ( !result ) {
-            setError("Unlock account failure");
-            emit error();
-        }
-        emit unlockAccountDone(result, fActiveRequest.getIndex());
-        done();
-    }
-
     void EtherIPC::getGasPrice() {
         if ( !queueRequest(RequestIPC(GetGasPrice, "eth_gasPrice")) ) {
             return bail();
@@ -1231,10 +1199,6 @@ namespace Etherwall {
             }
         case SendRawTransaction: {
                 handleSendTransaction();
-                break;
-            }
-        case UnlockAccount: {
-                handleUnlockAccount();
                 break;
             }
         case GetGasPrice: {

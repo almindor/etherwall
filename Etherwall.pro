@@ -53,7 +53,8 @@ SOURCES += src/main.cpp \
     src/trezor/wire.cpp \
     src/trezor/hdpath.cpp \
     src/ethereum/tx.cpp \
-    src/platform/devicemanager.cpp
+    src/platform/devicemanager.cpp \
+    src/remoteipc.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -97,5 +98,6 @@ HEADERS += \
     src/trezor/wire.h \
     src/trezor/hdpath.h \
     src/ethereum/tx.h \
-    src/platform/devicemanager.h
+    src/platform/devicemanager.h \
+    src/remoteipc.h
 

@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick widgets network
+QT += qml quick widgets network websockets
 
 INCLUDEPATH += src
 DEPENDPATH += src

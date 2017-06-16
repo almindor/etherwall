@@ -188,9 +188,9 @@ namespace Etherwall {
         done();
 
         getClientVersion();
-        getBlockNumber(); // initial
-        getSyncing();
+        getBlockNumber();
         newBlockFilter();
+        getSyncing();
         getNetVersion();
 
         if ( fStarting == 1 ) {
@@ -577,6 +577,31 @@ namespace Etherwall {
         return fPeerCount;
     }
 
+    void EtherIPC::ipcReady()
+    {
+        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
+        // if we connected to external geth, put that info in geth log
+        emit startingChanged(fStarting);
+        emit connectToServerDone();
+        emit connectionStateChanged();
+        emit hardForkReadyChanged(getHardForkReady());
+    }
+
+    bool EtherIPC::endpointWritable()
+    {
+        return fSocket.isWritable();
+    }
+
+    qint64 EtherIPC::endpointWrite(const QByteArray &data)
+    {
+        return fSocket.write(data);
+    }
+
+    const QByteArray EtherIPC::endpointRead()
+    {
+        return fSocket.readAll();
+    }
+
     void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& valStr,
                                    const QString& gas, const QString& gasPrice, const QString& data) {
         const QString valHex = Helpers::toHexWeiStr(valStr);
@@ -936,13 +961,7 @@ namespace Etherwall {
         emit netVersionChanged(fNetVersion);
         done();
 
-        fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
-        // if we connected to external geth, put that info in geth log
-
-        emit startingChanged(fStarting);
-        emit connectToServerDone();
-        emit connectionStateChanged();
-        emit hardForkReadyChanged(getHardForkReady());
+        ipcReady();
     }
 
     void EtherIPC::handleGetSyncing() {
@@ -1006,8 +1025,7 @@ namespace Etherwall {
     void EtherIPC::done() {
         fActiveRequest = RequestIPC(None);
         if ( !fRequestQueue.isEmpty() ) {
-            const RequestIPC request = fRequestQueue.first();
-            fRequestQueue.removeFirst();
+            const RequestIPC request = fRequestQueue.dequeue();
             writeRequest(request);
         } else {
             emit busyChanged(getBusy());
@@ -1029,7 +1047,7 @@ namespace Etherwall {
         if ( fActiveRequest.burden() == None ) {
             return writeRequest(request);
         } else {
-            fRequestQueue.append(request);
+            fRequestQueue.enqueue(request);
             return true;
         }
     }
@@ -1041,9 +1059,9 @@ namespace Etherwall {
         }
 
         QJsonDocument doc(methodToJSON(fActiveRequest));
-        const QString msg(doc.toJson());
+        const QString msg(doc.toJson(QJsonDocument::Compact));
 
-        if ( !fSocket.isWritable() ) {
+        if ( !endpointWritable() ) {
             setError("Socket not writeable");
             fCode = 0;
             return false;
@@ -1051,7 +1069,7 @@ namespace Etherwall {
 
         const QByteArray sendBuf = msg.toUtf8();
         EtherLog::logMsg("Sent: " + msg, LS_Debug);
-        const int sent = fSocket.write(sendBuf);
+        const int sent = endpointWrite(sendBuf);
 
         if ( sent <= 0 ) {
             setError("Error on socket write: " + fSocket.errorString());
@@ -1063,7 +1081,7 @@ namespace Etherwall {
     }
 
     bool EtherIPC::readData() {
-        fReadBuffer += QString(fSocket.readAll()).trimmed();
+        fReadBuffer += QString(endpointRead()).trimmed();
 
         if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' && fReadBuffer.count('{') == fReadBuffer.count('}') ) {
             EtherLog::logMsg("Received: " + fReadBuffer, LS_Debug);

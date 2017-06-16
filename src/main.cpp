@@ -40,6 +40,7 @@
 #include "filtermodel.h"
 #include "gethlog.h"
 #include "helpers.h"
+#include "remoteipc.h"
 
 #include "trezor/trezor.h"
 #include "platform/devicemanager.h"
@@ -87,7 +88,7 @@ int main(int argc, char *argv[])
 
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
-    EtherIPC ipc(ipcPath, gethLog);
+    RemoteIPC ipc(ipcPath, gethLog, "ws://api2.etherwall.com:8546");
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);

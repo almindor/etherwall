@@ -22,7 +22,7 @@
 #define ETHERIPC_H
 
 #include <QObject>
-#include <QList>
+#include <QQueue>
 #include <QLocalSocket>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -68,7 +68,7 @@ namespace Etherwall {
         RequestBurden fBurden;
     };
 
-    typedef QList<RequestIPC> RequestList;
+    typedef QQueue<RequestIPC> RequestQueue;
 
     class EtherIPC: public QObject
     {
@@ -109,7 +109,7 @@ namespace Etherwall {
         quint64 nonceStart() const;
         void getAccounts();
         bool refreshAccount(const QString& hash, int index);
-        bool closeApp();
+        Q_INVOKABLE virtual bool closeApp();
         void newAccount(const QString& password, int index);
         void getBlockNumber();
         void registerEventFilters(const QStringList& addresses, const QStringList& topics);
@@ -123,10 +123,10 @@ namespace Etherwall {
         Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
                                      const QString& gas, const QString& gasPrice, const QString& data);
         Q_INVOKABLE void getTransactionReceipt(const QString& hash);
-    private slots:
+    protected slots:
         void waitConnect();
         void connectToServer();
-        void connectedToServer();
+        virtual void connectedToServer();
         void connectionTimeout();
         void disconnectedFromServer();
         void onSocketReadyRead();
@@ -168,7 +168,7 @@ namespace Etherwall {
         QString fError;
         int fCode;
         TransactionList fTransactionList;
-        RequestList fRequestQueue;
+        RequestQueue fRequestQueue;
         RequestIPC fActiveRequest;
         QTimer fTimer;
         int fNetVersion;
@@ -206,6 +206,12 @@ namespace Etherwall {
         void handleGetNetVersion();
         void handleGetSyncing();
 
+        // virtual
+        virtual bool endpointWritable();
+        virtual qint64 endpointWrite(const QByteArray& data);
+        virtual const QByteArray endpointRead();
+
+        void ipcReady();
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;

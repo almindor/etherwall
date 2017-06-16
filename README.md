@@ -30,19 +30,33 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 ## Development
 
-### Requirements
+### General Requirements
 
-Latest Geth
+[Latest Geth](https://github.com/ethereum/go-ethereum/releases)
 
-Qt5.5+ with qmake
+[Qt5.6+ with qmake](https://www.qt.io/developers/)
+
+[google protobuf](https://github.com/google/protobuf)
+
+[hidapi](https://github.com/signal11/hidapi)
 
 ### Building
+
+Udev is required in Linux and mingw needs to be used on Windows to compile the required libraries.
+The project is set to use static (.a) files on Windows and Mac OS X with absolute paths.
+You need to either the paths in the `Etherwall.pro` file to point to your compiled libraries.
 
 qmake -config release && make
 
 ### Roadmap
 
-- 2.0 use parity as back-end with "internal" transaction watching
+#### TODO
+
+- 2.0 add "remote IPC" node support (think light client)
+
+#### DONE
+
+- 1.6 add TREZOR support
 - 1.4 add contract deployment
 - 1.3 added contract support [invoking and watches]
 - 0.9 add transaction history support [done]
@@ -51,3 +65,5 @@ qmake -config release && make
 ### Caveats & bugs
 
 Only supported client at the moment is Geth.
+
+If etherwall freezes with TREZOR inserted just remove TREZOR and restart Etherwall. Then insert TREZOR in again. This happens from time to time on Linux, probably a bug in hidapi.

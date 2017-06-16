@@ -189,6 +189,7 @@ namespace Etherwall {
 
         getClientVersion();
         getBlockNumber(); // initial
+        getSyncing();
         newBlockFilter();
         getNetVersion();
 
@@ -998,6 +999,7 @@ namespace Etherwall {
         fCurrentBlock = Helpers::toQUInt64(syncing.value("currentBlock"));
         fHighestBlock = Helpers::toQUInt64(syncing.value("highestBlock"));
         fStartingBlock = Helpers::toQUInt64(syncing.value("startingBlock"));
+
         if ( !fSyncing ) {
             if ( !fBlockFilterID.isEmpty() ) {
                 uninstallFilter(fBlockFilterID);

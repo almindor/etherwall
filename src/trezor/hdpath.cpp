@@ -5,7 +5,6 @@ namespace Trezor {
 
     HDPath::HDPath(const QString &fullPath)
     {
-        qDebug() << "constructing hd path from: " << fullPath << "\n";
         fIsValid = false;
         if ( !fullPath.startsWith('m') || fullPath.endsWith('/') ) {
             qDebug() << "Invalid HD path: " << fullPath << "\n";

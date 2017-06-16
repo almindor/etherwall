@@ -123,13 +123,10 @@ Tab {
             }
         }
 
-        PasswordDialog {
-            id: accountDeleteDialog
-            //standardButtons: StandardButton.Ok | StandardButton.Cancel
-
-            onAccepted: {
-                accountModel.deleteAccount(password, accountView.currentRow);
-            }
+        ConfirmDialog {
+            id: accountRemoveDialog
+            title: qsTr("Confirm removal of account")
+            onYes: accountModel.removeAccount(accountModel.selectedAccount)
         }
 
         QRExportDialog {
@@ -238,11 +235,22 @@ Tab {
                 }
 
                 MenuItem {
+                    text: qsTr("Remove", "account")
+                    visible: accountModel.selectedAccountHDPath
+                    onTriggered: {
+                        accountRemoveDialog.msg = qsTr("Remove", "account") + " " + accountModel.selectedAccount + ' <a href="http://www.etherwall.com/faq/#removeaccount">?</a>'
+                        accountRemoveDialog.open()
+                    }
+                }
+
+                MenuItem {
+                    visible: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to directory")
                     onTriggered: fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                 }
 
                 MenuItem {
+                    visible: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to QR Code")
                     onTriggered: qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
                 }

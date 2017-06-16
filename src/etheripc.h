@@ -118,7 +118,6 @@ namespace Etherwall {
         bool getBalance(const QString& hash, int index);
         bool getTransactionCount(const QString& hash, int index);
         void newAccount(const QString& password, int index);
-        void deleteAccount(const QString& hash, const QString& password, int index);
         void getBlockNumber();
         void getPeerCount();
         void sendTransaction(const Ethereum::Tx& tx, const QString& password);
@@ -141,7 +140,6 @@ namespace Etherwall {
         void connectToServerDone();
         void getAccountsDone(const QStringList& list) const;
         void newAccountDone(const QString& result, int index) const;
-        void deleteAccountDone(bool result, int index) const;
         void getBlockNumberDone(quint64 num) const;
         void sendTransactionDone(const QString& hash) const;
         void unlockAccountDone(bool result, int index) const;
@@ -194,7 +192,6 @@ namespace Etherwall {
         quint64 fBlockNumber;
 
         void handleNewAccount();
-        void handleDeleteAccount();
         void handleGetAccounts();
         void handleAccountBalance();
         void handleAccountTransactionCount();

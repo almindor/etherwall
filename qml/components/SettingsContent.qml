@@ -90,7 +90,7 @@ TabView {
                     currentIndex: currencyModel.helperIndex
 
                     onActivated: currencyModel.setHelperIndex(index)
-                }
+                }               
             }
 
 
@@ -253,6 +253,26 @@ TabView {
                     enabled: trezor.initialized
                     text: qsTr("Import")
                     onClicked: accountModel.trezorImport()
+                }
+            }
+
+            Row {
+                spacing: 0.05 * dpi
+
+                ConfirmDialog {
+                    id: accountRemoveDialog
+                    title: qsTr("Confirm removal of all TREZOR accounts")
+                    msg: qsTr("All your TREZOR accounts will be removed from Etherwall") + ' <a href="http://www.etherwall.com/faq/#removeaccount">?</a>'
+                    onYes: accountModel.removeAccounts()
+                }
+
+                Label {
+                    text: qsTr("Clear TREZOR accounts")
+                }
+
+                Button {
+                    text: qsTr("Clear")
+                    onClicked: accountRemoveDialog.open()
                 }
             }
         }

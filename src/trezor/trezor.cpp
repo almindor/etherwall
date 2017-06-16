@@ -61,16 +61,14 @@ namespace Trezor {
         sendMessage(request, TrezorProtobuf::MessageType_Initialize);
     }
 
-    void TrezorDevice::onDeviceInserted(const QString &path)
+    void TrezorDevice::onDeviceInserted()
     {
-        Q_UNUSED(path);
-        checkPresence(); // TODO: if we got path use optimized way
+        checkPresence();
     }
 
-    void TrezorDevice::onDeviceRemoved(const QString &path)
+    void TrezorDevice::onDeviceRemoved()
     {
-        Q_UNUSED(path);
-        checkPresence(); // TODO: ditto
+        checkPresence();
     }
 
     void TrezorDevice::onDirectoryChanged(const QString &path)
@@ -113,6 +111,13 @@ namespace Trezor {
         TrezorProtobuf::PinMatrixAck request;
         request.set_pin(pin.toUtf8().data());
         sendMessage(request, TrezorProtobuf::MessageType_PinMatrixAck);
+    }
+
+    void TrezorDevice::submitPassphrase(const QString &pw)
+    {
+        TrezorProtobuf::PassphraseAck request;
+        request.set_passphrase(pw.toStdString());
+        sendMessage(request, TrezorProtobuf::MessageType_PassphraseAck);
     }
 
     void TrezorDevice::signTransaction(int chaindID, const QString& hdPath, const QString& from, const QString &to, const QString &valStr,
@@ -237,6 +242,7 @@ namespace Trezor {
             case TrezorProtobuf::MessageType_Failure: handleFailure(msg_in); return;
             case TrezorProtobuf::MessageType_PinMatrixRequest: handleMatrixRequest(msg_in); return;
             case TrezorProtobuf::MessageType_ButtonRequest: handleButtonRequest(msg_in); return;
+            case TrezorProtobuf::MessageType_PassphraseRequest: handlePassphrase(msg_in); return;
             case TrezorProtobuf::MessageType_Features: handleFeatures(msg_in); return;
             case TrezorProtobuf::MessageType_EthereumAddress: handleAddress(msg_in); return;
             case TrezorProtobuf::MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
@@ -296,6 +302,24 @@ namespace Trezor {
         // we have to ack right away, worker will wait for actual reply
         TrezorProtobuf::ButtonAck request;
         sendMessage(request, TrezorProtobuf::MessageType_ButtonAck);
+    }
+
+    void TrezorDevice::handlePassphrase(const Wire::Message &msg_in)
+    {
+        if ( msg_in.id != TrezorProtobuf::MessageType_PassphraseRequest ) {
+            bail("Unexpected pin matrix response: " + QString::number(msg_in.id));
+            return;
+        }
+
+        TrezorProtobuf::PassphraseRequest response;
+        if ( !parseMessage(msg_in, response) ) {
+            bail("error parsing passphrase response");
+            return;
+        }
+
+        emit passphraseRequest();
+        fQueue.lock(TrezorProtobuf::MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
+
     }
 
     void TrezorDevice::handleFeatures(const Wire::Message &msg_in)

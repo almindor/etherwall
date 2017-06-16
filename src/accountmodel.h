@@ -66,7 +66,8 @@ namespace Etherwall {
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void renameAccount(const QString& name, int index);
-        Q_INVOKABLE void deleteAccount(const QString& pw, int index);
+        Q_INVOKABLE void removeAccounts();
+        Q_INVOKABLE void removeAccount(const QString& address);
         Q_INVOKABLE const QString getAccountHash(int index) const;
         Q_INVOKABLE const QString getAccountHDPath(int index) const;
         Q_INVOKABLE quint64 getAccountNonce(int index) const;
@@ -79,7 +80,6 @@ namespace Etherwall {
         void connectToServerDone();
         void getAccountsDone(const QStringList& list);
         void newAccountDone(const QString& hash, int index);
-        void deleteAccountDone(bool result, int index);
         void accountBalanceChanged(int index, const QString& balanceStr);
         void accountSentTransChanged(int index, quint64 count);
         void newBlock(const QJsonObject& block);

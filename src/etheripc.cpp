@@ -444,26 +444,6 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::deleteAccount(const QString& hash, const QString& password, int index) {
-        QJsonArray params;
-        params.append(hash);
-        params.append(password);        
-        if ( !queueRequest(RequestIPC(DeleteAccount, "personal_deleteAccount", params, index)) ) {
-            return bail();
-        }
-    }
-
-    void EtherIPC::handleDeleteAccount() {
-        QJsonValue jv;
-        if ( !readReply(jv) ) {
-            return bail();
-        }
-
-        const bool result = jv.toBool(false);
-        emit deleteAccountDone(result, fActiveRequest.getIndex());
-        done();
-    }
-
     void EtherIPC::getBlockNumber() {
         if ( !queueRequest(RequestIPC(NonVisual, GetBlockNumber, "eth_blockNumber")) ) {
             return bail();
@@ -1221,10 +1201,6 @@ namespace Etherwall {
         switch ( fActiveRequest.getType() ) {
         case NewAccount: {
                 handleNewAccount();
-                break;
-            }
-        case DeleteAccount: {
-                handleDeleteAccount();
                 break;
             }
         case GetBlockNumber: {

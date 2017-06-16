@@ -341,7 +341,6 @@ Item {
 
                 result.chain_id = ipc.testnet ? 4 : 1 // TODO: this should be handled better
                 result.nonce = accountModel.getAccountNonce(accountIndex)
-                console.log("nonce: " + result.nonce)
                 result.hdpath = accountModel.getAccountHDPath(accountIndex)
 
                 if ( result.hdpath && !trezor.present ) {

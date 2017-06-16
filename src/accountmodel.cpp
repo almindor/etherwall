@@ -40,7 +40,6 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
         connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
-        connect(&ipc, &EtherIPC::deleteAccountDone, this, &AccountModel::deleteAccountDone);
         connect(&ipc, &EtherIPC::accountBalanceChanged, this, &AccountModel::accountBalanceChanged);
         connect(&ipc, &EtherIPC::accountSentTransChanged, this, &AccountModel::accountSentTransChanged);
         connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
@@ -135,13 +134,36 @@ namespace Etherwall {
         }
     }
 
-    void AccountModel::deleteAccount(const QString& pw, int index) {
-        if ( index >= 0 && index < fAccountList.size() ) {            
-            const QString hash = fAccountList.at(index).value(HashRole).toString();
-            fIpc.deleteAccount(hash, pw, index);
-        } else {
-            EtherLog::logMsg("Invalid account selection for delete", LS_Error);
+    void AccountModel::removeAccounts()
+    {
+        beginResetModel();
+        foreach ( const AccountInfo& info, fAccountList ) {
+            if ( !info.HDPath().isEmpty() ) {
+                removeAccount(info.hash());
+            }
         }
+        endResetModel();
+    }
+
+    void AccountModel::removeAccount(const QString& address) {
+        QSettings settings;
+        const QString key = address.toLower();
+
+        beginResetModel();
+
+        const QString chain = fIpc.getNetworkPostfix();
+        settings.beginGroup("accounts" + chain);
+        settings.remove(key);
+        settings.endGroup();
+
+        for ( int i = 0; i < fAccountList.size(); i++ ) {
+            if ( fAccountList.at(i).hash().toLower() == key ) {
+                fAccountList.removeAt(i);
+                break;
+            }
+        }
+
+        endResetModel();
     }
 
     const QString AccountModel::getAccountHash(int index) const {
@@ -220,7 +242,6 @@ namespace Etherwall {
             addresses = 5;
         }
         const QString hdPathBase = getHDPathBase();
-        qDebug() << "HD path base: " << hdPathBase << "\n";
 
         for ( int i = 0; i < addresses; i++ ) {
             const QString fullPath = hdPathBase + "/" + QString::number(i);
@@ -339,7 +360,6 @@ namespace Etherwall {
     {
         foreach ( const AccountInfo& addr, fAccountList ) {
             if ( deviceID == addr.deviceID() ) {
-                qDebug() << "Existing trezor address found\n";
                 return; // we have some addresses don't prompt for them
             }
         }
@@ -387,17 +407,6 @@ namespace Etherwall {
         }
     }
 
-    void AccountModel::deleteAccountDone(bool result, int index) {
-        if ( result ) {
-            beginRemoveRows(QModelIndex(), index, index);
-            fAccountList.removeAt(index);
-            endRemoveRows();
-            EtherLog::logMsg("Account deleted");
-        } else {
-            EtherLog::logMsg("Account delete failure");
-        }
-    }
-
     void AccountModel::currencyChanged() {
         QVector<int> roles(1);
         roles[0] = BalanceRole;
@@ -436,7 +445,6 @@ namespace Etherwall {
     }
 
     void AccountModel::refreshAccounts() {
-        //qDebug() << "Refreshing accounts\n";
         int i = 0;
         foreach ( const AccountInfo& info, fAccountList ) {
             const QString& hash = info.value(HashRole).toString();

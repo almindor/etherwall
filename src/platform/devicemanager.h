@@ -44,8 +44,8 @@ namespace Etherwall {
         virtual ~DeviceManager();
         void run();
     signals:
-        void deviceInserted(const QString& path) const;
-        void deviceRemoved(const QString& path) const;
+        void deviceInserted() const;
+        void deviceRemoved() const;
     public slots:
         void startProbe();
     private:

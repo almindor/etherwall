@@ -48,7 +48,6 @@ namespace Wire {
         hid = NULL;
         const QString path = getDevicePath();
         if ( path.isEmpty() ) {
-            qDebug() << "Could not find TREZOR device\n";
             return;
         }
 
@@ -111,6 +110,10 @@ namespace Wire {
     // try writing packet that will be discarded to figure out hid version
     int Device::try_hid_version()
     {
+        if (!hid) {
+            qDebug() << "Try HID version called with null hid handle\n";
+            return 0;
+        }
         int r;
         report_type report;
 
@@ -137,6 +140,10 @@ namespace Wire {
 
     void Device::read_buffered(char_type *data, size_t len)
     {
+        if (!hid) {
+            qDebug() << "Read called with null hid handle\n";
+        }
+
         for (;;) {
             if (read_buffer.empty()) {
                 buffer_report();
@@ -153,6 +160,10 @@ namespace Wire {
 
     void Device::write(char_type const *data, size_t len)
     {
+        if (!hid) {
+            qDebug() << "Write called with null hid handle\n";
+        }
+
         for (;;) {
             size_t n = write_report(data, len);
             if (n < len) {
@@ -180,6 +191,10 @@ namespace Wire {
 
     void Device::buffer_report()
     {
+        if (!hid) {
+            qDebug() << "Buffer report called with null hid handle\n";
+        }
+
         using namespace std;
 
         report_type report;

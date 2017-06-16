@@ -120,7 +120,6 @@ namespace Etherwall {
     enum RequestTypes {
         NoRequest,
         NewAccount,
-        DeleteAccount,
         GetBlockNumber,
         GetAccountRefs,
         GetBalance,

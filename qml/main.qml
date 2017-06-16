@@ -70,6 +70,16 @@ ApplicationWindow {
         id: buttonRequestDialog
     }
 
+    PasswordDialog {
+        id: trezorPasswordDialog
+        title: qsTr("TREZOR passphrase")
+        msg: qsTr("Please provide your TREZOR passphrase")
+
+        onAccepted: {
+            trezor.submitPassphrase(password)
+        }
+    }
+
     // Trezor main connections
     Connections {
         target: trezor
@@ -79,6 +89,7 @@ ApplicationWindow {
                 badge.show(badge.button_msg(code))
             }
         }
+        onPassphraseRequest: trezorPasswordDialog.open()
         onFailure: {
             errorDialog.msg = "TREZOR: " + error
             errorDialog.open()

@@ -62,6 +62,7 @@ namespace Trezor {
         void initialize();
         Q_INVOKABLE void cancel();
         Q_INVOKABLE void submitPin(const QString& pin);
+        Q_INVOKABLE void submitPassphrase(const QString& pw);
         // all values in ether
         Q_INVOKABLE void signTransaction(int chaindID, const QString& hdPath, const QString& from, const QString& to,
                                          const QString& valStr, quint64 nonce,
@@ -74,13 +75,14 @@ namespace Trezor {
         void failure(const QString& error) const;
         void matrixRequest(int type) const;
         void buttonRequest(int code) const;
+        void passphraseRequest() const;
         void addressRetrieved(const QString& address, const QString& hdPath) const;
         void busyChanged(bool busy) const;
         void transactionReady(const Ethereum::Tx& tx) const;
         void error(const QString& error) const;
     public slots:
-        void onDeviceInserted(const QString& path);
-        void onDeviceRemoved(const QString& path);
+        void onDeviceInserted();
+        void onDeviceRemoved();
         void onDirectoryChanged(const QString& path);
         void checkPresence();
     private slots:
@@ -103,6 +105,7 @@ namespace Trezor {
         void handleFailure(const Wire::Message& msg_in);
         void handleMatrixRequest(const Wire::Message& msg_in);
         void handleButtonRequest(const Wire::Message& msg_in);
+        void handlePassphrase(const Wire::Message& msg_in);
         void handleFeatures(const Wire::Message& msg_in);
         void handleAddress(const Wire::Message& msg_in);
         void handleTxRequest(const Wire::Message& msg_in);

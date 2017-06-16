@@ -13,9 +13,8 @@ namespace Etherwall {
 
     DeviceManager::~DeviceManager()
     {
-        if ( isRunning() ) {
-            terminate();
-        }
+        terminate();
+        wait(5000);
     }
 
     void RawDeviceAdded(void *refCon, io_iterator_t iterator) {
@@ -36,7 +35,7 @@ namespace Etherwall {
             }
 
             DeviceManager* manager = (DeviceManager*) refCon;
-            emit manager->deviceInserted(QString());
+            emit manager->deviceInserted();
             refCon = NULL; // finish loop but don't emit again
         }
     }
@@ -59,7 +58,7 @@ namespace Etherwall {
             }
 
             DeviceManager* manager = (DeviceManager*) refCon;
-            emit manager->deviceRemoved(QString());
+            emit manager->deviceRemoved();
             refCon = NULL; // finish loop but don't emit again
         }
     }
@@ -68,7 +67,7 @@ namespace Etherwall {
     {
         while ( true ) {
             sleep(2);
-            emit deviceInserted(QString());
+            emit deviceInserted();
         }
 
         // The following works on detection but somehow breaks hidapi and hid_enumerate gets nothing afterwards
@@ -145,7 +144,7 @@ namespace Etherwall {
 
     void DeviceManager::startProbe() {
         start();
-        emit deviceInserted(QString()); // we only get changes so check initially
+        emit deviceInserted(); // we only get changes so check initially
     }
 
 #endif
@@ -163,7 +162,7 @@ namespace Etherwall {
 
         MSG *msg = static_cast<MSG*>(message);
         if ( msg->message == WM_DEVICECHANGE ) {
-            emit fOwner.deviceInserted(QString()); // insert/remove same in windblows
+            emit fOwner.deviceInserted(); // insert/remove same in windblows
         }
 
         return false;
@@ -189,7 +188,7 @@ namespace Etherwall {
 
     void DeviceManager::startProbe()
     {
-        emit deviceInserted(QString()); // initial check as we don't get a change if it's already inserted
+        emit deviceInserted(); // initial check as we don't get a change if it's already inserted
     }
 #endif
 
@@ -203,6 +202,9 @@ namespace Etherwall {
 
     DeviceManager::~DeviceManager()
     {
+        terminate();
+        wait(5000);
+
         if ( fUdev != NULL ) {
             if ( fUdevMonitor != NULL ) {
                 udev_monitor_unref(fUdevMonitor);
@@ -219,29 +221,26 @@ namespace Etherwall {
         /* Set up a monitor to monitor hidraw devices */
         udev_monitor_filter_add_match_subsystem_devtype(fUdevMonitor, "hidraw", NULL);
         udev_monitor_enable_receiving(fUdevMonitor);
-        /* Get the file descriptor (fd) for the monitor.
-           This fd will get passed to select() */
+        // make FD blocking
         int fd = udev_monitor_get_fd(fUdevMonitor);
         int flags = fcntl(fd, F_GETFL, 0);
         fcntl(fd, F_SETFL, flags & !O_NONBLOCK);
 
-        /* This section will run continuously, calling usleep() at
-           the end of each pass. This is to demonstrate how to use
-           a udev_monitor in a non-blocking way. */
         while (1) {
             struct udev_device* dev = udev_monitor_receive_device(fUdevMonitor);
             if (dev) {
                 const QString action = QString::fromLatin1(udev_device_get_action(dev));
                 if ( action == "add" ) {
-                    emit deviceInserted(QString());
+                    emit deviceInserted();
                 } else if ( action == "remove" ) {
-                    emit deviceRemoved(QString());
+                    emit deviceRemoved();
                 } else {
                     qDebug() << "Unknown udev device action: " << action << "\n";
                 }
                 udev_device_unref(dev);
             }
             else {
+                udev_device_unref(dev);
                 qDebug() << "No Device from receive_device(). An error occured.\n";
             }
         }
@@ -249,6 +248,7 @@ namespace Etherwall {
 
     void DeviceManager::startProbe()
     {
+        emit deviceInserted();
         start();
     }
 #endif

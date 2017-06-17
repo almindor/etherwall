@@ -254,7 +254,7 @@ Item {
                     return
                 }
 
-                transactionModel.sendTransaction(password, result.from, result.to, result.txtVal, result.txtGas, result.txtGasPrice, contractData)
+                transactionModel.sendTransaction(password, result.from, result.to, result.txtVal, result.nonce, result.txtGas, result.txtGasPrice, contractData)
             }
         }
 

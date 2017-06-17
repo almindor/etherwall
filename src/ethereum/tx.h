@@ -47,6 +47,7 @@ namespace Ethereum {
 
         quint64 nonce() const;
         const std::string nonceBytes() const;
+        const QString nonceHex() const;
 
         quint32 dataByteSize() const;
         const QString dataStr() const;

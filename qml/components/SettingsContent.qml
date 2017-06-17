@@ -5,9 +5,124 @@ import QtQuick.Extras 1.4
 
 TabView {
     property bool hideTrezor: false
+    property bool thinClient: ipc.thinClient
 
     Tab {
         title: qsTr("Basic")
+
+        Row {
+            spacing: 0.5 * dpi
+            anchors.margins: 0.2 * dpi
+            anchors {
+                top: parent.top
+                bottom: parent.bottom
+                left: parent.left
+            }
+
+            ToggleButton {
+                id: clientModeButton
+                width: 1 * dpi
+                text: qsTr("Thin client")
+                checked: thinClient
+
+                onClicked: {
+                    thinClient = clientModeButton.checked
+                    settings.setValue("geth/thinclient", clientModeButton.checked)
+                    if ( settings.contains("program/firstrun") ) {
+                        confirmDialog.show()
+                    }
+                }
+            }
+
+            Column {
+                spacing: 0.1 * dpi
+                width: 5 * dpi
+                height: 3 * dpi
+
+
+                Row {
+                    width: parent.width
+
+                    Label {
+                        text: qsTr("Helper currency: ")
+                    }
+
+                    ComboBox {
+                        id: defaultFiatCombo
+                        width: 1 * dpi
+                        model: currencyModel
+                        textRole: "name"
+                        currentIndex: currencyModel.helperIndex
+
+                        onActivated: currencyModel.setHelperIndex(index)
+                    }
+                }
+
+
+                ErrorDialog {
+                    id: hfConfirmDialog
+                    title: qsTr("Warning")
+                    msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
+                }
+            }
+        }
+    }
+
+    Tab {
+        title: qsTr("Advanced")
+
+        Column {
+            anchors.margins: 0.2 * dpi
+            anchors.fill: parent
+            spacing: 0.1 * dpi
+
+
+            Row {
+                enabled: !thinClient
+                width: parent.width
+
+                Label {
+                    text: qsTr("Update interval (s): ")
+                }
+
+                SpinBox {
+                    id: intervalSpinBox
+                    width: 1 * dpi
+                    minimumValue: 5
+                    maximumValue: 60
+
+                    value: settings.value("ipc/interval", 10)
+                    onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
+                }
+            }
+
+            Row {
+                id: rowLogBlocks
+                enabled: !thinClient
+                width: parent.width
+
+                Label {
+                    id: logBlocksLabel
+                    text: qsTr("Event history in blocks: ")
+                }
+
+                SpinBox {
+                    id: logBlocksField
+                    width: 1 * dpi
+                    minimumValue: 0
+                    maximumValue: 100000
+                    value: settings.value("geth/logsize", 7200)
+                    onValueChanged: {
+                        settings.setValue("geth/logsize", logBlocksField.value)
+                        filterModel.loadLogs()
+                    }
+                }
+            }
+        }
+    }
+
+    Tab {
+        title: qsTr("Geth")
 
         Column {
             anchors.margins: 0.2 * dpi
@@ -55,62 +170,6 @@ TabView {
             }
 
             Row {
-                width: parent.width
-
-                Label {
-                    text: qsTr("Update interval (s): ")
-                }
-
-                SpinBox {
-                    id: intervalSpinBox
-                    width: 1 * dpi
-                    minimumValue: 5
-                    maximumValue: 60
-
-                    value: settings.value("ipc/interval", 10)
-                    onValueChanged: {
-                        settings.setValue("ipc/interval", intervalSpinBox.value)
-                        ipc.setInterval(intervalSpinBox.value * 1000)
-                    }
-                }
-            }
-
-            Row {
-                width: parent.width
-
-                Label {
-                    text: qsTr("Helper currency: ")
-                }
-
-                ComboBox {
-                    id: defaultFiatCombo
-                    width: 1 * dpi
-                    model: currencyModel
-                    textRole: "name"
-                    currentIndex: currencyModel.helperIndex
-
-                    onActivated: currencyModel.setHelperIndex(index)
-                }               
-            }
-
-
-            ErrorDialog {
-                id: hfConfirmDialog
-                title: qsTr("Warning")
-                msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
-            }
-        }
-    }
-
-    Tab {
-        title: qsTr("Advanced")
-
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
-
-            Row {
                 id: rowGethPath
                 width: parent.width
 
@@ -152,30 +211,9 @@ TabView {
 
             // TODO: rename to infodialog
             ErrorDialog {
-                id: confirmDialog
+                id: confirmDialogTestnet
                 title: qsTr("Warning")
                 msg: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
-            }
-
-            Row {
-                id: rowGethTestnet
-                width: parent.width
-
-                Label {
-                    id: gethTestnetLabel
-                    text: "Testnet (rinkeby): "
-                }
-
-                CheckBox {
-                    id: gethTestnetCheck
-                    checked: settings.valueBool("geth/testnet", false)
-                    onClicked: {
-                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                        if ( settings.contains("program/firstrun") ) {
-                            confirmDialog.show()
-                        }
-                    }
-                }
             }
 
             Row {
@@ -198,32 +236,31 @@ TabView {
             }
 
             Row {
-                id: rowLogBlocks
+                // enabled: !thinClient // TODO: using right now
+                id: rowGethTestnet
                 width: parent.width
 
                 Label {
-                    id: logBlocksLabel
-                    text: qsTr("Event history in blocks: ")
+                    id: gethTestnetLabel
+                    text: "Testnet (rinkeby): "
                 }
 
-                SpinBox {
-                    id: logBlocksField
-                    width: 1 * dpi
-                    minimumValue: 0
-                    maximumValue: 100000
-                    value: settings.value("geth/logsize", 7200)
-                    onValueChanged: {
-                        settings.setValue("geth/logsize", logBlocksField.value)
-                        filterModel.loadLogs()
+                CheckBox {
+                    id: gethTestnetCheck
+                    checked: settings.valueBool("geth/testnet", false)
+                    onClicked: {
+                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                        if ( settings.contains("program/firstrun") ) {
+                            confirmDialogTestnet.show()
+                        }
                     }
                 }
             }
-
         }
     }
 
     Tab {
-        visible: !hideTrezor
+        enabled: !hideTrezor
         title: "TREZOR"
 
         Column {

@@ -413,24 +413,40 @@ ApplicationWindow {
 
             ToolButton {
                 function getQuality(cs, pc) {
+                    if ( ipc.thinClient ) {
+                        return 3
+                    }
+
                     if ( cs <= 0 ) {
-                        return 0; // disconnected
+                        return 0 // disconnected
                     }
 
                     if ( pc > 6 ) {
-                        return 3; // high
+                        return 3 // high
                     } else if ( pc > 3 ) {
-                        return 2; // medium
+                        return 2 // medium
                     } else {
-                        return 1; // low
+                        return 1 // low
                     }
+                }
+
+                function connectionState(cs, pc) {
+                    if ( cs <= 0 ) {
+                        return qsTr("disconnected", "connection state")
+                    }
+
+                    if ( ipc.thinClient ) {
+                        return qsTr("connected to remote node", "connection state")
+                    }
+
+                    return qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")
                 }
 
                 iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
                 height: 32
                 width: 32
                 enabled: !ipc.starting
-                tooltip: qsTr("Connection state: ") + (ipc.connectionState > 0 ? (qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")) : qsTr("disconnected", "connection state"))
+                tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
                 onClicked: {
                     ipc.connectToServer()
                 }

@@ -39,7 +39,6 @@ Window {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-
     property bool done: false
 
     Column {
@@ -50,23 +49,58 @@ Window {
         Text {
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.margins: 0.2 * dpi
-            font.pixelSize: 0.2 * dpi
+            anchors.margins: 0.1 * dpi
+            font.pixelSize: 0.16 * dpi
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Please confirm options for Geth before running for the first time")
+            text: qsTr("Please review settings before first run.")
         }
 
-        Text {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 0.2 * dpi
-            font.pixelSize: 0.2 * dpi
-            font.bold: true
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Ethereum blockchain grows rapidly and requires at least 20GB of space. Make sure to choose an appropriate data directory with enough space left.")
+        Item {
+            height: 0.5 * dpi
+            anchors {
+                left: parent.left
+                right: parent.right
+            }
+
+            Text {
+                visible: content.thinClient
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 0.1 * dpi
+                font.pixelSize: 0.16 * dpi
+                font.bold: true
+                textFormat: Text.RichText
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                onLinkActivated: Qt.openUrlExternally(link)
+                text: qsTr("Thin client is recommended due to chaindata size. <a href=\"http://etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
+            }
+
+            Text {
+                visible: !content.thinClient
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 0.1 * dpi
+                font.pixelSize: 0.16 * dpi
+                font.bold: true
+                textFormat: Text.RichText
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                onLinkActivated: Qt.openUrlExternally(link)
+                text: qsTr("Ethereum blockchain requires at least 40GB of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"http://etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
+            }
         }
 
         SettingsContent {
+            id: content
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height / 2.0
@@ -84,6 +118,7 @@ Window {
                 height: 0.6 * dpi
 
                 onClicked: {
+                    done = true
                     ipc.init();
                     settings.setValue("program/firstrun", new Date())
                     // set hf decision too so we don't get pestered

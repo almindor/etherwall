@@ -5,24 +5,38 @@ namespace Etherwall {
 
     RemoteIPC::RemoteIPC(const QString& ipcPath, GethLog& gethLog, const QString &remotePath) :
         EtherIPC(ipcPath, gethLog),
-        fWebSocket("http://localhost"), fReceivedMessage()
+        fWebSocket("http://localhost"), fRemotePath(remotePath), fReceivedMessage()
     {
         QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &RemoteIPC::onDisconnectedWS);
         QObject::connect(&fWebSocket, &QWebSocket::connected, this, &RemoteIPC::onConnectedWS);
         QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &RemoteIPC::onErrorWS);
         QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &RemoteIPC::onTextMessageReceivedWS);
-
-        const QSettings settings;
-        fIsThinClient = settings.value("geth/thinclient", false).toBool();
-
-        if ( fIsThinClient ) {
-            fWebSocket.open(QUrl(remotePath));
-        }
     }
 
     RemoteIPC::~RemoteIPC()
     {
         fWebSocket.close(); // in case we missed the app closing
+    }
+
+    void RemoteIPC::init()
+    {
+        const QSettings settings;
+        fIsThinClient = settings.value("geth/thinclient", true).toBool();
+
+        if ( fIsThinClient && fWebSocket.state() == QAbstractSocket::UnconnectedState ) {
+            fWebSocket.open(QUrl(fRemotePath));
+        }
+
+        EtherIPC::init();
+    }
+
+    void RemoteIPC::getLogs(const QStringList &addresses, const QStringList &topics, quint64 fromBlock)
+    {
+        if ( !fIsThinClient ) {
+            return EtherIPC::getLogs(addresses, topics, fromBlock);
+        }
+
+        // do nothing on remote, getlogs is too expensive we just don't support it on a thin client
     }
 
     bool RemoteIPC::closeApp()
@@ -36,6 +50,12 @@ namespace Etherwall {
         }
 
         return result;
+    }
+
+    void RemoteIPC::setInterval(int interval)
+    {
+        Q_UNUSED(interval); // remote enforced to 10s
+        fTimer.setInterval(10000);
     }
 
     void RemoteIPC::connectedToServer()
@@ -83,6 +103,18 @@ namespace Etherwall {
         return EtherIPC::endpointRead();
     }
 
+    const QStringList RemoteIPC::buildGethArgs() const
+    {
+        QStringList args = EtherIPC::buildGethArgs();
+        if ( fIsThinClient ) {
+            args.append("--maxpeers=0");
+            args.append("--nodiscover");
+            args.append("--nat=none");
+        }
+
+        return args;
+    }
+
     void RemoteIPC::onConnectedWS()
     {
         qDebug() << "WS Connected\n";
@@ -123,13 +155,22 @@ namespace Etherwall {
         switch ( fActiveRequest.getType() ) {
             case NoRequest: return false;
             case NewAccount: return false;
+            case UnlockAccount: return false;
+            case SignTransaction: return false;
             case GetAccountRefs: return false;
             case SendTransaction: return false;
             case GetClientVersion: return false;
             case GetNetVersion: return false;
             case GetSyncing: return false;
+            case GetPeerCount: return false; // only "eth" available
+            case GetLogs: return false; // we could use remote but this is a very heavy call, better not allow it
             default: return true;
         }
+    }
+
+    bool RemoteIPC::isThinClient() const
+    {
+        return fIsThinClient;
     }
 
 }

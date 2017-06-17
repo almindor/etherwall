@@ -93,7 +93,9 @@ namespace Etherwall {
     public:
         EtherIPC(const QString& ipcPath, GethLog& gethLog);
         virtual ~EtherIPC();
-        void init();
+        virtual void init();
+        virtual bool isThinClient() const;
+
         void setWorker(QThread* worker);
         bool getBusy() const;
         bool getExternal() const;
@@ -109,17 +111,20 @@ namespace Etherwall {
         quint64 nonceStart() const;
         void getAccounts();
         bool refreshAccount(const QString& hash, int index);
-        Q_INVOKABLE virtual bool closeApp();
         void newAccount(const QString& password, int index);
         void getBlockNumber();
         void registerEventFilters(const QStringList& addresses, const QStringList& topics);
         void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
         void getGasPrice();
         void sendTransaction(const Ethereum::Tx& tx, const QString& password);
+        void signTransaction(const Ethereum::Tx& tx, const QString& password);
+        void signTransaction(const Ethereum::Tx& tx);
         void sendRawTransaction(const Ethereum::Tx& tx);
+        void sendRawTransaction(const QString &rlp);
         void getTransactionByHash(const QString& hash);
 
-        Q_INVOKABLE void setInterval(int interval);
+        Q_INVOKABLE virtual bool closeApp();
+        Q_INVOKABLE virtual void setInterval(int interval);
         Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
                                      const QString& gas, const QString& gasPrice, const QString& data);
         Q_INVOKABLE void getTransactionReceipt(const QString& hash);
@@ -135,9 +140,10 @@ namespace Etherwall {
         void connectToServerDone();
         void getAccountsDone(const QStringList& list) const;
         void newAccountDone(const QString& result, int index) const;
+        void unlockAccountDone(bool unlocked, int index) const;
         void getBlockNumberDone(quint64 num) const;
         void sendTransactionDone(const QString& hash) const;
-        void unlockAccountDone(bool result, int index) const;
+        void signTransactionDone(const QString& hash) const;
         void getGasPriceDone(const QString& price) const;
         void estimateGasDone(const QString& price) const;
         void newTransaction(const TransactionInfo& info) const;
@@ -193,6 +199,7 @@ namespace Etherwall {
         void handleGetBlockNumber();
         void handleGetPeerCount();
         void handleSendTransaction();
+        void handleSignTransaction();
         void handleGetGasPrice();
         void handleEstimateGas();
         void handleNewBlockFilter();
@@ -205,17 +212,20 @@ namespace Etherwall {
         void handleGetClientVersion();
         void handleGetNetVersion();
         void handleGetSyncing();
+        void handleUnlockAccount();
 
         // virtual
         virtual bool endpointWritable();
         virtual qint64 endpointWrite(const QByteArray& data);
         virtual const QByteArray endpointRead();
+        virtual const QStringList buildGethArgs() const;
 
         void ipcReady();
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
         const QJsonArray parseTopics(const QStringList& topics);
+        void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         bool getBalance(const QString& hash, int index);
         bool getTransactionCount(const QString& hash, int index);
         void getSyncing();
@@ -238,7 +248,7 @@ namespace Etherwall {
         void newBlockFilter();
         void newEventFilter(const QStringList& addresses, const QStringList& topics);
         void uninstallFilter(const QString& filter);
-        void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
+        virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

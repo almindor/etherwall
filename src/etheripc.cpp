@@ -87,7 +87,6 @@ namespace Etherwall {
 
         const QSettings settings;
 
-        fTimer.setInterval(settings.value("ipc/interval", 10).toInt() * 1000);
         connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
     }
 
@@ -107,26 +106,7 @@ namespace Etherwall {
         QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
-        QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
-        const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
-
-        // check deprecated options and replace them
-        if ( argStr.contains("--light") || argStr.contains("--fast") ) {
-            argStr = argStr.replace("--light", "--syncmode=light");
-            argStr = argStr.replace("--fast", "--syncmode=fast");
-            settings.setValue("geth/args", argStr);
-            qDebug() << "replaced args\n";
-        }
-
-        QStringList args;
-        bool testnet = settings.value("geth/testnet", false).toBool();
-        if ( testnet ) { // geth 1.6.0+ only
-            args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
-            args.append("--rinkeby");
-        } else {
-            args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
-        }
-        // no more hard fork settings
+        QStringList args = buildGethArgs();
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
@@ -153,7 +133,7 @@ namespace Etherwall {
             return connectionTimeout();
         }
 
-        if ( ++fConnectAttempts < 10 ) {
+        if ( ++fConnectAttempts < 20 ) {
             if ( fSocket.state() == QLocalSocket::ConnectingState ) {
                 fSocket.abort();
             }
@@ -243,6 +223,8 @@ namespace Etherwall {
 
 
     void EtherIPC::setInterval(int interval) {
+        QSettings settings;
+        settings.setValue("ipc/interval", (int) (interval / 1000));
         fTimer.setInterval(interval);
     }
 
@@ -524,9 +506,48 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::sendRawTransaction(const Ethereum::Tx& tx)
+    void EtherIPC::signTransaction(const Ethereum::Tx &tx, const QString &password)
     {
-        const QString rlp = Helpers::hexPrefix(tx.encodeRLP(true));
+        qDebug() << "called sendTX with manual signing\n";
+        unlockAccount(tx.fromStr(), password, 5, 0);
+        signTransaction(tx);
+    }
+
+    void EtherIPC::signTransaction(const Ethereum::Tx &tx)
+    {
+        QJsonArray params;
+        QJsonObject p;
+        p["from"] = tx.fromStr();
+        p["value"] = tx.valueHex();
+        if ( !tx.isContractDeploy() ) {
+            p["to"] = tx.toStr();
+        }
+        if ( tx.hasDefinedGas() ) {
+            p["gas"] = tx.gasHex();
+        }
+        if ( tx.hasDefinedGasPrice() ) {
+            p["gasPrice"] = tx.gasPriceHex();
+            EtherLog::logMsg(QString("Trans gasPrice: ") + tx.gasPriceStr() + QString(" HexValue: ") + tx.gasPriceHex());
+        }
+        if ( tx.hasData() ) {
+            p["data"] = tx.dataHex();
+        }
+        p["nonce"] = tx.nonceHex();
+
+        params.append(p);
+
+        if ( !queueRequest(RequestIPC(SignTransaction, "eth_signTransaction", params)) ) {
+            return bail(true); // softbail
+        }
+    }
+
+    void EtherIPC::sendRawTransaction(const Ethereum::Tx &tx)
+    {
+        sendRawTransaction(Helpers::hexPrefix(tx.encodeRLP(true)));
+    }
+
+    void EtherIPC::sendRawTransaction(const QString &rlp)
+    {
         qDebug() << "About to send tx: " << rlp << "\n";
         QJsonArray params;
         params.append(rlp);
@@ -544,6 +565,19 @@ namespace Etherwall {
 
         const QString hash = jv.toString();
         emit sendTransactionDone(hash);
+        done();
+    }
+
+    void EtherIPC::handleSignTransaction()
+    {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail(true); // softbail
+        }
+
+        const QString hash = jv.toObject().value("raw").toString();
+        qDebug() << "sign tx done: " << hash << "\n";
+        emit signTransactionDone(hash);
         done();
     }
 
@@ -579,6 +613,8 @@ namespace Etherwall {
 
     void EtherIPC::ipcReady()
     {
+        const QSettings settings;
+        setInterval(settings.value("ipc/interval", 10).toInt() * 1000); // re-set here, used for inheritance purposes
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
         // if we connected to external geth, put that info in geth log
         emit startingChanged(fStarting);
@@ -600,6 +636,33 @@ namespace Etherwall {
     const QByteArray EtherIPC::endpointRead()
     {
         return fSocket.readAll();
+    }
+
+    const QStringList EtherIPC::buildGethArgs() const
+    {
+        QSettings settings;
+        QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
+        const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
+
+        // check deprecated options and replace them
+        if ( argStr.contains("--light") || argStr.contains("--fast") ) {
+            argStr = argStr.replace("--light", "--syncmode=light");
+            argStr = argStr.replace("--fast", "--syncmode=fast");
+            settings.setValue("geth/args", argStr);
+            qDebug() << "replaced args\n";
+        }
+
+        QStringList args;
+        args.append("--nousb");
+        bool testnet = settings.value("geth/testnet", false).toBool();
+        if ( testnet ) { // geth 1.6.0+ only
+            args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
+            args.append("--rinkeby");
+        } else {
+            args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
+        }
+
+        return args;
     }
 
     void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& valStr,
@@ -745,6 +808,20 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::unlockAccount(const QString &hash, const QString &password, int duration, int index)
+    {
+        Q_UNUSED(duration); // lets just default here, hopefully geth does what parity now
+        QJsonArray params;
+        params.append(hash);
+        params.append(password);
+
+        // params.append(Helpers::toHexStr(duration));
+
+        if ( !queueRequest(RequestIPC(UnlockAccount, "personal_unlockAccount", params, index)) ) {
+            return bail();
+        }
+    }
+
     void EtherIPC::getFilterChanges(const QString& filterID) {
         if ( filterID < 0 ) {
             setError("Filter ID invalid");
@@ -810,6 +887,11 @@ namespace Etherwall {
         if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
             return bail();
         }
+    }
+
+    bool EtherIPC::isThinClient() const
+    {
+        return false;
     }
 
     void EtherIPC::handleUninstallFilter() {
@@ -996,6 +1078,27 @@ namespace Etherwall {
         }
 
         emit syncingChanged(fSyncing);
+        done();
+    }
+
+    void EtherIPC::handleUnlockAccount()
+    {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            // special case, we def. need to remove all subrequests, but not stop timer
+            fRequestQueue.clear();
+            return bail(true);
+        }
+
+        const bool result = jv.toBool(false);
+        qDebug() << "unlock account: " << result << "\n";
+
+        if ( !result ) {
+            setError("Unlock account failure");
+            emit error();
+        }
+
+        emit unlockAccountDone(result, fActiveRequest.getIndex());
         done();
     }
 
@@ -1187,8 +1290,15 @@ namespace Etherwall {
         }
 
         switch ( fActiveRequest.getType() ) {
+        case NoRequest: {
+            break;
+        }
         case NewAccount: {
                 handleNewAccount();
+                break;
+            }
+        case UnlockAccount: {
+                handleUnlockAccount();
                 break;
             }
         case GetBlockNumber: {
@@ -1213,6 +1323,10 @@ namespace Etherwall {
             }
         case SendTransaction: {
                 handleSendTransaction();
+                break;
+            }
+        case SignTransaction: {
+                handleSignTransaction();
                 break;
             }
         case SendRawTransaction: {
@@ -1271,7 +1385,6 @@ namespace Etherwall {
                 handleGetTransactionReceipt();
                 break;
             }
-        default: qDebug() << "Unknown reply: " << fActiveRequest.getType() << "\n"; break;
         }
     }
 

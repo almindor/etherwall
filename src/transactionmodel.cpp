@@ -42,9 +42,11 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
+        connect(&ipc, &EtherIPC::signTransactionDone, this, &TransactionModel::signTransactionDone);
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
         connect(&ipc, &EtherIPC::syncingChanged, this, &TransactionModel::syncingChanged);
+
 
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
         checkVersion(); // TODO: move this off at some point
@@ -171,12 +173,16 @@ namespace Etherwall {
     }
 
     void TransactionModel::sendTransaction(const QString& password, const QString& from, const QString& to,
-                                           const QString& value, const QString& gas, const QString& gasPrice,
+                                           const QString& value, quint64 nonce, const QString& gas, const QString& gasPrice,
                                            const QString& data) {
-        const Ethereum::Tx tx(from, to, value, 0, gas, gasPrice, data); // nonce not required here, ipc.sendTransaction doesn't fill it in as it's known to geth
-
-        fIpc.sendTransaction(tx, password);
+        Ethereum::Tx tx(from, to, value, nonce, gas, gasPrice, data); // nonce not required here, ipc.sendTransaction doesn't fill it in as it's known to geth
         fQueuedTransaction.init(from, to, value, gas, gasPrice, data);
+
+        if ( fIpc.isThinClient() ) {
+            fIpc.signTransaction(tx, password);
+        } else {
+            fIpc.sendTransaction(tx, password);
+        }
     }
 
     void TransactionModel::onRawTransaction(const Ethereum::Tx& tx)
@@ -189,6 +195,11 @@ namespace Etherwall {
         fQueuedTransaction.setHash(hash);
         addTransaction(fQueuedTransaction);
         EtherLog::logMsg("Transaction sent, hash: " + hash);
+    }
+
+    void TransactionModel::signTransactionDone(const QString &hash)
+    {
+        fIpc.sendRawTransaction(hash);
     }
 
     void TransactionModel::newTransaction(const TransactionInfo &info) {

@@ -147,6 +147,11 @@ namespace Ethereum {
         return nonceBytes.toStdString();
     }
 
+    const QString Tx::nonceHex() const
+    {
+        return Etherwall::Helpers::toHexStr(fNonce);
+    }
+
     quint32 Tx::dataByteSize() const
     {
         if ( !hasData() ) {

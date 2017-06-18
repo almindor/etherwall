@@ -258,22 +258,6 @@ Item {
             }
         }
 
-        ConfirmDialog {
-            id: transactionSendDialogTREZOR
-            title: qsTr("Confirm transaction")
-
-            onYes: {
-                var result = sendButton.check(fromField.currentIndex)
-                if ( result.error !== null ) {
-                    errorDialog.msg = result.error
-                    errorDialog.open()
-                    return
-                }
-
-                trezor.signTransaction(result.chain_id, result.hdpath, result.from, result.to, result.txtVal, result.nonce, result.txtGas, result.txtGasPrice, contractData)
-            }
-        }
-
         Button {
             id: sendButton
             enabled: !ipc.syncing && !ipc.closing && !ipc.starting
@@ -429,14 +413,18 @@ Item {
                     return
                 }
 
-                var dialog = result.hdpath.length ? transactionSendDialogTREZOR : transactionSendDialog
+                // trezor asks for confirmation[s] on it's display, one more is cumbersome
+                if ( result.hdpath.length ) {
+                    trezor.signTransaction(result.chain_id, result.hdpath, result.from, result.to, result.txtVal, result.nonce, result.txtGas, result.txtGasPrice, contractData)
+                    return
+                }
 
                 if ( contractName.length > 0 ) {
-                    dialog.msg = qsTr("Confirm creation of contract: ") + contractName
+                    transactionSendDialog.msg = qsTr("Confirm creation of contract: ") + contractName
                 } else {
-                    dialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
+                    transactionSendDialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
                 }
-                dialog.open()
+                transactionSendDialog.open()
             }
         }
 

@@ -69,59 +69,6 @@ TabView {
     }
 
     Tab {
-        title: qsTr("Advanced")
-
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
-
-
-            Row {
-                enabled: !thinClient
-                width: parent.width
-
-                Label {
-                    text: qsTr("Update interval (s): ")
-                }
-
-                SpinBox {
-                    id: intervalSpinBox
-                    width: 1 * dpi
-                    minimumValue: 5
-                    maximumValue: 60
-
-                    value: settings.value("ipc/interval", 10)
-                    onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
-                }
-            }
-
-            Row {
-                id: rowLogBlocks
-                enabled: !thinClient
-                width: parent.width
-
-                Label {
-                    id: logBlocksLabel
-                    text: qsTr("Event history in blocks: ")
-                }
-
-                SpinBox {
-                    id: logBlocksField
-                    width: 1 * dpi
-                    minimumValue: 0
-                    maximumValue: 100000
-                    value: settings.value("geth/logsize", 7200)
-                    onValueChanged: {
-                        settings.setValue("geth/logsize", logBlocksField.value)
-                        filterModel.loadLogs()
-                    }
-                }
-            }
-        }
-    }
-
-    Tab {
         title: qsTr("Geth")
 
         Column {
@@ -258,6 +205,61 @@ TabView {
             }
         }
     }
+
+    Tab {
+        title: qsTr("Advanced")
+        enabled: !ipc.thinClient
+
+        Column {
+            anchors.margins: 0.2 * dpi
+            anchors.fill: parent
+            spacing: 0.1 * dpi
+
+
+            Row {
+                enabled: !thinClient
+                width: parent.width
+
+                Label {
+                    text: qsTr("Update interval (s): ")
+                }
+
+                SpinBox {
+                    id: intervalSpinBox
+                    width: 1 * dpi
+                    minimumValue: 5
+                    maximumValue: 60
+
+                    value: settings.value("ipc/interval", 10)
+                    onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
+                }
+            }
+
+            Row {
+                id: rowLogBlocks
+                enabled: !thinClient
+                width: parent.width
+
+                Label {
+                    id: logBlocksLabel
+                    text: qsTr("Event history in blocks: ")
+                }
+
+                SpinBox {
+                    id: logBlocksField
+                    width: 1 * dpi
+                    minimumValue: 0
+                    maximumValue: 100000
+                    value: settings.value("geth/logsize", 7200)
+                    onValueChanged: {
+                        settings.setValue("geth/logsize", logBlocksField.value)
+                        filterModel.loadLogs()
+                    }
+                }
+            }
+        }
+    }
+
 
     Tab {
         enabled: !hideTrezor

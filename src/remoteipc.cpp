@@ -11,6 +11,9 @@ namespace Etherwall {
         QObject::connect(&fWebSocket, &QWebSocket::connected, this, &RemoteIPC::onConnectedWS);
         QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &RemoteIPC::onErrorWS);
         QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &RemoteIPC::onTextMessageReceivedWS);
+
+        const QSettings settings;
+        fIsThinClient = settings.value("geth/thinclient", true).toBool();
     }
 
     RemoteIPC::~RemoteIPC()
@@ -20,7 +23,7 @@ namespace Etherwall {
 
     void RemoteIPC::init()
     {
-        const QSettings settings;
+        const QSettings settings; // reinit because of first time dialog
         fIsThinClient = settings.value("geth/thinclient", true).toBool();
 
         if ( fIsThinClient && fWebSocket.state() == QAbstractSocket::UnconnectedState ) {

@@ -374,6 +374,7 @@ namespace Etherwall {
             beginInsertRows(QModelIndex(), fAccountList.size(), fAccountList.size());
             fAccountList.append(AccountInfo(address, QString(), fTrezor.getDeviceID(), EMPTY_BALANCE, 0, hdPath, fIpc.network()));
             endInsertRows();
+            fIpc.refreshAccount(address, fAccountList.size() - 1);
 
             storeAccountList();
         } else if ( fAccountList.at(i1).deviceID() != fTrezor.getDeviceID() ) { // this shouldn't happen unless they reimported to another hd device

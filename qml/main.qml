@@ -156,7 +156,7 @@ ApplicationWindow {
         title: qsTr("About Etherwall")
         yesText: qsTr("Check for updates")
         noText: qsTr("OK")
-        msg: '<html><body>Etherwall copyright 2015-2016 by Aleš Katona. For more info please visit the <a href="http://etherwall.com">homepage</a></body></html>'
+        msg: '<html><body>Etherwall ' + Qt.application.version + ' copyright 2015-2017 by Aleš Katona. For more info please visit the <a href="http://etherwall.com">homepage</a></body></html>'
         onYes: {
             manualVersionCheck = true
             transactionModel.checkVersion()

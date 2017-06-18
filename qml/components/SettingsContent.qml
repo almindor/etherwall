@@ -183,7 +183,7 @@ TabView {
             }
 
             Row {
-                // enabled: !thinClient // TODO: using right now
+                enabled: !thinClient
                 id: rowGethTestnet
                 width: parent.width
 

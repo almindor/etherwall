@@ -125,6 +125,8 @@ int main(int argc, char *argv[])
 
     if ( settings.contains("program/v2firstrun") ) {
         ipc.init();
+    } else {
+        settings.remove("geth/testnet"); // cannot be set from before in the firstrun, not compatible with thin client
     }
 
     return app.exec();

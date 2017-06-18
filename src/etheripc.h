@@ -80,7 +80,6 @@ namespace Etherwall {
         Q_PROPERTY(bool starting READ getStarting NOTIFY startingChanged)
         Q_PROPERTY(bool syncing READ getSyncingVal NOTIFY syncingChanged)
         Q_PROPERTY(bool closing READ getClosing NOTIFY closingChanged)
-        Q_PROPERTY(bool hardForkReady READ getHardForkReady NOTIFY hardForkReadyChanged)
         Q_PROPERTY(int connectionState READ getConnectionState NOTIFY connectionStateChanged)
         Q_PROPERTY(quint64 peerCount READ peerCount NOTIFY peerCountChanged)
         Q_PROPERTY(QString clientVersion MEMBER fClientVersion NOTIFY clientVersionChanged)
@@ -101,7 +100,6 @@ namespace Etherwall {
         bool getExternal() const;
         bool getStarting() const;
         bool getClosing() const;
-        bool getHardForkReady() const;
         const QString& getError() const;
         int getCode() const;
         bool getTestnet() const;
@@ -159,7 +157,6 @@ namespace Etherwall {
         void startingChanged(bool starting) const;
         void syncingChanged(bool syncing) const;
         void closingChanged(bool closing) const;
-        void hardForkReadyChanged(bool hfReady) const;
         void connectionStateChanged() const;
         void clientVersionChanged(const QString& ver) const;
         void netVersionChanged(int ver) const;

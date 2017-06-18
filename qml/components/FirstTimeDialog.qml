@@ -120,9 +120,7 @@ Window {
                 onClicked: {
                     done = true
                     ipc.init();
-                    settings.setValue("program/firstrun", new Date())
-                    // set hf decision too so we don't get pestered
-                    settings.setValue("geth/hardfork", settings.value("geth/hardfork", true))
+                    settings.setValue("program/v2firstrun", new Date())
 
                     ftWindow.close()
                 }

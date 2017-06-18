@@ -28,7 +28,7 @@ TabView {
                 onClicked: {
                     thinClient = clientModeButton.checked
                     settings.setValue("geth/thinclient", clientModeButton.checked)
-                    if ( settings.contains("program/firstrun") ) {
+                    if ( settings.contains("program/v2firstrun") ) {
                         confirmDialog.show()
                     }
                 }
@@ -250,7 +250,7 @@ TabView {
                     checked: settings.valueBool("geth/testnet", false)
                     onClicked: {
                         settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                        if ( settings.contains("program/firstrun") ) {
+                        if ( settings.contains("program/v2firstrun") ) {
                             confirmDialogTestnet.show()
                         }
                     }

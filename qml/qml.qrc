@@ -18,7 +18,6 @@
         <file>components/FirstTimeDialog.qml</file>
         <file>components/SettingsContent.qml</file>
         <file>components/AccountDialog.qml</file>
-        <file>components/HardForkDialog.qml</file>
         <file>components/TransactionDialog.qml</file>
         <file>components/ContractsTab.qml</file>
         <file>components/ContractDetails.qml</file>

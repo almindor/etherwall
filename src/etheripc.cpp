@@ -208,11 +208,6 @@ namespace Etherwall {
         return fClosingApp;
     }
 
-    bool EtherIPC::getHardForkReady() const {
-        const int vn = parseVersionNum();
-        return ( vn >= 104010 );
-    }
-
     const QString& EtherIPC::getError() const {
         return fError;
     }
@@ -618,7 +613,6 @@ namespace Etherwall {
         emit startingChanged(fStarting);
         emit connectToServerDone();
         emit connectionStateChanged();
-        emit hardForkReadyChanged(getHardForkReady());
     }
 
     bool EtherIPC::endpointWritable()

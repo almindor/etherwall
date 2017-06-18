@@ -548,7 +548,6 @@ namespace Etherwall {
 
     void EtherIPC::sendRawTransaction(const QString &rlp)
     {
-        qDebug() << "About to send tx: " << rlp << "\n";
         QJsonArray params;
         params.append(rlp);
 
@@ -576,7 +575,6 @@ namespace Etherwall {
         }
 
         const QString hash = jv.toObject().value("raw").toString();
-        qDebug() << "sign tx done: " << hash << "\n";
         emit signTransactionDone(hash);
         done();
     }

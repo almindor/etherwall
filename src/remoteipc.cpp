@@ -84,7 +84,6 @@ namespace Etherwall {
     {
         if ( isRemoteRequest() ) {
             qint64 sent = fWebSocket.sendBinaryMessage(data);
-            qDebug() << "WS SEND[" << sent << "]: " << data << "\n";
             return sent;
         }
 
@@ -94,7 +93,6 @@ namespace Etherwall {
     const QByteArray RemoteIPC::endpointRead()
     {
         if ( isRemoteRequest() ) {
-            qDebug() << "WS Reading\n";
             const QByteArray result = fReceivedMessage;
             fReceivedMessage.clear(); // ensure we get empties if this gets called out of order
             return result;
@@ -117,7 +115,6 @@ namespace Etherwall {
 
     void RemoteIPC::onConnectedWS()
     {
-        qDebug() << "WS Connected\n";
         // if IPC is connected at this stage continue with init
         if ( fSocket.state() == QLocalSocket::ConnectedState ) {
             EtherIPC::connectedToServer();
@@ -141,7 +138,6 @@ namespace Etherwall {
 
     void RemoteIPC::onTextMessageReceivedWS(const QString &msg)
     {
-        qDebug() << "WS GOT: " << msg << "\n";
         fReceivedMessage = msg.toUtf8();
         onSocketReadyRead();
     }

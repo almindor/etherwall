@@ -72,7 +72,7 @@ Window {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Thin client is recommended due to chaindata size. <a href=\"http://etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Thin client is recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
@@ -90,7 +90,7 @@ Window {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Ethereum blockchain requires at least 40GB of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"http://etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Ethereum blockchain requires at least 40GB of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text

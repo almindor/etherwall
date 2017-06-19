@@ -13,7 +13,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(bool thinClient READ isThinClient NOTIFY thinClientChanged)
     public:
-        RemoteIPC(const QString& ipcPath, GethLog& gethLog, const QString &remotePath);
+        RemoteIPC(GethLog& gethLog, const QString &remotePath);
         virtual ~RemoteIPC();
         virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
         virtual bool isThinClient() const;

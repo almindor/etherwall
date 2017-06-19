@@ -3,8 +3,8 @@
 
 namespace Etherwall {
 
-    RemoteIPC::RemoteIPC(const QString& ipcPath, GethLog& gethLog, const QString &remotePath) :
-        EtherIPC(ipcPath, gethLog),
+    RemoteIPC::RemoteIPC(GethLog& gethLog, const QString &remotePath) :
+        EtherIPC(gethLog),
         fWebSocket("http://localhost"), fRemotePath(remotePath), fReceivedMessage()
     {
         QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &RemoteIPC::onDisconnectedWS);

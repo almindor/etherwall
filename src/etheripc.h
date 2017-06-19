@@ -90,7 +90,7 @@ namespace Etherwall {
         Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 blockNumber MEMBER fBlockNumber NOTIFY getBlockNumberDone)
     public:
-        EtherIPC(const QString& ipcPath, GethLog& gethLog);
+        EtherIPC(GethLog& gethLog);
         virtual ~EtherIPC();
         virtual void init();
         virtual bool isThinClient() const;

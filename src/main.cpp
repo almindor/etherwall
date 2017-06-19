@@ -65,10 +65,8 @@ int main(int argc, char *argv[])
 
     Settings settings;
 
-    bool testnet = settings.value("geth/testnet", false).toBool();
     const QString gethPath = settings.value("geth/path", DefaultGethPath()).toString();
     const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
-    const QString ipcPath = DefaultIPCPath(dataPath, testnet);
 
     // set defaults
     if ( !settings.contains("geth/path") ) {
@@ -88,7 +86,7 @@ int main(int argc, char *argv[])
 
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
-    RemoteIPC ipc(ipcPath, gethLog, "wss://api2.etherwall.com");
+    RemoteIPC ipc(gethLog, "wss://api2.etherwall.com");
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);

@@ -104,7 +104,7 @@ namespace Etherwall {
         return EtherIPC::endpointRead();
     }
 
-    const QStringList RemoteIPC::buildGethArgs() const
+    const QStringList RemoteIPC::buildGethArgs()
     {
         QStringList args = EtherIPC::buildGethArgs();
         if ( fIsThinClient ) {

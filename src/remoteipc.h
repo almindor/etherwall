@@ -27,7 +27,7 @@ namespace Etherwall {
         virtual bool endpointWritable();
         virtual qint64 endpointWrite(const QByteArray& data);
         virtual const QByteArray endpointRead();
-        virtual const QStringList buildGethArgs() const;
+        virtual const QStringList buildGethArgs();
 
         void onConnectedWS();
         void onDisconnectedWS();

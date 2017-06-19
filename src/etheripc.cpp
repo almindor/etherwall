@@ -630,7 +630,7 @@ namespace Etherwall {
         return fSocket.readAll();
     }
 
-    const QStringList EtherIPC::buildGethArgs() const
+    const QStringList EtherIPC::buildGethArgs()
     {
         QSettings settings;
         QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
@@ -648,9 +648,11 @@ namespace Etherwall {
         args.append("--nousb");
         bool testnet = settings.value("geth/testnet", false).toBool();
         if ( testnet ) { // geth 1.6.0+ only
+            fPath = ddStr + "/rinkeby/geth.ipc";
             args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
             args.append("--rinkeby");
         } else {
+            fPath = ddStr + "/geth.ipc";
             args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
         }
 

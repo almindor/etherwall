@@ -19,6 +19,13 @@ TabView {
                 left: parent.left
             }
 
+            // TODO: rename to infodialog
+            ErrorDialog {
+                id: confirmThinClientDialog
+                title: qsTr("Warning")
+                msg: qsTr("Changing node type requires a restart of Etherwall.")
+            }
+
             ToggleButton {
                 id: clientModeButton
                 width: 1 * dpi
@@ -28,8 +35,13 @@ TabView {
                 onClicked: {
                     thinClient = clientModeButton.checked
                     settings.setValue("geth/thinclient", clientModeButton.checked)
+
+                    if ( clientModeButton.checked ) {
+                        settings.setValue("geth/testnet", false)
+                    }
+
                     if ( settings.contains("program/v2firstrun") ) {
-                        confirmDialog.show()
+                        confirmThinClientDialog.show()
                     }
                 }
             }
@@ -56,13 +68,6 @@ TabView {
 
                         onActivated: currencyModel.setHelperIndex(index)
                     }
-                }
-
-
-                ErrorDialog {
-                    id: hfConfirmDialog
-                    title: qsTr("Warning")
-                    msg: qsTr("Changing hard fork decision requires a restart of Etherwall (and geth if running externally).")
                 }
             }
         }

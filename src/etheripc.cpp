@@ -74,7 +74,7 @@ namespace Etherwall {
 // *************************** EtherIPC **************************** //
 
     EtherIPC::EtherIPC(const QString& ipcPath, GethLog& gethLog) :
-        fPath(ipcPath), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
+        fPath(), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
         fConnectAttempts(0), fKillTime(), fExternal(false), fEventFilterID()
@@ -94,7 +94,9 @@ namespace Etherwall {
         fGeth.kill();
     }
 
-    void EtherIPC::init() {        
+    void EtherIPC::init() {
+        QStringList args = buildGethArgs(); // has to run first
+
         fConnectAttempts = 0;
         if ( fStarting <= 0 ) { // try to connect without starting geth
             EtherLog::logMsg("Etherwall starting", LS_Info);
@@ -106,7 +108,6 @@ namespace Etherwall {
         QSettings settings;
 
         const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
-        QStringList args = buildGethArgs();
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
@@ -647,12 +648,11 @@ namespace Etherwall {
         QStringList args;
         args.append("--nousb");
         bool testnet = settings.value("geth/testnet", false).toBool();
+        fPath = DefaultIPCPath(ddStr, testnet);
         if ( testnet ) { // geth 1.6.0+ only
-            fPath = ddStr + "/rinkeby/geth.ipc";
             args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
             args.append("--rinkeby");
         } else {
-            fPath = ddStr + "/geth.ipc";
             args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
         }
 

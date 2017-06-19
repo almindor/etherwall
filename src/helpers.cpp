@@ -189,6 +189,10 @@ namespace Etherwall {
     }
 
     const QString Helpers::vitalizeAddress(const QString& origAddress) {
+        // TODO: revisit
+        return origAddress.toLower(); // https://github.com/ethereum/EIPs/issues/55 is a mess right now, the hash is not specified and implementations vary
+
+        /*
         QString address = origAddress.toLower();
         if ( address.indexOf("0x") == 0 ) {
             address = address.remove(0, 2);
@@ -222,6 +226,7 @@ namespace Etherwall {
         }
 
         return "0x" + result;
+        */
     }
 
     const QString Helpers::networkPostfix(int network)
@@ -498,7 +503,11 @@ namespace Etherwall {
     }
 
     bool QmlHelpers::checkAddress(const QString& origAddress) const {
-        return origAddress == Helpers::vitalizeAddress(origAddress);
+        return true;
+
+        // TODO: revisit (see vitalizeAddress)
+
+        // return origAddress == Helpers::vitalizeAddress(origAddress);
     }
 
     const QString QmlHelpers::localURLToString(const QUrl& url) const {

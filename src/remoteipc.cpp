@@ -152,6 +152,21 @@ namespace Etherwall {
         }
 
         switch ( fActiveRequest.getType() ) {
+            // remote
+            case GetBlockNumber: return true;
+            case GetBalance: return true;
+            case GetTransactionCount: return true;
+            case SendRawTransaction: return true;
+            case GetGasPrice: return true;
+            case EstimateGas: return true;
+            case NewBlockFilter: return true;
+            case NewEventFilter: return true;
+            case GetFilterChanges: return true;
+            case UninstallFilter: return true;
+            case GetTransactionByHash: return true;
+            case GetBlock: return true;
+            case GetTransactionReceipt: return true;
+            // local
             case NoRequest: return false;
             case NewAccount: return false;
             case UnlockAccount: return false;
@@ -163,8 +178,9 @@ namespace Etherwall {
             case GetSyncing: return false;
             case GetPeerCount: return false; // only "eth" available
             case GetLogs: return false; // we could use remote but this is a very heavy call, better not allow it
-            default: return true;
         }
+
+        return false; // better safe than sorry
     }
 
     bool RemoteIPC::isThinClient() const

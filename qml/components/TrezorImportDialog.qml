@@ -11,40 +11,56 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file ConfirmDialog.qml
+/** @file TrezorImportDialog.qml
  * @author Ales Katona <almindor@gmail.com>
- * @date 2015
+ * @date 2017
  *
- * Confirm dialog
+ * Trezor import dialog
  */
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-BaseDialog {
-    title: qsTr("Confirm")
-    property string yesText : qsTr("Yes")
-    property string noText : qsTr("No")
+ConfirmDialog {
+    title: qsTr("Import accounts from TREZOR")
+    minimumHeight: 1.5 * dpi
+    height: 1.5 * dpi
+
+    function open(_msg) {
+        msg = _msg
+        opened();
+        visible = true;
+    }
+
+    onYes: accountModel.trezorImport(offsetSpin.value, countSpin.value)
 
     Row {
+        anchors.left: parent.left
         anchors.right: parent.right
-        anchors.bottom: parent.bottom
+        anchors.verticalCenter: parent.verticalCenter
         anchors.margins: 0.1 * dpi
-        spacing: 0.1 * dpi
+        spacing: 0.3 * dpi
 
-        Button {
-            text: yesText
-            onClicked: {
-               close()
-               yes()
-            }
+        Label {
+            text: qsTr("Offset")
         }
 
-        Button {
-            text: noText
-            onClicked: {
-               close()
-            }
+        SpinBox {
+            id: offsetSpin
+            minimumValue: 0
+            maximumValue: 4294967295 - countSpin.value
+            value: 0
+        }
+
+        Label {
+            text: qsTr("Count")
+        }
+
+        SpinBox {
+            id: countSpin
+            minimumValue: 1
+            maximumValue: 255
+            value: 5
         }
     }
 }

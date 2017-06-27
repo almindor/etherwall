@@ -163,17 +163,12 @@ ApplicationWindow {
         }
     }
 
-
-    ConfirmDialog {
+    TrezorImportDialog {
         id: trezorImportDialog
         width: 5 * dpi
-        title: qsTr("Import accounts from TREZOR")
         yesText: qsTr("Import")
-        noText: qsTr("Skip")
-        msg: qsTr("Detected TREZOR device with unimported accounts.") + "\n" + qsTr("Import") + " " + settings.value("trezor/addresses", 5) + " " + qsTr("addresses from TREZOR?")
-        onYes: accountModel.trezorImport()
+        noText: qsTr("Cancel")
     }
-
 
     ErrorDialog {
         id: errorDialog
@@ -252,7 +247,7 @@ ApplicationWindow {
             onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
             onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
             onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
-            onPromptForTrezorImport: trezorImportDialog.open()
+            onPromptForTrezorImport: trezorImportDialog.open(qsTr("Detected TREZOR device with unimported accounts.") + '<br><a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
         }
 
         Connections {

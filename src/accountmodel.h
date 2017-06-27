@@ -75,7 +75,7 @@ namespace Etherwall {
         Q_INVOKABLE void importWallet(const QUrl& fileName);
         Q_INVOKABLE bool exportAccount(const QUrl& fileName, int index);
         Q_INVOKABLE void setAsDefault(const QString& address);
-        Q_INVOKABLE void trezorImport();
+        Q_INVOKABLE void trezorImport(quint32 offset, quint8 count);
     private slots:
         void connectToServerDone();
         void getAccountsDone(const QStringList& list);

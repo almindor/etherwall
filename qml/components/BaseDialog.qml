@@ -58,6 +58,7 @@ Window {
         text: msg
         wrapMode: Text.Wrap
         width: parent.width
+        textFormat: Text.RichText
         onLinkActivated: Qt.openUrlExternally(link)
 
         MouseArea {

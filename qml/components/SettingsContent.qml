@@ -275,29 +275,10 @@ TabView {
             anchors.fill: parent
             spacing: 0.1 * dpi
 
-            Row {
-                width: parent.width
-                spacing: 0.05 * dpi
-
-                Label {
-                    text: qsTr("Import addresses: ")
-                }
-
-                SpinBox {
-                    id: addressesSpinBox
-                    width: 1 * dpi
-                    minimumValue: 1
-                    maximumValue: 60
-
-                    value: settings.value("trezor/addresses", 5)
-                    onValueChanged: settings.setValue("trezor/addresses", addressesSpinBox.value)
-                }
-
-                Button {
-                    enabled: trezor.initialized
-                    text: qsTr("Import")
-                    onClicked: accountModel.trezorImport()
-                }
+            Button {
+                enabled: trezor.initialized
+                text: qsTr("Import accounts")
+                onClicked: trezorImportDialog.open('<a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
             }
 
             Row {

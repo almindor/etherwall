@@ -373,9 +373,10 @@ Item {
                     sendIcon.source = "/images/warning"
                     status = -1
                 } else {
-                    warningField.text = ""
-                    toField.textColor = "black"
                     status = 0
+                    warningField.text = ""
+                    setHelperText(valueTotalField.text, getGasTotal())
+                    toField.textColor = "black"
                     sendIcon.source = "/images/ok"
                 }
 

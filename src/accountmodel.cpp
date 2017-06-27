@@ -232,18 +232,12 @@ namespace Etherwall {
         endResetModel();
     }
 
-    void AccountModel::trezorImport()
+    void AccountModel::trezorImport(quint32 offset, quint8 count)
     {
-        const QSettings settings;
-        bool ok = false;
-        int addresses = settings.value("trezor/addresses", 5).toInt(&ok);
-        if ( !ok ) {
-            qDebug() << "Invalid address count\n";
-            addresses = 5;
-        }
         const QString hdPathBase = getHDPathBase();
+        quint32 total = offset + count;
 
-        for ( int i = 0; i < addresses; i++ ) {
+        for ( quint32 i = offset; i < total; i++ ) {
             const QString fullPath = hdPathBase + "/" + QString::number(i);
             const Trezor::HDPath hdPath(fullPath);
             fTrezor.getAddress(hdPath);

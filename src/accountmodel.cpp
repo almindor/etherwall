@@ -143,6 +143,8 @@ namespace Etherwall {
             }
         }
         endResetModel();
+
+        emit accountsRemoved();
     }
 
     void AccountModel::removeAccount(const QString& address) {

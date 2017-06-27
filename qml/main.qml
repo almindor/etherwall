@@ -248,6 +248,7 @@ ApplicationWindow {
             onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
             onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
             onPromptForTrezorImport: trezorImportDialog.open(qsTr("Detected TREZOR device with unimported accounts.") + '<br><a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
+            onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
         }
 
         Connections {

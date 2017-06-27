@@ -98,6 +98,7 @@ namespace Etherwall {
         void busyChanged(bool busy) const;
         void defaultIndexChanged(int index) const;
         void promptForTrezorImport() const;
+        void accountsRemoved() const;
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;

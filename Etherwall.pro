@@ -99,5 +99,6 @@ HEADERS += \
     src/trezor/hdpath.h \
     src/ethereum/tx.h \
     src/platform/devicemanager.h \
-    src/remoteipc.h
+    src/remoteipc.h \
+    src/ethereum/keccak.h
 

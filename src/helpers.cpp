@@ -1,5 +1,6 @@
 #include "helpers.h"
 #include "etherlog.h"
+#include "ethereum/keccak.h"
 #include <QJsonParseError>
 #include <QCryptographicHash>
 #include <QBitArray>
@@ -189,10 +190,6 @@ namespace Etherwall {
     }
 
     const QString Helpers::vitalizeAddress(const QString& origAddress) {
-        // TODO: revisit
-        return origAddress.toLower(); // https://github.com/ethereum/EIPs/issues/55 is a mess right now, the hash is not specified and implementations vary
-
-        /*
         QString address = origAddress.toLower();
         if ( address.indexOf("0x") == 0 ) {
             address = address.remove(0, 2);
@@ -203,7 +200,10 @@ namespace Etherwall {
         }
 
         const QByteArray byteAddress = address.toUtf8();
-        const QByteArray hashed = QCryptographicHash::hash(byteAddress, QCryptographicHash::Sha3_256);
+        u8* inData = (u8*) byteAddress.data();
+        u8 outData[32];
+        FIPS202_KECCAK_256(inData, byteAddress.size(), outData);
+        const QByteArray hashed = QByteArray((char*)outData, 32);
         const QString hashStr = QString(hashed.toHex());
 
         QString result = "";
@@ -226,7 +226,6 @@ namespace Etherwall {
         }
 
         return "0x" + result;
-        */
     }
 
     const QString Helpers::networkPostfix(int network)
@@ -503,11 +502,7 @@ namespace Etherwall {
     }
 
     bool QmlHelpers::checkAddress(const QString& origAddress) const {
-        return true;
-
-        // TODO: revisit (see vitalizeAddress)
-
-        // return origAddress == Helpers::vitalizeAddress(origAddress);
+        return origAddress == Helpers::vitalizeAddress(origAddress);
     }
 
     const QString QmlHelpers::localURLToString(const QUrl& url) const {

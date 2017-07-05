@@ -26,7 +26,7 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 `LcTfGmqpXCiG7UikBDTa4ZiJMS5cRxSXHm`
 
 #### Ether
-`0xc64b50db57c0362e27a32b65bd29363f29fdfa59`
+`0xC64B50dB57c0362e27A32b65Bd29363f29FDFa59`
 
 ## Development
 

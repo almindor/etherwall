@@ -177,14 +177,14 @@ Tab {
             TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
-                width: 4.75 * dpi
+                width: parent.width * 0.6
             }
 
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
-                width: 2.5 * dpi
+                width: parent.width * 0.31
             }
 
             // TODO: fix selection for active row first

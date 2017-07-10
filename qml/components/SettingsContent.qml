@@ -186,6 +186,21 @@ TabView {
                     }
                 }
             }
+        }
+    }
+
+    Tab {
+        title: qsTr("Advanced")
+
+        Column {
+            anchors.margins: 0.2 * dpi
+            anchors.fill: parent
+            spacing: 0.1 * dpi
+
+            Label {
+                visible: ipc.thinClient
+                text: qsTr("Advanced settings only available in full node mode")
+            }
 
             Row {
                 enabled: !thinClient
@@ -208,18 +223,6 @@ TabView {
                     }
                 }
             }
-        }
-    }
-
-    Tab {
-        title: qsTr("Advanced")
-        enabled: !ipc.thinClient
-
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
-
 
             Row {
                 enabled: !thinClient

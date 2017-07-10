@@ -67,12 +67,12 @@ Item {
             TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
-                width: 2.25 * dpi
+                width: 0.33 * parent.width
             }
             TableViewColumn {
                 role: "address"
                 title: qsTr("Address")
-                width: 4 * dpi
+                width: 0.65 * parent.width
             }
 
             model: contractModel

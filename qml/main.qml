@@ -33,8 +33,8 @@ ApplicationWindow {
     minimumWidth: 8 * dpi
     minimumHeight: 6 * dpi
 
-    width: 8 * dpi
-    height: 6 * dpi
+    width: 10 * dpi
+    height: 7 * dpi
 
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)

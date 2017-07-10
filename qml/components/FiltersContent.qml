@@ -32,17 +32,17 @@ Item {
             TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
-                width: 2.25 * dpi
+                width: 0.3 * parent.width
             }
             TableViewColumn {
                 role: "contract"
                 title: qsTr("Contract")
-                width: 4 * dpi
+                width: 0.5 * parent.width
             }
             TableViewColumn {
                 role: "active"
                 title: qsTr("Active")
-                width: 1 * dpi
+                width: 0.18 * parent.width
             }
             model: filterModel
 

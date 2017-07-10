@@ -23,17 +23,17 @@ Item {
             TableViewColumn {
                 role: "name"
                 title: qsTr("Event")
-                width: 2.25 * dpi
+                width: 0.4 * parent.width
             }
             TableViewColumn {
                 role: "contract"
                 title: qsTr("Contract")
-                width: 2.25 * dpi
+                width: 0.4 * parent.width
             }
             TableViewColumn {
                 role: "blocknumber"
                 title: qsTr("Block Number")
-                width: 2.25 * dpi
+                width: 0.18 * parent.width
             }
             model: eventModel
 

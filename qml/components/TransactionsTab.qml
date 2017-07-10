@@ -59,28 +59,28 @@ Tab {
                 horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
-                width: 0.75 * dpi
+                width: parent.width * 0.1
             }
             TableViewColumn {
                 role: "senderalias"
                 title: qsTr("Sender")
-                width: 2.25 * dpi
+                width: parent.width * 0.28
             }
             TableViewColumn {
                 role: "receiveralias"
                 title: qsTr("Receiver")
-                width: 2.25 * dpi
+                width: parent.width * 0.28
             }
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "value"
                 title: qsTr("Value (Ether)")
-                width: 1.4 * dpi
+                width:  parent.width * 0.2
             }
             TableViewColumn {
                 role: "depth"
                 title: qsTr("Depth")
-                width: 0.75 * dpi
+                width:  parent.width * 0.1
             }
             model: transactionModel
 

@@ -236,9 +236,11 @@ Item {
 
             TextArea {
                 id: warningField
+                textFormat: Text.RichText
                 readOnly: true
                 height: 0.5 * dpi
                 width: mainColumn.width - 1 * dpi
+                onLinkActivated: Qt.openUrlExternally(link)
             }
         }
 
@@ -313,7 +315,7 @@ Item {
                 }
 
                 if ( result.to.length && !helpers.checkAddress(result.to) ) {
-                    result.warning = qsTr("Address checksum mismatch. Use only properly checksumed addresses to prevent wrong sends.")
+                    result.error = qsTr('Address checksum mismatch. <a href="https://www.etherwall.com/faq/#checksum">Click here for more info.</a>')
                 }
 
                 result.txtVal = valueField.text.trim() || ""
@@ -347,7 +349,7 @@ Item {
                     return
                 }
 
-                warningField.text = currencyModel.helperName + " total: " + currencyModel.recalculateToHelper(total) + "\n" +
+                warningField.text = currencyModel.helperName + " total: " + currencyModel.recalculateToHelper(total) + "<br>" +
                         currencyModel.helperName + " gas cost: " + currencyModel.recalculateToHelper(gasTotal)
             }
 

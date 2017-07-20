@@ -71,10 +71,11 @@ qmake -config release && make
 
 #### TODO
 
-- 2.0 add "remote IPC" node support (think light client)
+- 2.1 improve UX
 
 #### DONE
 
+- 2.0 add "remote IPC" node support
 - 1.6 add TREZOR support
 - 1.4 add contract deployment
 - 1.3 added contract support [invoking and watches]

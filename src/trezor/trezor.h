@@ -97,9 +97,9 @@ namespace Trezor {
 
         bool getBusy() const;
         void bail(const QString& err);
-        const Wire::Message serializeMessage(google::protobuf::Message& msg, TrezorProtobuf::MessageType, const QVariant& index);
+        const Wire::Message serializeMessage(google::protobuf::Message& msg, MessageType, const QVariant& index);
         bool parseMessage(const Wire::Message& msg_in, google::protobuf::Message& parsed) const;
-        void sendMessage(google::protobuf::Message& msg, TrezorProtobuf::MessageType type, QVariant index = QVariant());
+        void sendMessage(google::protobuf::Message& msg, MessageType type, QVariant index = QVariant());
         void sendNext();
         void handleResponse(const Wire::Message& msg_in);
         void handleFailure(const Wire::Message& msg_in);

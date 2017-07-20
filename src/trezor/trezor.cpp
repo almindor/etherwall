@@ -62,8 +62,8 @@ namespace Trezor {
             return bail("Error opening TREZOR device: " + QString(err.what()));
         }
 
-        TrezorProtobuf::Initialize request;
-        sendMessage(request, TrezorProtobuf::MessageType_Initialize);
+        Initialize request;
+        sendMessage(request, MessageType_Initialize);
     }
 
     void TrezorDevice::onDeviceInserted()
@@ -94,7 +94,7 @@ namespace Trezor {
             return;
         }
 
-        TrezorProtobuf::EthereumGetAddress request;
+        EthereumGetAddress request;
         request.set_show_display(false);
 
         quint32 segment;
@@ -103,7 +103,7 @@ namespace Trezor {
             request.add_address_n(segment);
         }
 
-        sendMessage(request, TrezorProtobuf::MessageType_EthereumGetAddress, hdPath.toString());
+        sendMessage(request, MessageType_EthereumGetAddress, hdPath.toString());
     }
 
     const QString TrezorDevice::getDeviceID() const
@@ -113,16 +113,16 @@ namespace Trezor {
 
     void TrezorDevice::submitPin(const QString &pin)
     {
-        TrezorProtobuf::PinMatrixAck request;
+        PinMatrixAck request;
         request.set_pin(pin.toUtf8().data());
-        sendMessage(request, TrezorProtobuf::MessageType_PinMatrixAck);
+        sendMessage(request, MessageType_PinMatrixAck);
     }
 
     void TrezorDevice::submitPassphrase(const QString &pw)
     {
-        TrezorProtobuf::PassphraseAck request;
+        PassphraseAck request;
         request.set_passphrase(pw.toStdString());
-        sendMessage(request, TrezorProtobuf::MessageType_PassphraseAck);
+        sendMessage(request, MessageType_PassphraseAck);
     }
 
     void TrezorDevice::signTransaction(int chaindID, const QString& hdPath, const QString& from, const QString &to, const QString &valStr,
@@ -130,7 +130,7 @@ namespace Trezor {
     {
         fPendingTx.init(from, to, valStr, nonce, gas, gasPrice, data);
 
-        TrezorProtobuf::EthereumSignTx request;
+        EthereumSignTx request;
 
         HDPath path(hdPath);
         quint32 segment;
@@ -155,7 +155,7 @@ namespace Trezor {
             request.set_data_initial_chunk(fPendingTx.dataNext(1024));
         }
 
-        sendMessage(request, TrezorProtobuf::MessageType_EthereumSignTx);
+        sendMessage(request, MessageType_EthereumSignTx);
     }
 
     void TrezorDevice::workerDone()
@@ -172,9 +172,9 @@ namespace Trezor {
 
     void TrezorDevice::cancel()
     {
-        TrezorProtobuf::Cancel request;
+        Cancel request;
         fQueue.unlock(); // ensure we don't try and wait for user response
-        sendMessage(request, TrezorProtobuf::MessageType_Cancel);
+        sendMessage(request, MessageType_Cancel);
     }
 
     void TrezorDevice::bail(const QString& err)
@@ -190,7 +190,7 @@ namespace Trezor {
         emit error(err);
     }
 
-    const Wire::Message TrezorDevice::serializeMessage(google::protobuf::Message &msg, TrezorProtobuf::MessageType type, const QVariant& index)
+    const Wire::Message TrezorDevice::serializeMessage(google::protobuf::Message &msg, MessageType type, const QVariant& index)
     {
         Wire::Message msg_wire;
         msg_wire.id = type;
@@ -209,13 +209,13 @@ namespace Trezor {
         return parsed.ParseFromArray(msg_in.data.data(), msg_in.data.size());
     }
 
-    void TrezorDevice::sendMessage(google::protobuf::Message& msg, TrezorProtobuf::MessageType type, const QVariant index)
+    void TrezorDevice::sendMessage(google::protobuf::Message& msg, MessageType type, const QVariant index)
     {
         const Wire::Message wireMsg = serializeMessage(msg, type, index);
 
-        if ( type == TrezorProtobuf::MessageType_ButtonAck ||
-             type == TrezorProtobuf::MessageType_EthereumTxAck ||
-             type == TrezorProtobuf::MessageType_Cancel ) { // these msgs need to always go right after, no matter what we have queued already
+        if ( type == MessageType_ButtonAck ||
+             type == MessageType_EthereumTxAck ||
+             type == MessageType_Cancel ) { // these msgs need to always go right after, no matter what we have queued already
             fQueue.prepend(wireMsg); // no need to check for lock here
         } else {
             fQueue.push(wireMsg);
@@ -248,13 +248,13 @@ namespace Trezor {
     void TrezorDevice::handleResponse(const Wire::Message &msg_in)
     {
         switch ( msg_in.id ) {
-            case TrezorProtobuf::MessageType_Failure: handleFailure(msg_in); return;
-            case TrezorProtobuf::MessageType_PinMatrixRequest: handleMatrixRequest(msg_in); return;
-            case TrezorProtobuf::MessageType_ButtonRequest: handleButtonRequest(msg_in); return;
-            case TrezorProtobuf::MessageType_PassphraseRequest: handlePassphrase(msg_in); return;
-            case TrezorProtobuf::MessageType_Features: handleFeatures(msg_in); return;
-            case TrezorProtobuf::MessageType_EthereumAddress: handleAddress(msg_in); return;
-            case TrezorProtobuf::MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
+            case MessageType_Failure: handleFailure(msg_in); return;
+            case MessageType_PinMatrixRequest: handleMatrixRequest(msg_in); return;
+            case MessageType_ButtonRequest: handleButtonRequest(msg_in); return;
+            case MessageType_PassphraseRequest: handlePassphrase(msg_in); return;
+            case MessageType_Features: handleFeatures(msg_in); return;
+            case MessageType_EthereumAddress: handleAddress(msg_in); return;
+            case MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
         }
 
         bail("Unknown msg response: " + QString::number(msg_in.id));
@@ -262,12 +262,12 @@ namespace Trezor {
 
     void TrezorDevice::handleFailure(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_Failure ) {
+        if ( msg_in.id != MessageType_Failure ) {
             bail("Unexpected failure response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::Failure response;
+        Failure response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing failure response");
             return;
@@ -280,65 +280,65 @@ namespace Trezor {
 
     void TrezorDevice::handleMatrixRequest(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_PinMatrixRequest ) {
+        if ( msg_in.id != MessageType_PinMatrixRequest ) {
             bail("Unexpected pin matrix response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::PinMatrixRequest response;
+        PinMatrixRequest response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing matrix response");
             return;
         }
 
         emit matrixRequest(response.type());
-        fQueue.lock(TrezorProtobuf::MessageType_PinMatrixAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
+        fQueue.lock(MessageType_PinMatrixAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
     }
 
     void TrezorDevice::handleButtonRequest(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_ButtonRequest ) {
+        if ( msg_in.id != MessageType_ButtonRequest ) {
             bail("Unexpected button response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::ButtonRequest response;
+        ButtonRequest response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing button response");
             return;
         }
         emit buttonRequest(response.code());
         // we have to ack right away, worker will wait for actual reply
-        TrezorProtobuf::ButtonAck request;
-        sendMessage(request, TrezorProtobuf::MessageType_ButtonAck);
+        ButtonAck request;
+        sendMessage(request, MessageType_ButtonAck);
     }
 
     void TrezorDevice::handlePassphrase(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_PassphraseRequest ) {
+        if ( msg_in.id != MessageType_PassphraseRequest ) {
             bail("Unexpected pin matrix response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::PassphraseRequest response;
+        PassphraseRequest response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing passphrase response");
             return;
         }
 
         emit passphraseRequest();
-        fQueue.lock(TrezorProtobuf::MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
+        fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
 
     }
 
     void TrezorDevice::handleFeatures(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_Features ) {
+        if ( msg_in.id != MessageType_Features ) {
             bail("Unexpected init response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::Features response;
+        Features response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing features response");
             return;
@@ -351,7 +351,7 @@ namespace Trezor {
 
     void TrezorDevice::handleAddress(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_EthereumAddress ) {
+        if ( msg_in.id != MessageType_EthereumAddress ) {
             bail("Unexpected get address response: " + QString::number(msg_in.id));
             return;
         }
@@ -361,7 +361,7 @@ namespace Trezor {
             return;
         }
 
-        TrezorProtobuf::EthereumAddress response;
+        EthereumAddress response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing address response");
             return;
@@ -374,12 +374,12 @@ namespace Trezor {
 
     void TrezorDevice::handleTxRequest(const Wire::Message &msg_in)
     {
-        if ( msg_in.id != TrezorProtobuf::MessageType_EthereumTxRequest ) {
+        if ( msg_in.id != MessageType_EthereumTxRequest ) {
             bail("Unexpected transaction response: " + QString::number(msg_in.id));
             return;
         }
 
-        TrezorProtobuf::EthereumTxRequest response;
+        EthereumTxRequest response;
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing txsign response");
             return;
@@ -391,9 +391,9 @@ namespace Trezor {
                 return;
             }
 
-            TrezorProtobuf::EthereumTxAck request;
+            EthereumTxAck request;
             request.set_data_chunk(fPendingTx.dataNext(response.data_length()));
-            sendMessage(request, TrezorProtobuf::MessageType_EthereumTxAck, fWorker.getIndex());
+            sendMessage(request, MessageType_EthereumTxAck, fWorker.getIndex());
             return;
         }
 

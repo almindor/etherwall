@@ -4,16 +4,6 @@ Ethereum QT5 Wallet
 
 Etherwall is a free software wallet/front-end for Ethereum.
 
-## Usage
-
-Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main website for windows and mac os x.
-
-Default geth path on linux points to `/usr/bin/geth`
-
-## License
-
-Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
-
 ## Donations
 
 #### Flattr
@@ -28,6 +18,17 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 #### Ether
 `0xC64B50dB57c0362e27A32b65Bd29363f29FDFa59`
 
+
+## Usage
+
+Latest geth is required to be running for Etherwall to work. Geth is provided if downloaded from the main website for windows and mac os x.
+
+Default geth path on linux points to `/usr/bin/geth`
+
+## License
+
+Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
+
 ## Development
 
 ### General Requirements
@@ -40,13 +41,31 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 [hidapi](https://github.com/signal11/hidapi)
 
-### Building
+#### Linux Requirements
 
-Udev is required in Linux and mingw needs to be used on Windows to compile the required libraries.
-The project is set to use static (.a) files on Windows and Mac OS X with absolute paths.
+Udev
+
+#### Windows Requirements
+
+Mingw
+The project is set to use static (.a) files on Windows with absolute paths.
 You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
 
+*NOTE:* there is no protobuf generation script on windows atm. You need to run `protoc --cpp_out` into `src/trezor/proto` for all the trezor protocol files manually.
+
+#### Mac OS X Requirements
+
+The project is set to use static (.a) files on Mac OS X with absolute paths.
+You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
+
+### Building
+
+```
+git submodule init
+git submodule update
+./generate_protobuf.sh
 qmake -config release && make
+```
 
 ### Roadmap
 

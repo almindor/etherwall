@@ -133,10 +133,8 @@ Item {
                 id: gasPriceField
                 width: mainColumn.width - gasField.width - estimateButton.width - 2 * dpi - gasButton.width
                 text: transactionModel.gasPrice
-                validator: DoubleValidator {
-                    bottom: 0.000000000000000001 // should be 1 wei
-                    decimals: 18
-                    locale: "en_US"
+                validator: RegExpValidator {
+                    regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
 
                 onEditingFinished: {
@@ -176,10 +174,8 @@ Item {
             TextField {
                 id: valueField
                 width: mainColumn.width - 1 * dpi - sendAllButton.width
-                validator: DoubleValidator {
-                    bottom: 0.000000000000000001 // should be 1 wei
-                    decimals: 18
-                    locale: "en_US"
+                validator: RegExpValidator {
+                    regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
 
                 maximumLength: 50
@@ -214,10 +210,8 @@ Item {
                 readOnly: true
                 maximumLength: 50
                 width: mainColumn.width - 1 * dpi
-                validator: DoubleValidator {
-                    bottom: 0.000000000000000001 // should be 1 wei
-                    decimals: 18
-                    locale: "en_US"
+                validator: RegExpValidator {
+                    regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
 
                 text: transactionModel.estimateTotal(valueField.text, gasField.text, gasPriceField.text)

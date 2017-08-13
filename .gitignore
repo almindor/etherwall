@@ -36,3 +36,4 @@ Makefile*
 *.qmlproject.user.*
 
 data.etherwall.com.crt
+src/trezor/proto

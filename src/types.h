@@ -220,12 +220,15 @@ namespace Etherwall {
         void setBlockNumber(quint64 num);
         const QString getHash() const;
         void setHash(const QString& hash);
+        const QString getSender() const;
+        const QString getReceiver() const;
+        void setSenderAlias(const QString& alias);
+        void setReceiverAlias(const QString& alias);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString(),
                   const QString& gasPrice = QString(), const QString& data = QString());
         void init(const QJsonObject source);
         const QJsonObject toJson(bool decimal = false) const;
         const QString toJsonString(bool decimal = false) const;
-        void lookupAccountAliases();
     private:
         QString fHash;
         quint64 fNonce;

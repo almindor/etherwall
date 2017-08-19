@@ -106,7 +106,7 @@ namespace Etherwall {
     }
 
 
-// ***************************** TransactionInfo ***************************** //
+// ***************************** AccountInfo ***************************** //
 
     AccountInfo::AccountInfo(const QString &hash, const QString &alias, const QString &deviceID,
                              const QString &balance, quint64 transCount, const QString& hdPath, int network) :
@@ -164,9 +164,6 @@ namespace Etherwall {
     }
 
     void AccountInfo::setAlias(const QString& name) {
-        QSettings settings;
-
-        settings.setValue("alias/" + fHash.toLower(), name);
         fAlias = name;
     }
 
@@ -260,6 +257,26 @@ namespace Etherwall {
         fHash = hash;
     }
 
+    const QString TransactionInfo::getSender() const
+    {
+        return fSender;
+    }
+
+    const QString TransactionInfo::getReceiver() const
+    {
+        return fReceiver;
+    }
+
+    void TransactionInfo::setSenderAlias(const QString &alias)
+    {
+        fSenderAlias = alias;
+    }
+
+    void TransactionInfo::setReceiverAlias(const QString &alias)
+    {
+        fReceiverAlias = alias;
+    }
+
     void TransactionInfo::init(const QString& from, const QString& to, const QString& value, const QString& gas, const QString& gasPrice, const QString& data) {
         fSender = Helpers::vitalizeAddress(from);
         fReceiver = Helpers::vitalizeAddress(to);
@@ -274,8 +291,6 @@ namespace Etherwall {
         if ( !data.isEmpty() ) {
             fInput = data;
         }
-
-        lookupAccountAliases();
     }
 
     void TransactionInfo::init(const QJsonObject source) {
@@ -290,22 +305,6 @@ namespace Etherwall {
         fGas = Helpers::toDecStr(source.value("gas"));
         fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
         fInput = source.value("input").toString("invalid");
-
-        lookupAccountAliases();
-    }
-
-    void TransactionInfo::lookupAccountAliases() {
-        const QSettings settings;
-        const QString sender = fSender.toLower();
-        const QString receiver = fReceiver.toLower();
-
-        if ( settings.contains("alias/" + sender) ) {
-            fSenderAlias = settings.value("alias/" + sender, QString()).toString();
-        }
-
-        if ( settings.contains("alias/" + receiver) ) {
-            fReceiverAlias = settings.value("alias/" + receiver, QString()).toString();
-        }
     }
 
     const QJsonObject TransactionInfo::toJson(bool decimal) const {

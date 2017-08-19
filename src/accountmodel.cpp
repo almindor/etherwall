@@ -34,7 +34,7 @@ namespace Etherwall {
 
     AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
         QAbstractListModel(0),
-        fIpc(ipc), fAccountList(), fTrezor(trezor),
+        fIpc(ipc), fAccountList(), fAliasMap(), fTrezor(trezor),
         fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
@@ -122,12 +122,14 @@ namespace Etherwall {
     void AccountModel::renameAccount(const QString& name, int index) {
         if ( index >= 0 && index < fAccountList.size() ) {
             fAccountList[index].setAlias(name);
+            setAccountAlias(fAccountList.at(index).hash(), name);
 
             QVector<int> roles(2);
             roles[0] = AliasRole;
             roles[1] = SummaryRole;
             const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
 
+            storeAccountList();
             emit dataChanged(modelIndex, modelIndex, roles);
         } else {
             EtherLog::logMsg("Invalid account selection for rename", LS_Error);
@@ -600,6 +602,7 @@ namespace Etherwall {
             const QString deviceID = json.value("deviceID").toString();
             const QString hdPath = json.value("HDPath").toString();
             fAccountList.append(AccountInfo(hash, alias, deviceID, EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+            setAccountAlias(hash, alias);
         }
     }
 
@@ -614,6 +617,11 @@ namespace Etherwall {
         return "m/44'/60'/0'/0";
     }
 
+    void AccountModel::setAccountAlias(const QString &hash, const QString &alias)
+    {
+        fAliasMap[hash.toLower()] = alias;
+    }
+
     const QJsonArray AccountModel::getAccountsJsonArray() const {
         QJsonArray result;
 
@@ -623,6 +631,11 @@ namespace Etherwall {
         }
 
         return result;
+    }
+
+    const QString AccountModel::getAccountAlias(const QString &hash) const
+    {
+        return fAliasMap.value(hash.toLower(), QString());
     }
 
 }

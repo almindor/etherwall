@@ -26,6 +26,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonValue>
+#include <QMap>
 #include <QUrl>
 #include "types.h"
 #include "currencymodel.h"
@@ -56,6 +57,7 @@ namespace Etherwall {
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
         const QJsonArray getAccountsJsonArray() const;
+        const QString getAccountAlias(const QString& hash) const;
         const QString getTotal() const;
         void refreshAccounts();
         const QString getSelectedAccountAlias() const;
@@ -102,6 +104,7 @@ namespace Etherwall {
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;
+        QMap<QString, QString> fAliasMap;
         Trezor::TrezorDevice& fTrezor;
         int fSelectedAccountRow;
         QString fSelectedAccount;
@@ -116,6 +119,7 @@ namespace Etherwall {
         void storeAccountList() const;
         void loadAccountList();
         const QString getHDPathBase() const;
+        void setAccountAlias(const QString& hash, const QString& alias);
     };
 
 }

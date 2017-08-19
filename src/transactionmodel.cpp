@@ -332,6 +332,7 @@ namespace Etherwall {
         settings.endGroup();
 
         qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
+        lookupAccountsAliases();
     }
 
     const QString TransactionModel::estimateTotal(const QString& value, const QString& gas, const QString& gasPrice) const {
@@ -404,7 +405,11 @@ namespace Etherwall {
 
     void TransactionModel::lookupAccountsAliases() {
         for ( int n = 0; n < fTransactionList.size(); n++ ) {
-            fTransactionList[n].lookupAccountAliases();
+            const QString sender = fTransactionList[n].getSender();
+            const QString receiver = fTransactionList[n].getReceiver();
+
+            fTransactionList[n].setSenderAlias(fAccountModel.getAccountAlias(sender));
+            fTransactionList[n].setReceiverAlias(fAccountModel.getAccountAlias(receiver));
         }
 
         QVector<int> roles(2);

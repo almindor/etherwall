@@ -430,6 +430,17 @@ namespace Etherwall {
                 fAccountList.append(AccountInfo(addr, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
             }
         }
+        // drop non-hw accounts removed from geth somehow
+        for ( int i = fAccountList.size() - 1; i >= 0; i-- ) {
+            const AccountInfo& info = fAccountList.at(i);
+            if ( !info.HDPath().isEmpty() ) {
+                continue; // keep hw accounts
+            }
+
+            if ( !list.contains(info.hash(), Qt::CaseInsensitive) ) {
+                fAccountList.removeAt(i);
+            }
+        }
         endResetModel();
 
         storeAccountList();

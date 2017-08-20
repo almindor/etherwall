@@ -57,6 +57,7 @@ You need to update the paths in the `Etherwall.pro` file to point to your compil
 
 The project is set to use static (.a) files on Mac OS X with absolute paths.
 You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
+You need protobuf compiled with `CXXFLAGS=-mmacosx-version-min=10.9` to support older Mac versions (for releases)
 
 ### Building
 

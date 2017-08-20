@@ -198,6 +198,7 @@ namespace Etherwall {
 
     bool AccountModel::exportAccount(const QUrl& dir, int index) {
         if ( index < 0 || index >= fAccountList.length() ) {
+            EtherLog::logMsg("No account to export", LS_Error);
             return false;
         }
 
@@ -214,6 +215,7 @@ namespace Etherwall {
         QDir directory(dir.toLocalFile());
         QFile file(directory.absoluteFilePath(fileName));
         if ( !file.open(QFile::WriteOnly) ) {
+            EtherLog::logMsg("Account export file error: " + file.errorString(), LS_Error);
             return false;
         }
         QTextStream stream( &file );
@@ -315,6 +317,7 @@ namespace Etherwall {
             }
             file.close();
         } catch ( QString err ) {
+            EtherLog::logMsg("Wallet export error: " + err, LS_Error);
             emit walletErrorEvent(err);
             return;
         }
@@ -338,6 +341,7 @@ namespace Etherwall {
             Helpers::restoreBackup(backupData, keystore);
             file.close();
         } catch ( QString err ) {
+            EtherLog::logMsg("Wallet import error: " + err, LS_Error);
             emit walletErrorEvent(err);
             return;
         }

@@ -368,7 +368,7 @@ ApplicationWindow {
 
             visible: !ipc.syncing
             horizontalAlignment: Text.AlignHCenter
-            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : qsTr("Ready"))
+            text: ipc.closing ? qsTr("Closing app") : (ipc.starting ? qsTr("Starting Geth...") : (ipc.busy ? qsTr("Processing") : qsTr("Ready")))
         }
 
         Text {

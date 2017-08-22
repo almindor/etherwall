@@ -44,7 +44,7 @@ Window {
     Column {
         anchors.margins: 0.1 * dpi
         anchors.fill: parent
-        spacing: 0.25 * dpi
+        spacing: 0.1 * dpi
 
         Text {
             anchors.left: parent.left
@@ -53,6 +53,23 @@ Window {
             font.pixelSize: 0.16 * dpi
             wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             text: qsTr("Please review settings before first run.")
+        }
+
+        Text {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.1 * dpi
+            font.pixelSize: 0.16 * dpi
+            font.bold: true
+            textFormat: Text.RichText
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            onLinkActivated: Qt.openUrlExternally(link)
+            text: qsTr("Accounts are stored in the geth datadir folder! <a href=\"https://www.etherwall.com/faq/#accounts\">Click here for more info</a>.")
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+            }
         }
 
         Item {

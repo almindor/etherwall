@@ -1,7 +1,7 @@
 #!/bin/bash
 CURDIR=$(pwd)
 DESTDIR="$CURDIR/src/trezor/proto"
-SRCDIR="$CURDIR/src/trezor/trezor-common/protob"
+SRCDIR=${SRCDIR:-"$CURDIR/src/trezor/trezor-common/protob"}
 
 mkdir -p "$DESTDIR"
 cd "$SRCDIR"

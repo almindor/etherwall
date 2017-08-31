@@ -127,8 +127,11 @@ namespace Etherwall {
 
         const QVariantList getArgModel() const;
         const QString callData(const QVariantList& params) const;
+        const QVariantList parseResponse(const QString& data) const;
+        bool isConstant() const;
     private:
         QVariantList fArgModel;
+        bool fConstant;
     };
 
     typedef QList<ContractFunction> ContractFunctionList;
@@ -146,35 +149,47 @@ namespace Etherwall {
 
     class ContractInfo;
 
-    class EventInfo
+    class ResultInfo
+    {
+    public:
+        ResultInfo(const QString data);
+        void fillContract(const ContractInfo& contract);
+        void fillParams(const ContractInfo& contract, const ContractCallable& source);
+
+        const QString contract() const;
+        const ContractArgs getArguments() const;
+        const QVariantList getParams() const;
+        const QString paramToStr(const QVariant& value) const;
+    protected:
+        QString fName;
+        QString fContract;
+        QString fData;
+        ContractArgs fArguments;
+        QVariantList fParams;
+
+        const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
+    };
+
+    class EventInfo : public ResultInfo
     {
     public:
         EventInfo(const QJsonObject& source);
 
-        void fillContract(const ContractInfo& contract);
-        void fillParams(const ContractInfo& contract, const ContractEvent& event);
         const QString address() const;
-        const QString contract() const;
         const QString signature() const;
         const QString transactionHash() const;
         const QString getMethodID() const;
         const QVariant value(const int role) const;
-        const ContractArgs getArguments() const;
-        const QVariantList getParams() const;
-        const QString paramToStr(const QVariant& value) const;
         quint64 blockNumber() const;
+    protected:
+        const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
     private:
-        QString fName;
-        QString fContract;
-        QString fData;
         QString fAddress;
         quint64 fBlockNumber;
         QString fTransactionHash;
         QString fBlockHash;
         QString fMethodID;
         QStringList fTopics;
-        ContractArgs fArguments;
-        QVariantList fParams;
     };
 
     typedef QList<EventInfo> EventList;
@@ -200,7 +215,8 @@ namespace Etherwall {
         const QString abi() const;
         const QJsonArray abiJson() const;
         const QStringList functionList() const;
-        const ContractFunction function(const QString& name) const;
+        const ContractFunction function(const QString& name, int& index) const;
+        const ContractFunction function(int index) const;
         void processEvent(EventInfo& info) const;
     private:
         void parse();

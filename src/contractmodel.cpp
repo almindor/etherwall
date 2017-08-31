@@ -209,7 +209,8 @@ namespace Etherwall {
         }
 
         try {
-            return fList.at(index).function(functionName).getMethodID();
+            int funcIndex = -1;
+            return fList.at(index).function(functionName, funcIndex).getMethodID();
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
             return QString();
@@ -222,7 +223,8 @@ namespace Etherwall {
         }
 
         try {
-            return fList.at(index).function(functionName).getArgModel();
+            int funcIndex = -1;
+            return fList.at(index).function(functionName, funcIndex).getArgModel();
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
             emit callError(err);
@@ -230,10 +232,33 @@ namespace Etherwall {
         }
     }
 
+    const QVariantList ContractModel::parseResponse(int callIndex, const QString &data) const
+    {
+        int contractIndex = callIndex / 100000;
+        int functionIndex = callIndex - (contractIndex * 100000);
+
+        if ( contractIndex < 0 || contractIndex >= fList.size() ) {
+            emit callError("Invalid contract index in callIndex");
+            return QVariantList();
+        }
+
+        if ( functionIndex < 0 || functionIndex >= fList.at(contractIndex).functionList().size() ) {
+            emit callError("Invalid function index in callIndex");
+            return QVariantList();
+        }
+
+        const ContractFunction func = fList.at(contractIndex).function(functionIndex);
+
+        return func.parseResponse(data);
+    }
+
     void ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) {
         try {
-            const QString encoded = "0x" + fList.at(index).function(functionName).callData(params);
-            emit callEncoded(encoded);
+            int funcIndex = -1;
+            const ContractFunction func = fList.at(index).function(functionName, funcIndex);
+            const int callIndex = index * 100000 + funcIndex; // we need this to "parse the result" properly so we can match it to the calling contract/function when it comes back
+            const QString encoded = "0x" + func.callData(params);
+            emit callEncoded(encoded, func.isConstant(), callIndex);
         } catch ( QString err ) {
             emit callError(err);
         }

@@ -29,8 +29,8 @@ Window {
 
     modality: Qt.NonModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
+    minimumWidth: 7 * dpi
+    minimumHeight: 5.2 * dpi
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
@@ -41,15 +41,17 @@ Window {
     }
 
     function open( index ) {
+        rsTab.active = true
+
         stcTab.active = true
         stcTab.children[0].toAddress = contractModel.getAddress(index)
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
-        stcTab.enabled = false
 
         cccTab.active = true
-        cccTab.children[0].contractIndex = index
+        cccTab.children[0].open(index) // ensure first function is selected ok
+
         tabs.currentIndex = 0
         show()
     }
@@ -64,6 +66,14 @@ Window {
                 if ( code === 8 && contractCalls.visible ) {
                     ccBadge.show(ccBadge.button_msg(code))
                 }
+            }
+        }
+
+        Connections {
+            target: ipc
+
+            onCallDone: {
+                tabs.currentIndex = 2
             }
         }
     }
@@ -86,7 +96,11 @@ Window {
                 }
 
                 onContractReady: {
+                    rsTab.children[0].callIndex = callIndex
+
                     stcTab.children[0].contractData = encoded
+                    stcTab.children[0].functionIsConstant = constant
+                    stcTab.children[0].callIndex = callIndex
                     stcTab.enabled = true
                     if ( next ) {
                         tabs.currentIndex = 1
@@ -99,9 +113,15 @@ Window {
             id: stcTab
             title: qsTr("Transaction")
             SendTransactionContent {
-                onDone: {
-                    contractCalls.close()
-                }
+                onDone: contractCalls.close()
+            }
+        }
+
+        Tab {
+            id: rsTab
+            title: qsTr("Results")
+            FunctionResultsContent {
+                onDone: contractCalls.close()
             }
         }
     }

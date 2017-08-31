@@ -6,9 +6,16 @@ Item {
     anchors.fill: parent
 
     signal done
-    signal contractReady(string encoded, bool next)
+    signal contractReady(string encoded, bool constant, int callIndex, bool next)
     signal contractError
+    property bool functionIsConstant : false
+    property int functionCallIndex : -1
     property int contractIndex : -1
+
+    function open(conIndex) {
+        contractIndex = conIndex
+        functionField.refresh()
+    }
 
     BusyIndicator {
         anchors.centerIn: parent
@@ -47,11 +54,17 @@ Item {
                 width: mainColumn.width - 1 * dpi
                 model: contractModel.getFunctions(contractIndex)
 
-                onCurrentTextChanged: {
+                function refresh() {
+                    if ( functionField.currentIndex < 0 || contractIndex < 0 || functionField.currentText.length < 1) {
+                        return;
+                    }
+
                     argsView.params = []
-                    argsView.model = contractModel.getArguments(contractIndex, currentText)
+                    argsView.model = contractModel.getArguments(contractIndex, functionField.currentText)
                     contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
                 }
+
+                onCurrentIndexChanged: refresh()
             }
         }
 
@@ -105,8 +118,8 @@ Item {
                         ListElement { text: "false" }
                     }
 
-                    onCurrentTextChanged: {
-                        if ( !visible ) return;
+                    onCurrentIndexChanged: {
+                        if ( !visible || currentIndex < 0 || contractIndex < 0 ) return;
                         argsView.params[index] = currentText
                         contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
                     }
@@ -119,7 +132,7 @@ Item {
                     placeholderText: modelData.placeholder
 
                     onTextChanged: {
-                        if ( !visible ) return;
+                        if ( !visible || contractIndex < 0 ) return;
                         argsView.params[index] = text
                         contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
                     }
@@ -138,6 +151,8 @@ Item {
                 errorText.visible = true
                 encodedText.visible = false
                 encodedText.text = ''
+                functionIsConstant = false
+                functionCallIndex = -1
                 contractError()
             }
 
@@ -146,7 +161,10 @@ Item {
                 errorText.text = ''
                 errorText.visible = false
                 encodedText.visible = true
-                contractReady(encoded, false)
+                functionIsConstant = isConstant
+                functionCallIndex = callIndex
+
+                contractReady(encoded, isConstant, callIndex, false)
             }
         }
 
@@ -197,7 +215,7 @@ Item {
                     return
                 }
 
-                contractReady(encodedText.text, true)
+                contractReady(encodedText.text, functionIsConstant, functionCallIndex, true)
             }
         }
 

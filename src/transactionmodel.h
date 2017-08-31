@@ -58,6 +58,10 @@ namespace Etherwall {
                              const QString& value, quint64 nonce, const QString& gas = QString(),
                              const QString& gasPrice = QString(), const QString& data = QString());
 
+        Q_INVOKABLE void call(const QString& from, const QString& to,
+                             const QString& value, const QString& gas,
+                             const QString& gasPrice, const QString& data, int index);
+
         Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void loadHistory();
         Q_INVOKABLE const QString getHash(int index) const;

@@ -128,6 +128,7 @@ namespace Etherwall {
         GetPeerCount,
         SendTransaction,
         SignTransaction,
+        Call,
         SendRawTransaction,
         GetGasPrice,
         EstimateGas,

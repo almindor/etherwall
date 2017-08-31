@@ -556,6 +556,7 @@ namespace Etherwall {
 
     ContractFunction::ContractFunction(const QJsonObject &source) : ContractCallable(source) {
         fArgModel = QVariantList();
+        fConstant = source.value("constant").toBool(false);
 
         foreach ( const ContractArg carg, fArguments ) {
             fArgModel.append(carg.toVariantMap());
@@ -590,12 +591,46 @@ namespace Etherwall {
         return encStr.join("") + dynaStr.join("");
     }
 
+    const QVariantList ContractFunction::parseResponse(const QString &data) const
+    {
+        QString prepared = data;
+        if ( prepared.startsWith("0x") ) {
+            prepared.remove(0, 2); // remove 0x
+        }
+
+        QVariantList results;
+        int offset = 0;
+        foreach ( const ContractArg arg, fReturns ) {
+            QString raw;
+            if ( arg.dynamic() ) {
+                int dynamicOffset = arg.decodeInt(prepared.mid(offset, 64), false).toUlong() * 2;
+                raw = prepared.mid(dynamicOffset); // dynamic types cut off themselves
+            } else {
+                raw = prepared.mid(offset, 64); // static are always 32bytes and don't cut off
+            }
+            const QVariant result = arg.decode(raw);
+
+            QVariantMap row;
+            row["number"] = offset / 64;
+            row["type"] = arg.type();
+            row["value"] = result;
+            results.append(row);
+            offset += 64;
+        }
+
+        return results;
+    }
+
+    bool ContractFunction::isConstant() const
+    {
+        return fConstant;
+    }
+
     // ***************************** EventInfo ***************************** //
 
-    EventInfo::EventInfo(const QJsonObject& source) {
+    EventInfo::EventInfo(const QJsonObject& source) : ResultInfo(source["data"].toString()) {
         fBlockNumber = Helpers::toQUInt64(source["blockNumber"]);
         fBlockHash = source["blockHash"].toString();
-        fData = source["data"].toString();
         fAddress = Helpers::vitalizeAddress(source["address"].toString());
         fTransactionHash = source["transactionHash"].toString();
         const QVariantList topics = source["topics"].toArray().toVariantList();
@@ -612,49 +647,8 @@ namespace Etherwall {
         }
     }
 
-    void EventInfo::fillContract(const ContractInfo& contract) {
-        fContract = contract.name();
-    }
-
-    void EventInfo::fillParams(const ContractInfo& contract, const ContractEvent& event) {
-        if ( fMethodID != event.getMethodID() ) {
-            throw QString("Event methodID mismatch");
-        }
-
-        fillContract(contract);
-        fName = event.getName();
-        fArguments = event.getArguments();
-
-        QString data = QString(fData);
-        data.remove(0, 2); // remove the 0x
-        int n = 0;
-        int t = 1;
-
-        foreach ( const ContractArg arg, event.getArguments() ) {
-            QString val;
-            if ( arg.indexed() ) {
-                val = fTopics.at(t++).right(64);
-            } else {
-                val = data.mid(n, 64);
-                n += 64;
-            }
-
-            if ( arg.dynamic() ) { // value holds "pointer" to data in data
-                ulong ptr = arg.decodeInt(val, false).toUlong() * 2;
-                val = data.mid(ptr);
-                fParams.append(arg.decode(val));
-            } else { // value is direct
-                fParams.append(arg.decode(val));
-            }
-        }
-    }
-
     const QString EventInfo::address() const {
         return fAddress;
-    }
-
-    const QString EventInfo::contract() const {
-        return fContract;
     }
 
     const QString EventInfo::signature() const {
@@ -689,33 +683,20 @@ namespace Etherwall {
         return QVariant();
     }
 
-    const ContractArgs EventInfo::getArguments() const {
-        return fArguments;
-    }
-
-    const QVariantList EventInfo::getParams() const {
-        return fParams;
-    }
-
-    const QString EventInfo::paramToStr(const QVariant& value) const {
-        QString strVal;
-        if ( value.type() == QVariant::StringList ) {
-            strVal = "[" + value.toStringList().join(",") + "]";
-        } else if ( value.type() == QVariant::List ) {
-            QStringList vals;
-            foreach ( const QVariant inner, value.toList() ) {
-                vals.append(inner.toString());
-            }
-            strVal = "[" + vals.join(",") + "]";
-        } else {
-            strVal = value.toString();
-        }
-
-        return strVal;
-    }
-
     quint64 EventInfo::blockNumber() const {
         return fBlockNumber;
+    }
+
+    const QString EventInfo::getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data)
+    {
+        QString val;
+        if ( arg.indexed() ) {
+            val = fTopics.at(topicIndex++).right(64);
+        } else {
+            return ResultInfo::getValue(arg, topicIndex, index, data);
+        }
+
+        return val;
     }
 
     // ***************************** ContractInfo ***************************** //
@@ -785,14 +766,25 @@ namespace Etherwall {
         return list;
     }
 
-    const ContractFunction ContractInfo::function(const QString& name) const {
-        foreach ( const ContractFunction& func, fFunctions ) {
-            if ( func.getName() == name ) {
-                return func;
+    const ContractFunction ContractInfo::function(const QString &name, int &index) const
+    {
+        for ( int i = 0; i < fFunctions.size(); i++ ) {
+            if ( fFunctions.at(i).getName() == name ) {
+                index = i;
+                return fFunctions.at(i);
             }
         }
 
+        index = -1;
         throw QString("Function " + name + " not found");
+    }
+
+    const ContractFunction ContractInfo::function(int index) const {
+        if ( index < 0 || index >= fFunctions.size() ) {
+            throw QString("Function index out of bounds");
+        }
+
+        return fFunctions.at(index);
     }
 
     void ContractInfo::processEvent(EventInfo& info) const {
@@ -826,5 +818,83 @@ namespace Etherwall {
             }
         }
     }
+
+    // ***************************** ResultInfo ***************************** //
+
+    ResultInfo::ResultInfo(const QString data) : fData(data)
+    {
+
+    }
+
+    void ResultInfo::fillContract(const ContractInfo& contract) {
+        fContract = contract.name();
+    }
+
+    void ResultInfo::fillParams(const ContractInfo &contract, const ContractCallable &source)
+    {
+        fillContract(contract);
+        fName = source.getName();
+        fArguments = source.getArguments();
+
+        QString data = QString(fData);
+        data.remove(0, 2); // remove the 0x
+        int n = 0;
+        int t = 1;
+
+        foreach ( const ContractArg arg, source.getArguments() ) {
+            QString val = getValue(arg, t, n, data);
+
+            if ( arg.dynamic() ) { // value holds "pointer" to data in data
+                ulong ptr = arg.decodeInt(val, false).toUlong() * 2;
+                val = data.mid(ptr);
+                fParams.append(arg.decode(val));
+            } else { // value is direct
+                fParams.append(arg.decode(val));
+            }
+        }
+    }
+
+    const QString ResultInfo::contract() const
+    {
+        return fContract;
+    }
+
+    const QString ResultInfo::getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data)
+    {
+        Q_UNUSED(arg);
+        Q_UNUSED(topicIndex);
+
+        const QString val = data.mid(index, 64);
+        index += 64;
+
+        return val;
+    }
+
+
+    const ContractArgs ResultInfo::getArguments() const {
+        return fArguments;
+    }
+
+    const QVariantList ResultInfo::getParams() const {
+        return fParams;
+    }
+
+    const QString ResultInfo::paramToStr(const QVariant& value) const {
+        QString strVal;
+        if ( value.type() == QVariant::StringList ) {
+            strVal = "[" + value.toStringList().join(",") + "]";
+        } else if ( value.type() == QVariant::List ) {
+            QStringList vals;
+            foreach ( const QVariant inner, value.toList() ) {
+                vals.append(inner.toString());
+            }
+            strVal = "[" + vals.join(",") + "]";
+        } else {
+            strVal = value.toString();
+        }
+
+        return strVal;
+    }
+
 
 }

@@ -7,6 +7,8 @@ Item {
     anchors.fill: parent
     property string toAddress : ""
     property string contractData : ""
+    property bool functionIsConstant : false
+    property int callIndex : -1
     // deployment properties
     property string contractName : ""
     property string contractAbi : ""
@@ -27,8 +29,42 @@ Item {
     Component.onCompleted: prepare()
 
     Connections {
+        target: ipc
+        onError: {
+            sendButton.enabled = true
+        }
+
+        onEstimateGasDone: {
+            if ( !gasField.manual ) {
+                gasField.text = price
+            }
+        }
+
+        onSendTransactionDone: {
+            done()
+            if ( contractName.length > 0 ) {
+                contractModel.addPendingContract(contractName, contractAbi, hash)
+                badge.show(qsTr("New pending contract deployment: ") + contractName)
+            } else {
+                badge.show(qsTr("New pending transaction to: ") + toField.text)
+            }
+        }
+    }
+
+    Connections {
         target: trezor
         onPresenceChanged: sendButton.refresh()
+    }
+
+    Connections {
+        target: contractModel
+
+        onCallEncoded: {
+            var result = sendButton.refresh()
+            if ( !result.error ) {
+                ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+            }
+        }
     }
 
     BusyIndicator {
@@ -323,7 +359,7 @@ Item {
                 result.nonce = accountModel.getAccountNonce(accountIndex)
                 result.hdpath = accountModel.getAccountHDPath(accountIndex)
 
-                if ( result.hdpath && !trezor.present ) {
+                if ( !functionIsConstant && result.hdpath && !trezor.present ) {
                     result.error = qsTr("Connect TREZOR device to send from external account")
                     return result;
                 }
@@ -379,34 +415,17 @@ Item {
                 return result
             }
 
-            Connections {
-                target: ipc
-                onError: {
-                    sendButton.enabled = true
-                }
-
-                onEstimateGasDone: {
-                    if ( !gasField.manual ) {
-                        gasField.text = price
-                    }
-                }
-
-                onSendTransactionDone: {
-                    done()
-                    if ( contractName.length > 0 ) {
-                        contractModel.addPendingContract(contractName, contractAbi, hash)
-                        badge.show(qsTr("New pending contract deployment: ") + contractName)
-                    } else {
-                        badge.show(qsTr("New pending transaction to: ") + toField.text)
-                    }
-                }
-            }
-
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
                     errorDialog.msg = result.error
                     errorDialog.open()
+                    return
+                }
+
+                // if it's a constant functionc all just do eth_call
+                if ( functionIsConstant ) {
+                    transactionModel.call(result.from, result.to, result.txtVal, result.txtGas, result.txtGasPrice, contractData, callIndex)
                     return
                 }
 

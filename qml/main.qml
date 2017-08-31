@@ -113,6 +113,72 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: transactionModel
+
+        onLatestVersionChanged: {
+            if ( !manualVersionCheck ) {
+                var now = new Date()
+                var bumpTime = settings.value("program/versionbump", now.valueOf())
+                if ( bumpTime > now.valueOf() ) {
+                    return; // don't bump more than once a day!
+                }
+                settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
+            }
+
+            manualVersionCheck = false
+            versionDialog.title = qsTr("Update available")
+            versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
+            versionDialog.open()
+        }
+        onLatestVersionSame: {
+            if ( !manualVersionCheck ) {
+                return
+            }
+
+            manualVersionCheck = false
+            versionDialog.title = qsTr("Etherwall up to date")
+            versionDialog.msg = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
+            versionDialog.open()
+        }
+
+        onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
+        onConfirmedTransaction: {
+            if ( toAddress.length ) {
+                badge.show(qsTr("Confirmed transaction to: ") + toAddress)
+            } else { // contract creation
+                ipc.getTransactionReceipt(hash)
+            }
+        }
+    }
+
+    Connections {
+        target: eventModel
+
+        onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+    }
+
+    Connections {
+        target: accountModel
+
+        onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
+        onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
+        onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
+        onPromptForTrezorImport: trezorImportDialog.open(qsTr("Detected TREZOR device with unimported accounts.") + '<br><a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
+        onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
+    }
+
+    Connections {
+        target: ipc
+
+        onGetTransactionReceiptDone: {
+            var cname = contractModel.contractDeployed(receipt)
+            if ( cname.length ) {
+                badge.show(qsTr("Contract ") + cname + qsTr(" succesfully deployed: " + receipt.contractAddress))
+            }
+        }
+    }
+
     FileDialog {
         id: exportFileDialog
         title: qsTr("Export wallet backup")
@@ -203,72 +269,6 @@ ApplicationWindow {
     Badge {
         id: badge
         z: 999
-
-        Connections {
-            target: transactionModel
-
-            onLatestVersionChanged: {
-                if ( !manualVersionCheck ) {
-                    var now = new Date()
-                    var bumpTime = settings.value("program/versionbump", now.valueOf())
-                    if ( bumpTime > now.valueOf() ) {
-                        return; // don't bump more than once a day!
-                    }
-                    settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
-                }
-
-                manualVersionCheck = false
-                versionDialog.title = qsTr("Update available")
-                versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
-                versionDialog.open()
-            }
-            onLatestVersionSame: {
-                if ( !manualVersionCheck ) {
-                    return
-                }
-
-                manualVersionCheck = false
-                versionDialog.title = qsTr("Etherwall up to date")
-                versionDialog.msg = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
-                versionDialog.open()
-            }
-
-            onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
-            onConfirmedTransaction: {
-                if ( toAddress.length ) {
-                    badge.show(qsTr("Confirmed transaction to: ") + toAddress)
-                } else { // contract creation
-                    ipc.getTransactionReceipt(hash)
-                }
-            }
-        }
-
-        Connections {
-            target: eventModel
-
-            onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
-        }
-
-        Connections {
-            target: accountModel
-
-            onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
-            onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
-            onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
-            onPromptForTrezorImport: trezorImportDialog.open(qsTr("Detected TREZOR device with unimported accounts.") + '<br><a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
-            onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
-        }
-
-        Connections {
-            target: ipc
-
-            onGetTransactionReceiptDone: {
-                var cname = contractModel.contractDeployed(receipt)
-                if ( cname.length ) {
-                    badge.show(qsTr("Contract ") + cname + qsTr(" succesfully deployed: " + receipt.contractAddress))
-                }
-            }
-        }
     }
 
     BusyIndicator {

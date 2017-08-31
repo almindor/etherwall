@@ -553,6 +553,34 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::call(const Ethereum::Tx &tx, int index)
+    {
+        QJsonArray params;
+        QJsonObject p;
+        p["from"] = tx.fromStr();
+        p["value"] = tx.valueHex();
+        if ( !tx.isContractDeploy() ) {
+            p["to"] = tx.toStr();
+        }
+        if ( tx.hasDefinedGas() ) {
+            p["gas"] = tx.gasHex();
+        }
+        if ( tx.hasDefinedGasPrice() ) {
+            p["gasPrice"] = tx.gasPriceHex();
+            EtherLog::logMsg(QString("Trans gasPrice: ") + tx.gasPriceStr() + QString(" HexValue: ") + tx.gasPriceHex());
+        }
+        if ( tx.hasData() ) {
+            p["data"] = tx.dataHex();
+        }
+
+        params.append(p);
+        params.append("latest");
+
+        if ( !queueRequest(RequestIPC(Call, "eth_call", params, index)) ) {
+            return bail(true); // softbail
+        }
+    }
+
     void EtherIPC::handleSendTransaction() {
         QJsonValue jv;
         if ( !readReply(jv) ) {
@@ -573,6 +601,18 @@ namespace Etherwall {
 
         const QString hash = jv.toObject().value("raw").toString();
         emit signTransactionDone(hash);
+        done();
+    }
+
+    void EtherIPC::handleCall()
+    {
+        QJsonValue jv;
+        if ( !readReply(jv) ) {
+            return bail(true); // softbail
+        }
+
+        const QString result = jv.toString("error");
+        emit callDone(result, fActiveRequest.getIndex());
         done();
     }
 
@@ -1322,6 +1362,10 @@ namespace Etherwall {
             }
         case SignTransaction: {
                 handleSignTransaction();
+                break;
+            }
+        case Call: {
+                handleCall();
                 break;
             }
         case SendRawTransaction: {

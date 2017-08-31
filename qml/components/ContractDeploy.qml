@@ -46,6 +46,7 @@ Window {
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
+        stcTab.children[0].functionIsConstant = false
         stcTab.enabled = false
 
         cccTab.active = true

@@ -185,6 +185,13 @@ namespace Etherwall {
         }
     }
 
+    void TransactionModel::call(const QString &from, const QString &to, const QString &value, const QString &gas, const QString &gasPrice, const QString &data, int index)
+    {
+        Ethereum::Tx tx(from, to, value, 0, gas, gasPrice, data); // nonce not required here, ipc.call doesn't fill it in
+
+        fIpc.call(tx, index);
+    }
+
     void TransactionModel::onRawTransaction(const Ethereum::Tx& tx)
     {
         fQueuedTransaction.init(tx.fromStr(), tx.toStr(), tx.valueStr(), tx.gasStr(), tx.gasPriceStr(), tx.dataStr());

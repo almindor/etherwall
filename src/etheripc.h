@@ -119,6 +119,7 @@ namespace Etherwall {
         void signTransaction(const Ethereum::Tx& tx);
         void sendRawTransaction(const Ethereum::Tx& tx);
         void sendRawTransaction(const QString &rlp);
+        void call(const Ethereum::Tx& tx, int index);
         void getTransactionByHash(const QString& hash);
 
         Q_INVOKABLE virtual bool closeApp();
@@ -142,6 +143,7 @@ namespace Etherwall {
         void getBlockNumberDone(quint64 num) const;
         void sendTransactionDone(const QString& hash) const;
         void signTransactionDone(const QString& hash) const;
+        void callDone(const QString& result, int index) const;
         void getGasPriceDone(const QString& price) const;
         void estimateGasDone(const QString& price) const;
         void newTransaction(const TransactionInfo& info) const;
@@ -197,6 +199,7 @@ namespace Etherwall {
         void handleGetPeerCount();
         void handleSendTransaction();
         void handleSignTransaction();
+        void handleCall();
         void handleGetGasPrice();
         void handleEstimateGas();
         void handleNewBlockFilter();

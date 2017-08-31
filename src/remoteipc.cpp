@@ -166,6 +166,7 @@ namespace Etherwall {
             case GetTransactionByHash: return true;
             case GetBlock: return true;
             case GetTransactionReceipt: return true;
+            case Call: return true;
             // local
             case NoRequest: return false;
             case NewAccount: return false;

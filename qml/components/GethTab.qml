@@ -24,17 +24,38 @@ import QtQuick.Controls 1.1
 Tab {
     title: qsTr("Geth")
 
-    ScrollView {
-        ListView {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            model: geth
+    Column {
+        id: col
+        anchors.margins: 0.2 * dpi
+        anchors.fill: parent
 
-            delegate: Text {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                text: msg
-                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+        Row {
+            id: gethLogControlRow
+
+            Button {
+                id: gethLogClipButton
+                text: "Save to clipboard"
+                onClicked: {
+                    geth.saveToClipboard()
+                }
+            }
+        }
+
+        ScrollView {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            height: parent.height - gethLogControlRow.height
+
+            ListView {
+                anchors.fill: parent
+                model: geth
+
+                delegate: Text {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    text: msg
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                }
             }
         }
     }

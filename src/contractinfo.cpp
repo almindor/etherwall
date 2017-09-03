@@ -531,6 +531,21 @@ namespace Etherwall {
         return fArguments;
     }
 
+    int ContractCallable::getArgumentCount() const
+    {
+        return fArguments.size();
+    }
+
+    const ContractArg ContractCallable::getReturn(int index) const
+    {
+        return fReturns.at(index);
+    }
+
+    int ContractCallable::getReturnsCount() const
+    {
+        return fReturns.size();
+    }
+
     const QString ContractCallable::getMethodID() const {
         return fMethodID;
     }
@@ -708,6 +723,7 @@ namespace Etherwall {
         fName(name), fAddress(Helpers::vitalizeAddress(address)), fABI(abi), fFunctions()
     {
         parse();
+        checkERC20Compatibility();
     }
 
     ContractInfo::ContractInfo(const QJsonObject &source) {
@@ -715,14 +731,19 @@ namespace Etherwall {
         fAddress = Helpers::vitalizeAddress(source.value("address").toString());
         fABI = source.value("abi").toArray();
         fFunctions = ContractFunctionList();
+        fToken = source.value("token").toString();
 
         parse();
+        if ( !source.contains("erc20") ) {
+            checkERC20Compatibility();
+        }
     }
 
     const QVariant ContractInfo::value(const int role) const {
         switch ( role ) {
             case ContractNameRole: return QVariant(fName);
             case AddressRole: return QVariant(fAddress);
+            case TokenRole: return QVariant(fToken);
             case ABIRole: return QVariant(QString(QJsonDocument(fABI).toJson()));
         }
 
@@ -734,6 +755,8 @@ namespace Etherwall {
         result["name"] = fName;
         result["address"] = fAddress;
         result["abi"] = fABI;
+        result["token"] = fToken;
+        result["erc20"] = !fToken.isEmpty();
 
         return result;
     }
@@ -802,6 +825,34 @@ namespace Etherwall {
         info.fillContract(*this);
     }
 
+    const QString ContractInfo::token() const
+    {
+        return fToken;
+    }
+
+    bool ContractInfo::needsSymbolLoad() const
+    {
+        return fToken == "*tba*";
+    }
+
+    const QString ContractInfo::symbolCallData() const
+    {
+        return getSymbolFunction().getMethodID();
+
+        throw QString("No symbol function found for token contract: " + fAddress);
+    }
+
+    void ContractInfo::loadSymbolData(const QString &data)
+    {
+        const QVariantList outputs = getSymbolFunction().parseResponse(data);
+        if ( outputs.size() != 1 ) {
+            throw QString("Unexpected symbol result for token contract: " + fAddress);
+        }
+
+        const QVariantMap row = outputs.at(0).toMap();
+        fToken = row.value("value", "invalid").toString();
+    }
+
     void ContractInfo::parse() {
         const QJsonArray source = abiJson();
 
@@ -820,6 +871,96 @@ namespace Etherwall {
                 }
             }
         }
+    }
+
+    const ContractFunction ContractInfo::getSymbolFunction() const
+    {
+        foreach ( const ContractFunction& func, fFunctions ) {
+            const QString funcName = func.getName();
+            if ( funcName == "symbol" && func.isConstant() ) {
+                return func;
+            }
+        }
+
+        throw QString("Symbol function not found for token contract");
+    }
+
+    void ContractInfo::checkERC20Compatibility()
+    {
+        /*
+         *  full erc20 has quite a lot of functions but for our wallet purpose we only check:
+         *  function balanceOf(address _owner) constant returns (uint balance);
+         *  function transfer(address _to, uint256 _value) returns (bool success);
+         *  string public constant symbol = "SYM";
+        */
+        QJsonParseError parseError;
+        const QByteArray rawDefinition = "{\"balanceOf\":{\"constant\":true,\"inputs\":[\"address\"],\"outputs\":[\"uint256\"]},\"transfer\": {\"inputs\":[\"address\",\"uint256\"],\"outputs\":[\"bool\"]},\"symbol\":{\"constant\":true}}";
+        QJsonObject required = QJsonDocument::fromJson(rawDefinition, &parseError).object();
+        QMap<QString, bool> contains;
+
+        foreach ( const QString& function, required.keys() ) {
+            contains[function] = false;
+        }
+
+        fToken = QString();
+
+        foreach ( const ContractFunction& func, fFunctions ) {
+            const QString funcName = func.getName();
+            // if we have function of given name, check the args/returns and constant modifier
+            if ( required.contains(funcName) ) {
+                const QJsonObject def = required.value(funcName).toObject();
+                // check constant match
+                if ( def.value("constant").toBool(false) != func.isConstant() ) {
+                    continue;
+                }
+
+                bool argsOk = true;
+                // if def has inputs check those
+                if ( def.contains("inputs") ) {
+                    const QJsonArray inputs = def.value("inputs").toArray();
+                    if ( inputs.size() != func.getArgumentCount() ) {
+                        continue;
+                    }
+
+                    for ( int i = 0; i < func.getArgumentCount(); i++ ) {
+                        if ( func.getArgument(i).type() != inputs.at(i).toString("invalid") ) {
+                            argsOk = false;
+                            break;
+                        }
+                    }
+                }
+
+                // if def has outputs check those
+                if ( def.contains("outputs") ) {
+                    const QJsonArray outputs = def.value("outputs").toArray();
+                    if ( outputs.size() != func.getReturnsCount() ) {
+                        continue;
+                    }
+
+                    bool argsOk = true;
+                    for ( int i = 0; i < func.getReturnsCount(); i++ ) {
+                        if ( func.getReturn(i).type() != outputs.at(i).toString("invalid") ) {
+                            argsOk = false;
+                            break;
+                        }
+                    }
+                }
+
+                if ( !argsOk ) {
+                    continue;
+                }
+
+                contains[funcName] = true;
+            }
+        }
+
+        foreach ( const QString& function, contains.keys() ) {
+            if ( !contains[function] ) {
+                return;
+            }
+        }
+
+        fToken = "*tba*"; // placeholder until eth_call finishes
     }
 
     // ***************************** ResultInfo ***************************** //

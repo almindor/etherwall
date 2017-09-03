@@ -37,9 +37,14 @@ namespace Ethereum {
         fDataIndex = 0;
     }
 
-    bool Tx::isContractDeploy() const
+    bool Tx::hasFrom() const
     {
-        return fTo.isEmpty();
+        return !fFrom.isEmpty();
+    }
+
+    bool Tx::hasTo() const
+    {
+        return !fTo.isEmpty();
     }
 
     bool Tx::hasDefinedGas() const

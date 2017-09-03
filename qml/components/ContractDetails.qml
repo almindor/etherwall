@@ -174,6 +174,11 @@ Window {
                     return result
                 }
 
+                if ( !helpers.checkAddress(result.address) ) {
+                    result.error = qsTr("Contract address invalid checksum")
+                    return result
+                }
+
                 result.name = nameField.text.trim() || ""
                 if ( result.name.length === 0 ) {
                     result.error = qsTr("Invalid contract name")

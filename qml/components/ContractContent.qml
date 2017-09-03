@@ -70,9 +70,14 @@ Item {
                 width: 0.33 * parent.width
             }
             TableViewColumn {
+                role: "token"
+                title: qsTr("Token (ERC20)")
+                width: 0.1 * parent.width
+            }
+            TableViewColumn {
                 role: "address"
                 title: qsTr("Address")
-                width: 0.65 * parent.width
+                width: 0.55 * parent.width
             }
 
             model: contractModel

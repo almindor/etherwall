@@ -21,8 +21,9 @@ namespace Ethereum {
            const QString& gas, const QString& gasPrice,
            const QString& data = QString());
 
-
-        bool isContractDeploy() const;
+        bool hasFrom() const;
+        bool hasTo() const;
+        bool hasValue() const;
         bool hasDefinedGas() const;
         bool hasDefinedGasPrice() const;
         bool hasData() const;
@@ -32,7 +33,6 @@ namespace Ethereum {
         const QString toStr() const;
         const std::string toBytes() const;
 
-        bool hasValue() const;
         const QString valueStr() const;
         const QString valueHex() const;
         const std::string valueBytes() const;

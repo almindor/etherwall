@@ -34,7 +34,9 @@ Item {
         target: ipc
 
         onCallDone: {
-            responseField.model = contractModel.parseResponse(index, result)
+            if ( index > 0 ) { // negative reserved for internal calls
+                responseField.model = contractModel.parseResponse(index, result)
+            }
         }
     }
 

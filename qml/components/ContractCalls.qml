@@ -73,7 +73,9 @@ Window {
             target: ipc
 
             onCallDone: {
-                tabs.currentIndex = 2
+                if ( index > 0 ) { // negative reserved for internal calls
+                    tabs.currentIndex = 2
+                }
             }
         }
     }

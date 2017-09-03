@@ -481,7 +481,7 @@ namespace Etherwall {
         QJsonObject p;
         p["from"] = tx.fromStr();
         p["value"] = tx.valueHex();
-        if ( !tx.isContractDeploy() ) {
+        if ( tx.hasTo() ) {
             p["to"] = tx.toStr();
         }
         if ( tx.hasDefinedGas() ) {
@@ -516,7 +516,7 @@ namespace Etherwall {
         QJsonObject p;
         p["from"] = tx.fromStr();
         p["value"] = tx.valueHex();
-        if ( !tx.isContractDeploy() ) {
+        if ( tx.hasTo() ) {
             p["to"] = tx.toStr();
         }
         if ( tx.hasDefinedGas() ) {
@@ -557,9 +557,13 @@ namespace Etherwall {
     {
         QJsonArray params;
         QJsonObject p;
-        p["from"] = tx.fromStr();
-        p["value"] = tx.valueHex();
-        if ( !tx.isContractDeploy() ) {
+        if ( tx.hasFrom() ) {
+            p["from"] = tx.fromStr();
+        }
+        if ( tx.hasValue() ) {
+            p["value"] = tx.valueHex();
+        }
+        if ( tx.hasTo() ) {
             p["to"] = tx.toStr();
         }
         if ( tx.hasDefinedGas() ) {

@@ -97,6 +97,9 @@ namespace Etherwall {
         const QString getName() const;
         const ContractArg getArgument(int index) const;
         const ContractArgs getArguments() const;
+        int getArgumentCount() const;
+        const ContractArg getReturn(int index) const;
+        int getReturnsCount() const;
         const QString getMethodID() const;
         const QString getSignature() const;
     protected:
@@ -197,6 +200,7 @@ namespace Etherwall {
     enum ContractRoles {
         ContractNameRole = Qt::UserRole + 1,
         AddressRole,
+        TokenRole,
         ABIRole
     };
 
@@ -218,6 +222,10 @@ namespace Etherwall {
         const ContractFunction function(const QString& name, int& index) const;
         const ContractFunction function(int index) const;
         void processEvent(EventInfo& info) const;
+        const QString token() const;
+        bool needsSymbolLoad() const;
+        const QString symbolCallData() const;
+        void loadSymbolData(const QString& data);
     private:
         void parse();
 
@@ -226,6 +234,10 @@ namespace Etherwall {
         QJsonArray fABI;
         ContractFunctionList fFunctions;
         ContractEventList fEvents;
+        QString fToken;
+
+        const ContractFunction getSymbolFunction() const;
+        void checkERC20Compatibility();
     };
 
     typedef QList<ContractInfo> ContractList;

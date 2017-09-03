@@ -73,8 +73,10 @@ namespace Etherwall {
         void reload();
         void onNewEvent(const QJsonObject& event, bool isNew);
         void httpRequestDone(QNetworkReply *reply);
+        void onCallDone(const QString& result, int index);
     private:
         const QString getPostfix() const;
+        void loadTokenSymbol(const ContractInfo& contract, int index) const;
 
         ContractList fList;
         EtherIPC& fIpc;

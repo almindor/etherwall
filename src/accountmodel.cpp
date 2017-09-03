@@ -209,20 +209,25 @@ namespace Etherwall {
         }
         keystore.cd("keystore");
 
-        QString address = fAccountList.at(index).value(HashRole).toString();
-        const QString data = Helpers::exportAddress(keystore, address);
-        const QString fileName = Helpers::getAddressFilename(keystore, address);
-        QDir directory(dir.toLocalFile());
-        QFile file(directory.absoluteFilePath(fileName));
-        if ( !file.open(QFile::WriteOnly) ) {
-            EtherLog::logMsg("Account export file error: " + file.errorString(), LS_Error);
+        try {
+            const QString address = fAccountList.at(index).value(HashRole).toString();
+            const QString data = Helpers::exportAddress(keystore, address);
+            const QString fileName = Helpers::getAddressFilename(keystore, address);
+            QDir directory(dir.toLocalFile());
+            QFile file(directory.absoluteFilePath(fileName));
+            if ( !file.open(QFile::WriteOnly) ) {
+                EtherLog::logMsg("Account export file error: " + file.errorString(), LS_Error);
+                return false;
+            }
+            QTextStream stream( &file );
+            stream << data;
+            file.close();
+
+            return true;
+        } catch ( QString err ) {
+            EtherLog::logMsg("Error on account export: " + err, LS_Error);
             return false;
         }
-        QTextStream stream( &file );
-        stream << data;
-        file.close();
-
-        return true;
     }
 
     void AccountModel::setAsDefault(const QString &address)
@@ -301,7 +306,14 @@ namespace Etherwall {
         keystore.cd("keystore");
 
         try {
-            QByteArray backupData = Helpers::createBackup(keystore);
+            int exported = 0;
+            QByteArray backupData = Helpers::createBackup(keystore, exported);
+            if ( !fIpc.getTestnet() ) { // only do counts check on non-testnet
+                int expected = exportableAddresses();
+                if ( exported != expected ) {
+                    throw QString("Export account count mismatch, expected " + QString::number(expected) + " exported " + QString::number(exported));
+                }
+            }
             QString strName = fileName.toLocalFile();
             const QFileInfo fileInfo(strName);
             if ( fileInfo.completeSuffix() != "etherwall" ) {
@@ -635,6 +647,18 @@ namespace Etherwall {
     void AccountModel::setAccountAlias(const QString &hash, const QString &alias)
     {
         fAliasMap[hash.toLower()] = alias;
+    }
+
+    int AccountModel::exportableAddresses() const
+    {
+        int count = 0;
+        foreach ( const AccountInfo& info, fAccountList ) {
+            if ( info.isLocal() ) {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     const QJsonArray AccountModel::getAccountsJsonArray() const {

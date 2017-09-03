@@ -169,6 +169,7 @@ namespace Etherwall {
         void lock();
         void unlock();
         bool isLocked() const;
+        bool isLocal() const;
         void setDeviceID(const QString& deviceID);
         const QString deviceID() const;
         void setAlias(const QString& name);

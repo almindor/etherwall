@@ -153,6 +153,11 @@ namespace Etherwall {
         fTransCount = count;
     }
 
+    bool AccountInfo::isLocal() const
+    {
+        return fHDPath.isEmpty();
+    }
+
     void AccountInfo::setDeviceID(const QString &deviceID)
     {
         fDeviceID = deviceID;

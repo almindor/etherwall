@@ -35,11 +35,11 @@ namespace Etherwall {
         static const QString networkPostfix(int network);
         static const QByteArray exportSettings();
         static void importSettings(const QByteArray& data);
-        static const QString getAddressFilename(const QDir& keystore, QString& address);
-        static const QString exportAddress(const QDir& keystore, QString& address);
-        static const QByteArray exportAddresses(const QDir& keystore);
+        static const QString getAddressFilename(const QDir& keystore, const QString& address);
+        static const QString exportAddress(const QDir& keystore, const QString& sourceAddress);
+        static const QByteArray exportAddresses(const QDir& keystore, int& exported);
         static void importAddresses(QByteArray& data, const QDir& keystore);
-        static const QByteArray createBackup(const QDir& keystore);
+        static const QByteArray createBackup(const QDir& keystore, int& exported);
         static void restoreBackup(QByteArray& data, const QDir& keystore);
     };
 

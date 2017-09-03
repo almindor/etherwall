@@ -120,6 +120,7 @@ namespace Etherwall {
         void loadAccountList();
         const QString getHDPathBase() const;
         void setAccountAlias(const QString& hash, const QString& alias);
+        int exportableAddresses() const;
     };
 
 }

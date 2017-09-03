@@ -278,12 +278,12 @@ namespace Etherwall {
         settings.sync();
     }
 
-    const QString Helpers::getAddressFilename(const QDir& keystore, QString& address) {
+    const QString Helpers::getAddressFilename(const QDir& keystore, const QString& sourceAddress) {
         if ( !keystore.exists() ) {
             throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
         }
 
-        address = address.toLower();
+        QString address = sourceAddress.toLower();
         if ( address.startsWith("0x") ) {
             address = address.remove(0, 2);
         }
@@ -292,26 +292,39 @@ namespace Etherwall {
 
         foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
             QFile file(keystore.filePath(fileName));
-            file.open(QFile::ReadOnly);
+            if ( !file.open(QFile::ReadOnly) ) {
+                throw file.errorString();
+            }
             const QByteArray raw = file.readAll();
             file.close();
-            const QJsonDocument doc = QJsonDocument::fromJson(raw);
+            if ( raw.size() == 0 ) {
+                throw QString("Empty account contents");
+            }
+
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(raw, &parseError);
+            if ( parseError.error != QJsonParseError::NoError ) {
+                throw parseError.errorString();
+            }
+
             const QJsonObject contents = doc.object();
 
             if ( contents.value("address").toString("invalid").toLower() == address ) {
                 return fileName;
+            } else {
+                throw QString("Address content mismatch");
             }
         }
 
         return QString();
     }
 
-    const QString Helpers::exportAddress(const QDir& keystore, QString& address) {
+    const QString Helpers::exportAddress(const QDir& keystore, const QString& sourceAddress) {
         if ( !keystore.exists() ) {
             throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
         }
 
-        address = address.toLower();
+        QString address = sourceAddress.toLower();
         if ( address.startsWith("0x") ) {
             address = address.remove(0, 2);
         }
@@ -334,7 +347,7 @@ namespace Etherwall {
         return QString();
     }
 
-    const QByteArray Helpers::exportAddresses(const QDir& keystore) {
+    const QByteArray Helpers::exportAddresses(const QDir& keystore, int& exported) {
         if ( !keystore.exists() ) {
             throw QString("Address keystore directory does not exist: " + keystore.absolutePath());
         }
@@ -345,10 +358,17 @@ namespace Etherwall {
 
         foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
             QFile file(keystore.filePath(fileName));
-            file.open(QFile::ReadOnly);
+            if ( !file.open(QFile::ReadOnly) ) {
+                 throw file.errorString();
+            }
+
             const QByteArray raw = file.readAll();
             file.close();
-            const QJsonDocument doc = QJsonDocument::fromJson(raw);
+            QJsonParseError parseError;
+            const QJsonDocument doc = QJsonDocument::fromJson(raw, &parseError);
+            if ( parseError.error != QJsonParseError::NoError ) {
+                throw parseError.errorString();
+            }
             const QJsonObject contents = doc.object();
             QJsonObject wrapper;
             wrapper["address"] = contents.value("address").toString("invalid");
@@ -359,6 +379,7 @@ namespace Etherwall {
             quint32 qSize = binary.size();
             stream << qSize;
             stream << binary;
+            exported++;
         }
 
         return result;
@@ -404,16 +425,17 @@ namespace Etherwall {
         }
     }
 
-    const QByteArray Helpers::createBackup(const QDir& keystore) {
+    const QByteArray Helpers::createBackup(const QDir& keystore, int& exported) {
         const QByteArray settingsData = exportSettings();
-        const QByteArray addressData = exportAddresses(keystore);
+        const QByteArray addressData = exportAddresses(keystore, exported);
         QByteArray testnetData;
 
         QDir testnet(keystore);
         // can't use && because C++ doesn't enforce execution order AFAIK
         if ( testnet.cd("../rinkeby") ) {
             if ( testnet.cd("keystore") ) {
-                testnetData = exportAddresses(testnet);
+                int tmp;
+                testnetData = exportAddresses(testnet, tmp); // don't count testnet for checks
             }
         }
 

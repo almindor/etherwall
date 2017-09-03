@@ -379,6 +379,11 @@ Item {
                     return
                 }
 
+                if (functionIsConstant) {
+                    warningField.text = qsTr("Constant method invocation is free")
+                    return
+                }
+
                 warningField.text = currencyModel.helperName + " total: " + currencyModel.recalculateToHelper(total) + "<br>" +
                         currencyModel.helperName + " gas cost: " + currencyModel.recalculateToHelper(gasTotal)
             }

@@ -97,6 +97,7 @@ Window {
 
                 onContractReady: {
                     rsTab.children[0].callIndex = callIndex
+                    rsTab.enabled = constant
 
                     stcTab.children[0].contractData = encoded
                     stcTab.children[0].functionIsConstant = constant

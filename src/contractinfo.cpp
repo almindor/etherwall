@@ -254,6 +254,9 @@ namespace Etherwall {
             if ( !re.exactMatch(hexStr) ) {
                 throw QString("Invalid address: " + hexStr);
             }
+            if ( Helpers::vitalizeAddress(hexStr) != hexStr ) {
+                throw QString("Address checksum mismatch: " + hexStr);
+            }
             if ( hexStr.length() == 42 ) {
                 hexStr.remove(0, 2); // remove 0x
             }

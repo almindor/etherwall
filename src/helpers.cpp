@@ -311,12 +311,10 @@ namespace Etherwall {
 
             if ( contents.value("address").toString("invalid").toLower() == address ) {
                 return fileName;
-            } else {
-                throw QString("Address content mismatch");
             }
         }
 
-        return QString();
+        throw QString("Cannot find keyfile for address: " + address);
     }
 
     const QString Helpers::exportAddress(const QDir& keystore, const QString& sourceAddress) {
@@ -333,7 +331,9 @@ namespace Etherwall {
 
         foreach ( const QString fileName, keystore.entryList(nameFilter) ) {
             QFile file(keystore.filePath(fileName));
-            file.open(QFile::ReadOnly);
+            if ( !file.open(QFile::ReadOnly) ) {
+                throw file.errorString();
+            }
             const QByteArray raw = file.readAll();
             file.close();
             const QJsonDocument doc = QJsonDocument::fromJson(raw);

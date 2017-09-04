@@ -942,7 +942,7 @@ namespace Etherwall {
                         continue;
                     }
 
-                    bool argsOk = true;
+                    argsOk = true;
                     for ( int i = 0; i < func.getReturnsCount(); i++ ) {
                         if ( func.getReturn(i).type() != outputs.at(i).toString("invalid") ) {
                             argsOk = false;

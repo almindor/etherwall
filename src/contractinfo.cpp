@@ -665,6 +665,11 @@ namespace Etherwall {
         }
     }
 
+    EventInfo::~EventInfo()
+    {
+
+    }
+
     const QString EventInfo::address() const {
         return fAddress;
     }
@@ -966,6 +971,11 @@ namespace Etherwall {
     // ***************************** ResultInfo ***************************** //
 
     ResultInfo::ResultInfo(const QString data) : fData(data)
+    {
+
+    }
+
+    ResultInfo::~ResultInfo()
     {
 
     }

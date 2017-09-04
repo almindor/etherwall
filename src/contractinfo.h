@@ -156,6 +156,7 @@ namespace Etherwall {
     {
     public:
         ResultInfo(const QString data);
+        virtual ~ResultInfo();
         void fillContract(const ContractInfo& contract);
         void fillParams(const ContractInfo& contract, const ContractCallable& source);
 
@@ -170,14 +171,14 @@ namespace Etherwall {
         ContractArgs fArguments;
         QVariantList fParams;
 
-        const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
+        virtual const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
     };
 
     class EventInfo : public ResultInfo
     {
     public:
         EventInfo(const QJsonObject& source);
-
+        virtual ~EventInfo();
         const QString address() const;
         const QString signature() const;
         const QString transactionHash() const;
@@ -185,7 +186,7 @@ namespace Etherwall {
         const QVariant value(const int role) const;
         quint64 blockNumber() const;
     protected:
-        const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
+        virtual const QString getValue(const ContractArg arg, int &topicIndex, int &index, const QString &data);
     private:
         QString fAddress;
         quint64 fBlockNumber;

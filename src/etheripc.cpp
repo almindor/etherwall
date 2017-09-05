@@ -127,6 +127,10 @@ namespace Etherwall {
     }
 
     void EtherIPC::waitConnect() {
+        if ( fStarting > 2 ) {
+            return;
+        }
+
         if ( fStarting == 1 ) {
             return init();
         }
@@ -150,8 +154,7 @@ namespace Etherwall {
         fActiveRequest = RequestIPC(Full);
         emit busyChanged(getBusy());
         if ( fSocket.state() != QLocalSocket::UnconnectedState ) {
-            setError("Already connected");
-            return bail(true);
+            return QTimer::singleShot(2000, this, SLOT(waitConnect()));
         }
 
         fSocket.connectToServer(fPath);
@@ -185,13 +188,11 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectionTimeout() {
-        if ( fSocket.state() != QLocalSocket::ConnectedState ) {
-            fSocket.abort();
-            fStarting = -1;
-            emit startingChanged(fStarting);
-            setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
-            bail();
-        }
+        fSocket.abort();
+        fStarting = -1;
+        emit startingChanged(fStarting);
+        setError("Unable to establish IPC connection to Geth. Fix path to Geth and try again.");
+        bail();
     }
 
     bool EtherIPC::getBusy() const {

@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
-    RemoteIPC ipc(gethLog, "wss://api2.etherwall.com");
+    RemoteIPC ipc(gethLog);
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);

@@ -1,16 +1,28 @@
 #include "remoteipc.h"
+#include "helpers.h"
 #include <QUrl>
 
 namespace Etherwall {
 
-    RemoteIPC::RemoteIPC(GethLog& gethLog, const QString &remotePath) :
+    RemoteIPC::RemoteIPC(GethLog& gethLog) :
         EtherIPC(gethLog),
-        fWebSocket("http://localhost"), fRemotePath(remotePath), fReceivedMessage()
+        fWebSocket("http://localhost"), fNetManager(this), fEndpoint(), fReceivedMessage()
     {
         QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &RemoteIPC::onDisconnectedWS);
         QObject::connect(&fWebSocket, &QWebSocket::connected, this, &RemoteIPC::onConnectedWS);
         QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &RemoteIPC::onErrorWS);
         QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &RemoteIPC::onTextMessageReceivedWS);
+
+        QObject::connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
+
+        // get node
+        QNetworkRequest request(QUrl("https://data.etherwall.com/api/init"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        QJsonObject objectJson;
+        const QByteArray data = QJsonDocument(objectJson).toJson();
+
+        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+        fNetManager.post(request, data);
 
         const QSettings settings;
         fIsThinClient = settings.value("geth/thinclient", true).toBool();
@@ -26,9 +38,7 @@ namespace Etherwall {
         const QSettings settings; // reinit because of first time dialog
         fIsThinClient = settings.value("geth/thinclient", true).toBool();
 
-        if ( fIsThinClient && fWebSocket.state() == QAbstractSocket::UnconnectedState ) {
-            fWebSocket.open(QUrl(fRemotePath));
-        }
+        connectWebsocket();
 
         EtherIPC::init();
     }
@@ -65,10 +75,11 @@ namespace Etherwall {
     {
         // if we're in IPC mode
         if ( !fIsThinClient ) {
-            EtherIPC::connectedToServer();
+            qDebug() << "calling cts from fullnode side\n";
+            return EtherIPC::connectedToServer();
         }
 
-        // if we're relady connected when ipc is done just let it continue, otherwise wait for WS
+        // if we're already connected when ipc is done just let it continue, otherwise wait for WS
         if ( fWebSocket.state() == QAbstractSocket::ConnectedState ) {
             EtherIPC::connectedToServer();
         }
@@ -145,6 +156,20 @@ namespace Etherwall {
         onSocketReadyRead();
     }
 
+    void RemoteIPC::httpRequestDone(QNetworkReply *reply)
+    {
+        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        const bool success = resObj.value("success").toBool();
+
+        if ( !success ) {
+            const QString error = resObj.value("error").toString("unknown error");
+            return EtherLog::logMsg("Response error: " + error, LS_Error);
+        }
+        const QJsonValue rv = resObj.value("endpoint");
+        fEndpoint = rv.toString("invalid");
+        connectWebsocket();
+    }
+
     bool RemoteIPC::isRemoteRequest() const
     {
         if ( !fIsThinClient ) {
@@ -182,6 +207,14 @@ namespace Etherwall {
         }
 
         return false; // better safe than sorry
+    }
+
+    void RemoteIPC::connectWebsocket()
+    {
+        if ( fIsThinClient && fWebSocket.state() == QAbstractSocket::UnconnectedState && !fEndpoint.isEmpty() ) {
+            EtherLog::logMsg("Connecting to WS endpoint: " + fEndpoint, LS_Info);
+            fWebSocket.open(QUrl(fEndpoint));
+        }
     }
 
     bool RemoteIPC::isThinClient() const

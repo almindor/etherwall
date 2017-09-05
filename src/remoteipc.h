@@ -13,7 +13,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(bool thinClient READ isThinClient NOTIFY thinClientChanged)
     public:
-        RemoteIPC(GethLog& gethLog, const QString &remotePath);
+        RemoteIPC(GethLog& gethLog);
         virtual ~RemoteIPC();
         virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
         virtual bool isThinClient() const;
@@ -33,15 +33,18 @@ namespace Etherwall {
         void onDisconnectedWS();
         void onErrorWS(QAbstractSocket::SocketError error);
         void onTextMessageReceivedWS(const QString& msg);
+        void httpRequestDone(QNetworkReply *reply);
     signals:
         void thinClientChanged();
     private:
         QWebSocket fWebSocket;
-        QString fRemotePath;
+        QNetworkAccessManager fNetManager;
+        QString fEndpoint;
         QByteArray fReceivedMessage;
         bool fIsThinClient;
 
         bool isRemoteRequest() const;
+        void connectWebsocket();
     };
 
 }

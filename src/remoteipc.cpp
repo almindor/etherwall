@@ -75,7 +75,6 @@ namespace Etherwall {
     {
         // if we're in IPC mode
         if ( !fIsThinClient ) {
-            qDebug() << "calling cts from fullnode side\n";
             return EtherIPC::connectedToServer();
         }
 

@@ -448,7 +448,7 @@ ApplicationWindow {
                 enabled: !ipc.starting
                 tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
                 onClicked: {
-                    ipc.connectToServer()
+                    badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
                 }
             }
         }

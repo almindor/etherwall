@@ -170,6 +170,10 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectedToServer() {
+        if ( fStarting > 2 ) {
+            return;
+        }
+
         done();
 
         getClientVersion();

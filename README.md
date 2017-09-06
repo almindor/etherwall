@@ -59,7 +59,7 @@ You need to update the paths in the `Etherwall.pro` file to point to your compil
 
 For Qt5 runtime/deployment see: [Qt5 for windows](http://doc.qt.io/qt-5/windows-deployment.html)
 
-*NOTE:* there is no protobuf generation script on windows atm. You need to run `protoc --cpp_out` into `src/trezor/proto` for all the trezor protocol files manually.
+*NOTE:* there is no protobuf generation script on windows atm. You need to run `protoc --cpp_out` into `src/trezor/proto` for all the trezor protocol files manually or use a unix-environment to run the script (e.g. MinGW)
 
 #### Mac OS X Requirements
 

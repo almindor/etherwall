@@ -37,6 +37,12 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 [Qt5.6+ with qmake](https://www.qt.io/developers/)
 
+Qt5 modules:
+* qt5-declarative
+* qt5-graphicaleffects
+* qt5-quickcontrols
+* qt5-websockets
+
 [google protobuf](https://github.com/google/protobuf)
 
 [hidapi](https://github.com/signal11/hidapi)
@@ -51,6 +57,8 @@ Mingw
 The project is set to use static (.a) files on Windows with absolute paths.
 You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
 
+For Qt5 runtime/deployment see: [Qt5 for windows](http://doc.qt.io/qt-5/windows-deployment.html)
+
 *NOTE:* there is no protobuf generation script on windows atm. You need to run `protoc --cpp_out` into `src/trezor/proto` for all the trezor protocol files manually.
 
 #### Mac OS X Requirements
@@ -58,6 +66,8 @@ You need to update the paths in the `Etherwall.pro` file to point to your compil
 The project is set to use static (.a) files on Mac OS X with absolute paths.
 You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
 You need protobuf compiled with `CXXFLAGS=-mmacosx-version-min=10.9` to support older Mac versions (for releases)
+
+For Qt5 runtime/deployment see: [Qt5 for macos](http://doc.qt.io/qt-5/osx.html#deploying-applications-on-macos)
 
 ### Building
 

@@ -299,22 +299,17 @@ namespace Etherwall {
     }
 
     void TransactionInfo::init(const QJsonObject source) {
-        const QString bnKey = source.contains("blockNumber") ? "blockNumber" : "blocknumber"; // server lowercases
-        const QString gpKey = source.contains("gasPrice") ? "gasPrice" : "gasprice"; // server lowercases
-        const QString bhKey = source.contains("blockHash") ? "blockHash" : "blockhash"; // server lowercases
-        const QString tiKey = source.contains("transactionIndex") ? "transactionIndex" : "transactionindex"; // server lowercases
-
         fHash = source.value("hash").toString("invalid");
-        fNonce = Helpers::toQUInt64(source.value("nonce"));
         fSender = Helpers::vitalizeAddress(source.value("from").toString("invalid"));
         fReceiver = Helpers::vitalizeAddress(source.value("to").toString());
-        fBlockHash = source.value(bhKey).toString("invalid");
-        fBlockNumber = Helpers::toQUInt64(source.value(bnKey));
-        fTransactionIndex = source.contains(tiKey) ? Helpers::toQUInt64(source.value(tiKey)) : 0; // not stored on remote currently TODO
+        fInput = source.value("input").toString();
+        fNonce = Helpers::toQUInt64(source.value("nonce"));
+        fBlockHash = source.value("blockHash").toString("invalid");
+        fBlockNumber = Helpers::toQUInt64(source.value("blockNumber"));
+        fTransactionIndex = Helpers::toQUInt64(source.value("transactionIndex"));
         fValue = Helpers::toDecStrEther(source.value("value"));
         fGas = Helpers::toDecStr(source.value("gas"));
-        fGasPrice = Helpers::toDecStrEther(source.value(gpKey));
-        fInput = source.value("input").toString("invalid");
+        fGasPrice = Helpers::toDecStrEther(source.value("gasPrice"));
     }
 
     const QJsonObject TransactionInfo::toJson(bool decimal) const {

@@ -508,38 +508,10 @@ namespace Etherwall {
             if ( hash == "bogus" ) {
                 return EtherLog::logMsg("Response hash missing", LS_Error);
             }
-            const QString blockHash = jo.value("blockhash").toString("bogus");
-            if ( blockHash == "bogus" ) {
-                return EtherLog::logMsg("Response 'blockhash' missing", LS_Error);
-            }
-            const quint64 blockNumber = jo.value("blocknumber").toInt(0);
-            if ( blockNumber == 0 ) {
-                return EtherLog::logMsg("Response 'blocknumber' missing", LS_Error);
-            }
-            const QString from = jo.value("from").toString("bogus");
-            if ( from == "bogus" ) {
-                return EtherLog::logMsg("Response 'from' missing", LS_Error);
-            }
-            const QString to = jo.value("to").toString("bogus");
-            if ( to == "bogus" ) {
-                return EtherLog::logMsg("Response 'to' missing", LS_Error);
-            }
-            const QString value = jo.value("value").toString("bogus");
-            if ( value == "bogus" ) {
-                return EtherLog::logMsg("Response 'value' missing", LS_Error);
-            }
-            const QString gas = jo.value("gas").toString("bogus");
-            if ( gas == "bogus" ) {
-                return EtherLog::logMsg("Response 'gas' missing", LS_Error);
-            }
-            const QString gasPrice = jo.value("gasprice").toString("bogus");
-            if ( gasPrice == "bogus" ) {
-                return EtherLog::logMsg("Response 'gasprice' missing", LS_Error);
-            }
 
             if ( containsTransaction(hash) < 0 ) {
                 TransactionInfo tx(jo);
-                newTransaction(jo);
+                newTransaction(tx);
                 stored++;
             }
         }

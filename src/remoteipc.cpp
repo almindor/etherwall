@@ -22,16 +22,6 @@ namespace Etherwall {
         fWebSocket.close(); // in case we missed the app closing
     }
 
-    void RemoteIPC::init()
-    {
-        const QSettings settings; // reinit because of first time dialog
-        fIsThinClient = settings.value("geth/thinclient", true).toBool();
-
-        connectWebsocket();
-
-        EtherIPC::init();
-    }
-
     void RemoteIPC::getLogs(const QStringList &addresses, const QStringList &topics, quint64 fromBlock)
     {
         if ( !fIsThinClient ) {
@@ -64,20 +54,20 @@ namespace Etherwall {
     {
         Q_UNUSED(version); // TODO
         Q_UNUSED(warning);
+
+        const QSettings settings; // reinit because of first time dialog
+        fIsThinClient = settings.value("geth/thinclient", true).toBool();
         fEndpoint = endpoint;
+
+        connectWebsocket();
         EtherIPC::start(version, endpoint, warning);
     }
 
-    void RemoteIPC::connectedToServer()
+    void RemoteIPC::finishInit()
     {
-        // if we're in IPC mode
-        if ( !fIsThinClient ) {
-            return EtherIPC::connectedToServer();
-        }
-
-        // if we're already connected when ipc is done just let it continue, otherwise wait for WS
+        // hold off until WS is done too
         if ( fWebSocket.state() == QAbstractSocket::ConnectedState ) {
-            EtherIPC::connectedToServer();
+            EtherIPC::finishInit();
         }
     }
 
@@ -127,7 +117,7 @@ namespace Etherwall {
     {
         // if IPC is connected at this stage continue with init
         if ( fSocket.state() == QLocalSocket::ConnectedState ) {
-            EtherIPC::connectedToServer();
+            EtherIPC::finishInit();
         }
     }
 

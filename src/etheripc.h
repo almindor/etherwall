@@ -92,7 +92,7 @@ namespace Etherwall {
     public:
         EtherIPC(GethLog& gethLog);
         virtual ~EtherIPC();
-        virtual void init();
+        void init();
         virtual bool isThinClient() const;
 
         void setWorker(QThread* worker);
@@ -132,7 +132,7 @@ namespace Etherwall {
     protected slots:
         void waitConnect();
         void connectToServer();
-        virtual void connectedToServer();
+        void connectedToServer();
         void connectionTimeout();
         void disconnectedFromServer();
         void onSocketReadyRead();
@@ -217,6 +217,7 @@ namespace Etherwall {
         void handleUnlockAccount();
 
         // virtual
+        virtual void finishInit();
         virtual bool endpointWritable();
         virtual qint64 endpointWrite(const QByteArray& data);
         virtual const QByteArray endpointRead();

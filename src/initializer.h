@@ -11,7 +11,7 @@ namespace Etherwall {
         Q_OBJECT
     public:
         explicit Initializer(QObject *parent = nullptr);
-        void start();
+        Q_INVOKABLE void start();
     signals:
         void initDone(const QString& version, const QString& endpoint, const QString& warning) const;
     private slots:

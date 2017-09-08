@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     engine.rootContext()->setContextProperty("settings", &settings);
+    engine.rootContext()->setContextProperty("initializer", &initializer);
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("trezor", &trezor);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);

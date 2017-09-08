@@ -19,6 +19,7 @@ namespace Etherwall {
         const QByteArray data = QJsonDocument(objectJson).toJson();
 
         EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
+        EtherLog::logMsg("Connecting to main Etherwall server", LS_Info);
 
         fNetManager.post(request, data);
     }

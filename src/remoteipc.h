@@ -18,14 +18,13 @@ namespace Etherwall {
         virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
         virtual bool isThinClient() const;
 
-        Q_INVOKABLE virtual void init();
         Q_INVOKABLE virtual bool closeApp();
         Q_INVOKABLE virtual void setInterval(int interval);
     public slots:
         virtual void start(const QString &version, const QString &endpoint, const QString &warning);
     protected slots:
         // override
-        virtual void connectedToServer();
+        virtual void finishInit();
         virtual bool endpointWritable();
         virtual qint64 endpointWrite(const QByteArray& data);
         virtual const QByteArray endpointRead();

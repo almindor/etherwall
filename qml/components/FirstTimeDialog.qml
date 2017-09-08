@@ -136,8 +136,8 @@ Window {
 
                 onClicked: {
                     done = true
-                    ipc.init();
                     settings.setValue("program/v2firstrun", new Date())
+                    initializer.start();
 
                     ftWindow.close()
                 }

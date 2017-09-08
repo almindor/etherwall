@@ -88,15 +88,20 @@ namespace Etherwall {
 
         const QSettings settings;
 
-        connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);
+        connect(&fTimer, &QTimer::timeout, this, &EtherIPC::onTimer);        
     }
 
     EtherIPC::~EtherIPC() {
         fGeth.kill();
     }
 
-    void EtherIPC::init() {
-        QStringList args = buildGethArgs(); // has to run first
+    void EtherIPC::start(const QString &version, const QString &endpoint, const QString &warning)
+    {
+        Q_UNUSED(version); // TODO
+        Q_UNUSED(endpoint);
+        Q_UNUSED(warning);
+
+        buildGethArgs(); // has to run first
 
         fConnectAttempts = 0;
         if ( fStarting <= 0 ) { // try to connect without starting geth
@@ -106,8 +111,12 @@ namespace Etherwall {
             return connectToServer();
         }
 
-        QSettings settings;
+        init();
+    }
 
+    void EtherIPC::init() {
+        QSettings settings;       
+        QStringList args = buildGethArgs(); // has to run first
         const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
 
         QFileInfo info(progStr);
@@ -131,7 +140,9 @@ namespace Etherwall {
             return;
         }
 
+        // didn't connect to geth in time, run it now
         if ( fStarting == 1 ) {
+            fSocket.abort(); // ensure we don't get connected called later
             return init();
         }
 
@@ -170,17 +181,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::connectedToServer() {
-        if ( fStarting > 2 ) {
-            return;
-        }
-
         done();
-
-        getClientVersion();
-        getBlockNumber();
-        newBlockFilter();
-        getSyncing();
-        getNetVersion();
 
         if ( fStarting == 1 ) {
             fExternal = true;
@@ -188,7 +189,9 @@ namespace Etherwall {
             fGethLog.append("Attached to external geth, see logs in terminal window.");
         }
         fStarting = 3;
+
         EtherLog::logMsg("Connected to IPC socket");
+        finishInit();
     }
 
     void EtherIPC::connectionTimeout() {
@@ -709,6 +712,15 @@ namespace Etherwall {
         return args;
     }
 
+    void EtherIPC::finishInit()
+    {
+        getClientVersion();
+        getBlockNumber();
+        newBlockFilter();
+        getSyncing();
+        getNetVersion();
+    }
+
     void EtherIPC::estimateGas(const QString& from, const QString& to, const QString& valStr,
                                    const QString& gas, const QString& gasPrice, const QString& data) {
         const QString valHex = Helpers::toHexWeiStr(valStr);
@@ -1034,15 +1046,6 @@ namespace Etherwall {
         if ( !queueRequest(RequestIPC(GetTransactionReceipt, "eth_getTransactionReceipt", params)) ) {
             return bail();
         }
-    }
-
-    void EtherIPC::start(const QString &version, const QString &endpoint, const QString &warning)
-    {
-        Q_UNUSED(version); // TODO
-        Q_UNUSED(endpoint);
-        Q_UNUSED(warning);
-
-        init();
     }
 
     void EtherIPC::handleGetTransactionReceipt() {

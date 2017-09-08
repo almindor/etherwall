@@ -6,23 +6,12 @@ namespace Etherwall {
 
     RemoteIPC::RemoteIPC(GethLog& gethLog) :
         EtherIPC(gethLog),
-        fWebSocket("http://localhost"), fNetManager(this), fEndpoint(), fReceivedMessage()
+        fWebSocket("http://localhost"), fEndpoint(), fReceivedMessage()
     {
         QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &RemoteIPC::onDisconnectedWS);
         QObject::connect(&fWebSocket, &QWebSocket::connected, this, &RemoteIPC::onConnectedWS);
         QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &RemoteIPC::onErrorWS);
         QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &RemoteIPC::onTextMessageReceivedWS);
-
-        QObject::connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
-
-        // get node
-        QNetworkRequest request(QUrl("https://data.etherwall.com/api/init"));
-        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-        QJsonObject objectJson;
-        const QByteArray data = QJsonDocument(objectJson).toJson();
-
-        EtherLog::logMsg("HTTP Post request: " + data, LS_Debug);
-        fNetManager.post(request, data);
 
         const QSettings settings;
         fIsThinClient = settings.value("geth/thinclient", true).toBool();
@@ -69,6 +58,14 @@ namespace Etherwall {
     {
         Q_UNUSED(interval); // remote enforced to 10s
         fTimer.setInterval(10000);
+    }
+
+    void RemoteIPC::start(const QString &version, const QString &endpoint, const QString &warning)
+    {
+        Q_UNUSED(version); // TODO
+        Q_UNUSED(warning);
+        fEndpoint = endpoint;
+        EtherIPC::start(version, endpoint, warning);
     }
 
     void RemoteIPC::connectedToServer()
@@ -153,20 +150,6 @@ namespace Etherwall {
     {
         fReceivedMessage = msg.toUtf8();
         onSocketReadyRead();
-    }
-
-    void RemoteIPC::httpRequestDone(QNetworkReply *reply)
-    {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply);
-        const bool success = resObj.value("success").toBool();
-
-        if ( !success ) {
-            const QString error = resObj.value("error").toString("unknown error");
-            return EtherLog::logMsg("Response error: " + error, LS_Error);
-        }
-        const QJsonValue rv = resObj.value("endpoint");
-        fEndpoint = rv.toString("invalid");
-        connectWebsocket();
     }
 
     bool RemoteIPC::isRemoteRequest() const

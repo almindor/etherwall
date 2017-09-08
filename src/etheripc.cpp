@@ -1036,6 +1036,15 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::start(const QString &version, const QString &endpoint, const QString &warning)
+    {
+        Q_UNUSED(version); // TODO
+        Q_UNUSED(endpoint);
+        Q_UNUSED(warning);
+
+        init();
+    }
+
     void EtherIPC::handleGetTransactionReceipt() {
         QJsonValue jv;
         if ( !readReply(jv) ) {

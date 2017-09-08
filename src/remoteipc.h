@@ -21,6 +21,8 @@ namespace Etherwall {
         Q_INVOKABLE virtual void init();
         Q_INVOKABLE virtual bool closeApp();
         Q_INVOKABLE virtual void setInterval(int interval);
+    public slots:
+        virtual void start(const QString &version, const QString &endpoint, const QString &warning);
     protected slots:
         // override
         virtual void connectedToServer();
@@ -33,12 +35,10 @@ namespace Etherwall {
         void onDisconnectedWS();
         void onErrorWS(QAbstractSocket::SocketError error);
         void onTextMessageReceivedWS(const QString& msg);
-        void httpRequestDone(QNetworkReply *reply);
     signals:
         void thinClientChanged();
     private:
         QWebSocket fWebSocket;
-        QNetworkAccessManager fNetManager;
         QString fEndpoint;
         QByteArray fReceivedMessage;
         bool fIsThinClient;

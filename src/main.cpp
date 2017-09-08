@@ -31,6 +31,7 @@
 #include "etherlog.h"
 #include "settings.h"
 #include "clipboard.h"
+#include "initializer.h"
 #include "accountmodel.h"
 #include "accountproxymodel.h"
 #include "transactionmodel.h"
@@ -84,6 +85,7 @@ int main(int argc, char *argv[])
     const QSslCertificate certificate(EtherWall_Cert.toUtf8());
     QSslSocket::addDefaultCaCertificate(certificate);
 
+    Initializer initializer;
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
     RemoteIPC ipc(gethLog);
@@ -95,6 +97,7 @@ int main(int argc, char *argv[])
     EventModel eventModel(contractModel, filterModel);
 
     // main connections
+    QObject::connect(&initializer, &Initializer::initDone, &ipc, &RemoteIPC::start);
     QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
     QObject::connect(&deviceManager, &DeviceManager::deviceInserted, &trezor, &Trezor::TrezorDevice::onDeviceInserted);
     QObject::connect(&deviceManager, &DeviceManager::deviceRemoved, &trezor, &Trezor::TrezorDevice::onDeviceRemoved);
@@ -122,9 +125,8 @@ int main(int argc, char *argv[])
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     if ( settings.contains("program/v2firstrun") ) {
-        ipc.init();
-    } else {
         settings.remove("geth/testnet"); // cannot be set from before in the firstrun, not compatible with thin client
+        initializer.start();
     }
 
     return app.exec();

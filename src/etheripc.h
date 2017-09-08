@@ -127,6 +127,8 @@ namespace Etherwall {
         Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
                                      const QString& gas, const QString& gasPrice, const QString& data);
         Q_INVOKABLE void getTransactionReceipt(const QString& hash);
+    public slots:
+        virtual void start(const QString& version, const QString& endpoint, const QString& warning);
     protected slots:
         void waitConnect();
         void connectToServer();

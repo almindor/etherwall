@@ -89,6 +89,7 @@ namespace Etherwall {
         Q_PROPERTY(quint64 highestBlock READ getHighestBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 startingBlock READ getStartingBlock NOTIFY syncingChanged)
         Q_PROPERTY(quint64 blockNumber MEMBER fBlockNumber NOTIFY getBlockNumberDone)
+        Q_PROPERTY(QString activeRequestName READ getActiveRequestName NOTIFY requestChanged)
     public:
         EtherIPC(GethLog& gethLog);
         virtual ~EtherIPC();
@@ -157,6 +158,7 @@ namespace Etherwall {
         void accountBalanceChanged(int index, const QString& balanceStr) const;
         void accountSentTransChanged(int index, quint64 count) const;
         void busyChanged(bool busy) const;
+        void requestChanged() const;
         void externalChanged(bool external) const;
         void startingChanged(bool starting) const;
         void syncingChanged(bool syncing) const;
@@ -260,6 +262,7 @@ namespace Etherwall {
         bool readReply(QJsonValue& result);
         bool readVin(BigInt::Vin& result);
         bool readNumber(quint64& result);
+        const QString getActiveRequestName() const;
         const QString toDecStr(const QJsonValue& jv) const;
     };
 

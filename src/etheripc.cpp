@@ -1182,6 +1182,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::done() {
+        emit requestChanged();
         fActiveRequest = RequestIPC(None);
         if ( !fRequestQueue.isEmpty() ) {
             const RequestIPC request = fRequestQueue.dequeue();
@@ -1204,6 +1205,7 @@ namespace Etherwall {
 
     bool EtherIPC::queueRequest(const RequestIPC& request) {
         if ( fActiveRequest.burden() == None ) {
+            emit requestChanged();
             return writeRequest(request);
         } else {
             fRequestQueue.enqueue(request);
@@ -1329,6 +1331,11 @@ namespace Etherwall {
 
         result = r.toUlong();
         return true;
+    }
+
+    const QString EtherIPC::getActiveRequestName() const
+    {
+        return fActiveRequest.getMethod();
     }
 
     void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {

@@ -92,6 +92,16 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: initializer
+
+        onInitDone: {
+            if (warning && warning.length) {
+                badge.show(warning)
+            }
+        }
+    }
+
     // Trezor main connections
     Connections {
         target: trezor

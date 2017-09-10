@@ -12,12 +12,17 @@ namespace Etherwall {
     public:
         explicit Initializer(QObject *parent = nullptr);
         Q_INVOKABLE void start();
+        Q_INVOKABLE void proceed();
     signals:
         void initDone(const QString& version, const QString& endpoint, const QString& warning) const;
+        void warning(const QString& version, const QString& endpoint, const QString& warning) const;
     private slots:
         void httpRequestDone(QNetworkReply *reply);
     private:
         QNetworkAccessManager fNetManager;
+        QString fVersion;
+        QString fEndpoint;
+        QString fWarning;
     };
 
 }

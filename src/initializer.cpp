@@ -24,6 +24,11 @@ namespace Etherwall {
         fNetManager.post(request, data);
     }
 
+    void Initializer::proceed()
+    {
+        emit initDone(fVersion, fEndpoint, fWarning);
+    }
+
     void Initializer::httpRequestDone(QNetworkReply *reply)
     {
         QJsonObject resObj = Helpers::parseHTTPReply(reply);
@@ -36,11 +41,15 @@ namespace Etherwall {
             return;
         }
 
-        const QString version = resObj.value("version").toString("0.0.0");
-        const QString endpoint = resObj.value("endpoint").toString();
-        const QString warning = resObj.value("warning").toString();
+        fVersion = resObj.value("version").toString("0.0.0");
+        fEndpoint = resObj.value("endpoint").toString();
+        fWarning = resObj.value("warning").toString();
 
-        emit initDone(version, endpoint, warning);
+        if ( fWarning.isEmpty() ) {
+            proceed();
+        } else {
+            emit warning(fVersion, fEndpoint, fWarning);
+        }
     }
 
 }

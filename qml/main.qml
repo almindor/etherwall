@@ -95,10 +95,19 @@ ApplicationWindow {
     Connections {
         target: initializer
 
-        onInitDone: {
+        onWarning: {
             if (warning && warning.length) {
-                badge.show(warning)
+                warningDialog.msg = warning
+                warningDialog.open()
             }
+        }
+    }
+
+    Connections {
+        target: ipc
+        onError: {
+            errorDialog.msg = ipc.error
+            errorDialog.open()
         }
     }
 
@@ -257,19 +266,20 @@ ApplicationWindow {
     ErrorDialog {
         id: errorDialog
         width: 5 * dpi
+    }
 
-        Connections {
-            target: ipc
-            onError: {
-                errorDialog.msg = ipc.error
-                errorDialog.open()
-            }
-        }
+    ErrorDialog {
+        id: warningDialog
+        width: 5 * dpi
+        title: qsTr("Warning")
+
+        onAccepted: initializer.proceed()
     }
 
     ErrorDialog {
         id: versionDialog
         width: 5 * dpi
+        title: qsTr("New version available")
     }
 
     function showBadge(val) {

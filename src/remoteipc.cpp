@@ -115,6 +115,7 @@ namespace Etherwall {
 
     void RemoteIPC::onConnectedWS()
     {
+        EtherLog::logMsg("Connected to WS endpoint", LS_Info);
         // if IPC is connected at this stage continue with init
         if ( fSocket.state() == QLocalSocket::ConnectedState ) {
             EtherIPC::finishInit();

@@ -65,8 +65,8 @@ namespace Etherwall {
 
     void RemoteIPC::finishInit()
     {
-        // hold off until WS is done too
-        if ( fWebSocket.state() == QAbstractSocket::ConnectedState ) {
+        // hold off until WS is done too if remote
+        if ( !fIsThinClient || fWebSocket.state() == QAbstractSocket::ConnectedState ) {
             EtherIPC::finishInit();
         }
     }

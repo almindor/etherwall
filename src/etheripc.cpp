@@ -649,7 +649,6 @@ namespace Etherwall {
         }
 
         const QString decStr = Helpers::toDecStrEther(jv);
-
         emit getGasPriceDone(decStr);
         done();
     }
@@ -1159,7 +1158,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::bail(bool soft) {
-        qDebug() << "BAIL[" << soft << "]: " << fError << "\n";
+        EtherLog::logMsg("bail[" + (soft ? QString("soft") : QString("hard")) + "]: " + fError, LS_Error);
 
         if ( !soft ) {
             fTimer.stop();

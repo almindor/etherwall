@@ -3,11 +3,13 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
 
 Item {
+    id: contentOwner
     anchors.fill: parent
 
     signal done
     signal contractReady(string encoded, bool constant, int callIndex, bool next)
     signal contractError
+    signal refresh
     property bool functionIsConstant : false
     property int functionCallIndex : -1
     property int contractIndex : -1
@@ -59,9 +61,10 @@ Item {
                         return;
                     }
 
-                    argsView.params = []
                     argsView.model = contractModel.getArguments(contractIndex, functionField.currentText)
+                    argsView.params = []
                     contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
+                    contentOwner.refresh()
                 }
 
                 onCurrentIndexChanged: refresh()
@@ -110,12 +113,19 @@ Item {
                 }
 
                 ComboBox {
+                    id: boolField
                     visible: modelData.type === "bool"
                     width: mainColumn.width - 2.5 * dpi
                     editable: false
                     model: ListModel {
+                        ListElement { text: "" }
                         ListElement { text: "true" }
                         ListElement { text: "false" }
+                    }
+
+                    Connections {
+                        target: contentOwner
+                        onRefresh: boolField.currentIndex = 0
                     }
 
                     onCurrentIndexChanged: {
@@ -130,6 +140,11 @@ Item {
                     visible: modelData.type !== "bool"
                     width: mainColumn.width - 2.5 * dpi
                     placeholderText: modelData.placeholder
+
+                    Connections {
+                        target: contentOwner
+                        onRefresh: valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                    }
 
                     onTextChanged: {
                         if ( !visible || contractIndex < 0 ) return;

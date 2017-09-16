@@ -659,6 +659,7 @@ namespace Etherwall {
 
     void EtherIPC::ipcReady()
     {
+        EtherLog::logMsg("IPC ready, initializing poller", LS_Info);
         const QSettings settings;
         setInterval(settings.value("ipc/interval", 10).toInt() * 1000); // re-set here, used for inheritance purposes
         fTimer.start(); // should happen after filter creation, might need to move into last filter response handler
@@ -1146,7 +1147,6 @@ namespace Etherwall {
         }
 
         const bool result = jv.toBool(false);
-        qDebug() << "unlock account: " << result << "\n";
 
         if ( !result ) {
             setError("Unlock account failure");

@@ -2,7 +2,6 @@
 #include "etherlog.h"
 #include "ethereum/keccak.h"
 #include <QJsonParseError>
-#include <QCryptographicHash>
 #include <QBitArray>
 #include <QDataStream>
 #include <QSettings>
@@ -200,10 +199,7 @@ namespace Etherwall {
         }
 
         const QByteArray byteAddress = address.toUtf8();
-        u8* inData = (u8*) byteAddress.data();
-        u8 outData[32];
-        FIPS202_KECCAK_256(inData, byteAddress.size(), outData);
-        const QByteArray hashed = QByteArray((char*)outData, 32);
+        const QByteArray hashed = keccak256(byteAddress);
         const QString hashStr = QString(hashed.toHex());
 
         QString result = "";
@@ -515,6 +511,14 @@ namespace Etherwall {
             if ( !testnet.cd("keystore") ) throw QString("Unable to reach testnet keystore");;
             importAddresses(testnetData, testnet);
         }
+    }
+
+    const QByteArray Helpers::keccak256(const QByteArray &source)
+    {
+        u8* inData = (u8*) source.data();
+        u8 outData[32];
+        FIPS202_KECCAK_256(inData, source.size(), outData);
+        return QByteArray((char*)outData, 32);
     }
 
     // ***************************** QmlHelpers ***************************** //

@@ -2,7 +2,6 @@
 #define CONTRACTINFO_H
 
 #include <QVariant>
-#include <QCryptographicHash>
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QJsonObject>

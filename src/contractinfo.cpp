@@ -2,6 +2,7 @@
 #include <QRegExp>
 #include <QDebug>
 #include "helpers.h"
+#include "etherlog.h"
 
 namespace Etherwall {
 
@@ -474,7 +475,7 @@ namespace Etherwall {
         }
 
         fSignature = buildSignature();
-        fMethodID = QString(QCryptographicHash::hash(fSignature.toUtf8(), QCryptographicHash::Sha3_256).left(4).toHex());
+        fMethodID = QString(Helpers::keccak256(fSignature.toUtf8()).left(4).toHex());
     }
 
     const QString ContractCallable::getArgLiteral(const QJsonValue& arg) const {
@@ -567,7 +568,7 @@ namespace Etherwall {
     // ***************************** ContractEvent ***************************** //
 
     ContractEvent::ContractEvent(const QJsonObject &source) : ContractCallable(source) {
-        fMethodID = QString(QCryptographicHash::hash(fSignature.toUtf8(), QCryptographicHash::Sha3_256).left(32).toHex());
+        fMethodID = QString(Helpers::keccak256(fSignature.toUtf8()).toHex());
     }
 
     // ***************************** ContractFunction ***************************** //
@@ -617,6 +618,11 @@ namespace Etherwall {
         }
 
         QVariantList results;
+        if ( prepared.size() == 0 ) {
+            EtherLog::logMsg("Invalid result received", LS_Warning);
+            return results;
+        }
+
         int offset = 0;
         foreach ( const ContractArg arg, fReturns ) {
             QString raw;

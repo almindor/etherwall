@@ -25,7 +25,6 @@
 #include <QTimer>
 #include <QJsonDocument>
 #include <QApplication>
-#include <QCryptographicHash>
 #include <QDir>
 #include <QDebug>
 

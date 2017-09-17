@@ -41,6 +41,7 @@ namespace Etherwall {
         static void importAddresses(QByteArray& data, const QDir& keystore);
         static const QByteArray createBackup(const QDir& keystore, int& exported);
         static void restoreBackup(QByteArray& data, const QDir& keystore);
+        static const QByteArray keccak256(const QByteArray& source);
     };
 
     class QmlHelpers : public QObject

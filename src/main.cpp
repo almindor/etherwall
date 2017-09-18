@@ -126,7 +126,6 @@ int main(int argc, char *argv[])
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 
     if ( settings.contains("program/v2firstrun") ) {
-        settings.remove("geth/testnet"); // cannot be set from before in the firstrun, not compatible with thin client
         initializer.start();
     }
 

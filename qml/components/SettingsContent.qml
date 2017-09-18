@@ -161,13 +161,6 @@ TabView {
                 }
             }
 
-            // TODO: rename to infodialog
-            ErrorDialog {
-                id: confirmDialogTestnet
-                title: qsTr("Warning")
-                msg: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
-            }
-
             Row {
                 id: rowGethArgs
                 width: parent.width
@@ -200,6 +193,13 @@ TabView {
             Label {
                 visible: ipc.thinClient
                 text: qsTr("Advanced settings only available in full node mode")
+            }
+
+            // TODO: rename to infodialog
+            ErrorDialog {
+                id: confirmDialogTestnet
+                title: qsTr("Warning")
+                msg: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
             }
 
             Row {

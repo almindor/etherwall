@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("2.0.6");
+    QCoreApplication::setApplicationVersion("2.0.7");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;

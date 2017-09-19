@@ -134,6 +134,29 @@ Window {
             }
         }
 
+        Row {
+            Label {
+                text: qsTr("Status: ")
+                width: 1 * dpi
+            }
+
+            TextField {
+                id: errorField
+                width: mainColumn.width - 1 * dpi
+                readOnly: true
+
+                style: TextFieldStyle {
+                    textColor: "black"
+                    background: Rectangle {
+                        radius: 2
+                        border.color: errorField.text !== qsTr("Ready") ? "red" : "green"
+                        border.width: 1
+                    }
+                }
+            }
+
+        }
+
         Button {
             id: saveButton
             width: parent.width
@@ -185,6 +208,12 @@ Window {
                     return result
                 }
 
+                var trimmed = (abiField.text || '').trim()
+                if ( !trimmed || !trimmed.length ) {
+                    result.error = 'JSON interface not specified'
+                    return result
+                }
+
                 try {
                     var parsed = JSON.parse(abiField.text)
                     if ( !parsed || !parsed.length ) {
@@ -204,9 +233,12 @@ Window {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
+                    errorField.text = result.error
                     tooltip = result.error
                     saveIcon.source = "/images/warning"
                     return result
+                } else {
+                    errorField.text = qsTr("Ready")
                 }
 
                 saveIcon.source = "/images/ok"

@@ -81,7 +81,7 @@ Item {
             visible: errorText.length > 0
 
             Label {
-                text: qsTr("Error: ")
+                text: qsTr("Status: ")
                 width: 1 * dpi
             }
 
@@ -94,7 +94,7 @@ Item {
                     textColor: "black"
                     background: Rectangle {
                         radius: 2
-                        border.color: "red"
+                        border.color: errorText.text !== qsTr("Ready") ? "red" : "green"
                         border.width: 1
                     }
                 }
@@ -174,7 +174,7 @@ Item {
                 if ( result.error !== null ) {
                     errorText.text = result.error
                 } else {
-                    errorText.text = ""
+                    errorText.text = qsTr("Ready")
                 }
             }
 

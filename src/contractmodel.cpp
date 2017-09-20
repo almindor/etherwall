@@ -50,6 +50,7 @@ namespace Etherwall {
         roles[ContractNameRole] = "name";
         roles[AddressRole] = "address";
         roles[TokenRole] = "token";
+        roles[DecimalsRole] = "decimals";
         roles[ABIRole] = "abi";
 
         return roles;
@@ -111,8 +112,8 @@ namespace Etherwall {
         fList.append(info);
         endInsertRows();
 
-        if ( info.needsSymbolLoad() ) {
-            loadTokenSymbol(info, fList.size() - 1);
+        if ( info.needsERC20Init() ) {
+            loadERC20Data(info, fList.size() - 1);
         }
 
         return true;
@@ -303,8 +304,8 @@ namespace Etherwall {
                 EtherLog::logMsg("Error parsing stored contract: " + parseError.errorString(), LS_Error);
             } else {
                 const ContractInfo info(jsonDoc.object());
-                if ( info.needsSymbolLoad() ) {
-                    loadTokenSymbol(info, index);
+                if ( info.needsERC20Init() ) {
+                    loadERC20Data(info, index);
                 }
                 fList.append(info);
                 index++;
@@ -348,43 +349,48 @@ namespace Etherwall {
 
     void ContractModel::onCallDone(const QString &result, int index)
     {
-        int origIndex = index;
-        if ( index == -9999999 ) {
-            index = 0;
-        } else if ( index < 0 ) {
-            index = -index;
+        int actualIndex;
+        if ( index <= -10000 ) {
+            actualIndex = (index * -1) - 10000;
+        } else if ( index <= 1000 ) {
+            actualIndex = (index * -1) - 1000;
         } else {
             return; // not internal
         }
 
-        if ( index < 0 || index >= fList.size() ) {
-            EtherLog::logMsg("Invalid call index for token contract symbol load: " + QString::number(origIndex), LS_Error);
+        if ( actualIndex < 0 || actualIndex >= fList.size() ) {
+            EtherLog::logMsg("Invalid call index for token contract symbol load: " + QString::number(index), LS_Error);
             return;
         }
 
-        fList[index].loadSymbolData(result);
+        if ( index <= -10000 ) {
+            fList[actualIndex].loadDecimalsData(result);
+        } else if ( index <= -1000 ) {
+            fList[actualIndex].loadSymbolData(result);
+        } else {
+            EtherLog::logMsg("Invalid index type", LS_Error); // redundant
+        }
 
-        const ContractInfo info = fList.at(index);
+        const ContractInfo info = fList.at(actualIndex);
         QSettings settings;
         const QString lowerAddr = info.address().toLower();
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         settings.setValue(lowerAddr, info.toJsonString());
         settings.endGroup();
 
-        emit dataChanged(QAbstractListModel::createIndex(index, 0), QAbstractListModel::createIndex(index, 0));
+        emit dataChanged(QAbstractListModel::createIndex(actualIndex, 0), QAbstractListModel::createIndex(actualIndex, 0));
     }
 
-    void ContractModel::loadTokenSymbol(const ContractInfo &contract, int index) const
+    void ContractModel::loadERC20Data(const ContractInfo &contract, int index) const
     {
-        if ( index == 0 ) {
-            index = -9999999;
-        }
-        if ( index > 0 ) {
-            index = -index; // we use negative index for internal calls
-        }
-
-        Ethereum::Tx tx(QString(), contract.address(), QString(), 0, QString(), QString(), contract.symbolCallData());
-        fIpc.call(tx, index);
+        // symbol
+        int symbolIndex = -1000 - index;
+        Ethereum::Tx txSymbol(QString(), contract.address(), QString(), 0, QString(), QString(), contract.symbolCallData());
+        fIpc.call(txSymbol, symbolIndex);
+        // decimals
+        int decimalsIndex = -10000 - index;
+        Ethereum::Tx txDecimals(QString(), contract.address(), QString(), 0, QString(), QString(), contract.decimalsCallData());
+        fIpc.call(txDecimals, decimalsIndex);
     }
 
 }

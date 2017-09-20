@@ -76,7 +76,7 @@ namespace Etherwall {
         void onCallDone(const QString& result, int index);
     private:
         const QString getPostfix() const;
-        void loadTokenSymbol(const ContractInfo& contract, int index) const;
+        void loadERC20Data(const ContractInfo& contract, int index) const;
 
         ContractList fList;
         EtherIPC& fIpc;

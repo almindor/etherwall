@@ -201,6 +201,7 @@ namespace Etherwall {
         ContractNameRole = Qt::UserRole + 1,
         AddressRole,
         TokenRole,
+        DecimalsRole,
         ABIRole
     };
 
@@ -223,9 +224,12 @@ namespace Etherwall {
         const ContractFunction function(int index) const;
         void processEvent(EventInfo& info) const;
         const QString token() const;
-        bool needsSymbolLoad() const;
+        quint8 decimals() const;
+        bool needsERC20Init() const;
         const QString symbolCallData() const;
+        const QString decimalsCallData() const;
         void loadSymbolData(const QString& data);
+        void loadDecimalsData(const QString& data);
     private:
         void parse();
 
@@ -235,9 +239,12 @@ namespace Etherwall {
         ContractFunctionList fFunctions;
         ContractEventList fEvents;
         QString fToken;
+        quint8 fDecimals;
+        bool fIsERC20;
 
         const ContractFunction getSymbolFunction() const;
-        void checkERC20Compatibility();
+        const ContractFunction getDecimalsFunction() const;
+        bool checkERC20Compatibility();
     };
 
     typedef QList<ContractInfo> ContractList;

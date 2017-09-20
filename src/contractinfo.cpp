@@ -729,7 +729,7 @@ namespace Etherwall {
         fName(name), fAddress(Helpers::vitalizeAddress(address)), fABI(abi), fFunctions()
     {
         parse();
-        checkERC20Compatibility();
+        fIsERC20 = checkERC20Compatibility();
     }
 
     ContractInfo::ContractInfo(const QJsonObject &source) {
@@ -738,10 +738,13 @@ namespace Etherwall {
         fABI = source.value("abi").toArray();
         fFunctions = ContractFunctionList();
         fToken = source.value("token").toString();
+        fDecimals = source.value("decimals").toInt(0);
 
         parse();
         if ( !source.contains("erc20") ) {
-            checkERC20Compatibility();
+            fIsERC20 = checkERC20Compatibility();
+        } else {
+            fIsERC20 = true;
         }
     }
 
@@ -750,6 +753,7 @@ namespace Etherwall {
             case ContractNameRole: return QVariant(fName);
             case AddressRole: return QVariant(fAddress);
             case TokenRole: return QVariant(fToken);
+            case DecimalsRole: return QVariant(fDecimals);
             case ABIRole: return QVariant(QString(QJsonDocument(fABI).toJson()));
         }
 
@@ -762,7 +766,8 @@ namespace Etherwall {
         result["address"] = fAddress;
         result["abi"] = fABI;
         result["token"] = fToken;
-        result["erc20"] = !fToken.isEmpty();
+        result["decimals"] = fDecimals;
+        result["erc20"] = fIsERC20;
 
         return result;
     }
@@ -836,16 +841,24 @@ namespace Etherwall {
         return fToken;
     }
 
-    bool ContractInfo::needsSymbolLoad() const
+    quint8 ContractInfo::decimals() const
     {
-        return fToken == "*tba*";
+        return fDecimals;
+    }
+
+    bool ContractInfo::needsERC20Init() const
+    {
+        return fIsERC20 && ((fToken == "*tba*") || (fDecimals == 0));
     }
 
     const QString ContractInfo::symbolCallData() const
     {
         return getSymbolFunction().getMethodID();
+    }
 
-        throw QString("No symbol function found for token contract: " + fAddress);
+    const QString ContractInfo::decimalsCallData() const
+    {
+        return getDecimalsFunction().getMethodID();
     }
 
     void ContractInfo::loadSymbolData(const QString &data)
@@ -857,6 +870,21 @@ namespace Etherwall {
 
         const QVariantMap row = outputs.at(0).toMap();
         fToken = row.value("value", "invalid").toString();
+    }
+
+    void ContractInfo::loadDecimalsData(const QString &data)
+    {
+        const QVariantList outputs = getDecimalsFunction().parseResponse(data);
+        if ( outputs.size() != 1 ) {
+            throw QString("Unexpected decimals result for token contract: " + fAddress);
+        }
+
+        const QVariantMap row = outputs.at(0).toMap();
+        bool ok = false;
+        fDecimals = row.value("value", 0).toInt(&ok);
+        if ( !ok ) {
+            throw QString("Invalid decimals result: " + row.value("value").toString() + " for token contract: " + fAddress);
+        }
     }
 
     void ContractInfo::parse() {
@@ -891,16 +919,29 @@ namespace Etherwall {
         throw QString("Symbol function not found for token contract");
     }
 
-    void ContractInfo::checkERC20Compatibility()
+    const ContractFunction ContractInfo::getDecimalsFunction() const
+    {
+        foreach ( const ContractFunction& func, fFunctions ) {
+            const QString funcName = func.getName();
+            if ( funcName == "decimals" && func.isConstant() ) {
+                return func;
+            }
+        }
+
+        throw QString("Decimals function not found for token contract");
+    }
+
+    bool ContractInfo::checkERC20Compatibility()
     {
         /*
          *  full erc20 has quite a lot of functions but for our wallet purpose we only check:
          *  function balanceOf(address _owner) constant returns (uint balance);
          *  function transfer(address _to, uint256 _value) returns (bool success);
          *  string public constant symbol = "SYM";
+         *  uint8 public constant decimals = 18
         */
         QJsonParseError parseError;
-        const QByteArray rawDefinition = "{\"balanceOf\":{\"constant\":true,\"inputs\":[\"address\"],\"outputs\":[\"uint256\"]},\"transfer\": {\"inputs\":[\"address\",\"uint256\"],\"outputs\":[\"bool\"]},\"symbol\":{\"constant\":true}}";
+        const QByteArray rawDefinition = "{\"balanceOf\":{\"constant\":true,\"inputs\":[\"address\"],\"outputs\":[\"uint256\"]},\"transfer\": {\"inputs\":[\"address\",\"uint256\"],\"outputs\":[\"bool\"]},\"symbol\":{\"constant\":true},\"decimals\":{\"constant\":true}}";
         QJsonObject required = QJsonDocument::fromJson(rawDefinition, &parseError).object();
         QMap<QString, bool> contains;
 
@@ -962,11 +1003,11 @@ namespace Etherwall {
 
         foreach ( const QString& function, contains.keys() ) {
             if ( !contains[function] ) {
-                return;
+                return false;
             }
         }
 
-        fToken = "*tba*"; // placeholder until eth_call finishes
+        return true;
     }
 
     // ***************************** ResultInfo ***************************** //

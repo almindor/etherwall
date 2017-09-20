@@ -941,8 +941,8 @@ namespace Etherwall {
                     }
                 }
 
-                // if def has outputs check those
-                if ( def.contains("outputs") ) {
+                // if def has outputs check those but only for constants, omisgo and other change the tx ones to voids and we don't care
+                if ( func.isConstant() && def.contains("outputs") ) {
                     const QJsonArray outputs = def.value("outputs").toArray();
                     if ( outputs.size() != func.getReturnsCount() ) {
                         continue;

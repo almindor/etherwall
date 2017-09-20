@@ -210,17 +210,12 @@ namespace Etherwall {
                 hexStr = data.left(bytes * 2).toUtf8();
             }
             const QByteArray raw = QByteArray::fromHex(hexStr.toUtf8());
-            bool isAscii = true;
-            foreach ( uchar b, raw ) {
-                if ( b < 32 || b > 126 ) {
-                    isAscii = false;
-                    break;
-                }
+            const QString utf8 = QString::fromUtf8(raw); // bytes is mostly utf-8
+
+            if ( utf8.length() > 0 ) {
+                return utf8;
             }
 
-            if ( isAscii ) {
-                return QString(raw);
-            }
             return hexStr;
        }
 

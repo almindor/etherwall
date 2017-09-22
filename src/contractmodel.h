@@ -63,12 +63,14 @@ namespace Etherwall {
         Q_INVOKABLE const QVariantList parseResponse(int callIndex, const QString& data) const;
         Q_INVOKABLE void encodeCall(int index, const QString& functionName, const QVariantList& params);
         Q_INVOKABLE void requestAbi(const QString& address);
+        Q_INVOKABLE bool callName(const QString& address, const QString& jsonAbi) const;
     signals:
         void callEncoded(const QString& encoded, bool isConstant, int callIndex) const;
         void callError(const QString& err) const;
         void newEvent(const EventInfo& info, bool isNew) const;
         void abiResult(const QString& abi) const;
         void busyChanged(bool busy) const;
+        void callNameDone(const QString& name) const;
     public slots:
         void reload();
         void onNewEvent(const QJsonObject& event, bool isNew);
@@ -77,6 +79,7 @@ namespace Etherwall {
     private:
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;
+        void onCallName(const QString& result) const;
 
         ContractList fList;
         EtherIPC& fIpc;

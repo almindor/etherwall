@@ -226,10 +226,9 @@ namespace Etherwall {
         const QString token() const;
         quint8 decimals() const;
         bool needsERC20Init() const;
-        const QString symbolCallData() const;
-        const QString decimalsCallData() const;
         void loadSymbolData(const QString& data);
         void loadDecimalsData(const QString& data);
+        void loadNameData(const QString& data);
     private:
         void parse();
 

@@ -289,6 +289,49 @@ namespace Etherwall {
         emit busyChanged(true);
     }
 
+    bool ContractModel::callName(const QString& address, const QString &abiJson) const
+    {
+        QJsonParseError parseError;
+        QJsonDocument abiDoc = QJsonDocument::fromJson(abiJson.toUtf8(), &parseError);
+        if ( parseError.error != QJsonParseError::NoError ) {
+            return false;
+        }
+
+        QJsonArray abi = abiDoc.array();
+        foreach ( const QJsonValue& val, abi ) {
+            const QJsonObject obj = val.toObject();
+            if ( !obj.contains("outputs") || !obj.contains("name") || !obj.contains("constant") ) {
+                continue;
+            }
+
+            const QString name = obj.value("name").toString("invalid");
+            if ( name != "name" ) {
+                continue;
+            }
+
+            const bool constant = obj.value("constant").toBool(false);
+            if ( !constant ) {
+                continue;
+            }
+
+            const QJsonArray outputs = obj.value("outputs").toArray();
+            if ( outputs.size() != 1 ) {
+                continue;
+            }
+            const QString outType = outputs.at(0).toObject().value("type").toString("invalid");
+            if ( outType != "string" ) { // don't allow bytes, makes thing complex and most of those don't work right!
+                continue;
+            }
+
+            int nameIndex = Helpers::encodeInternalIndex(3, 0); // name but for filler use
+            Ethereum::Tx txName(QString(), address, QString(), 0, QString(), QString(), "0x06fdde03"); // hardcoded method id for name
+            fIpc.call(txName, nameIndex);
+            return true;
+        }
+
+        return false;
+    }
+
     void ContractModel::reload() {
         QSettings settings;
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
@@ -349,53 +392,72 @@ namespace Etherwall {
 
     void ContractModel::onCallDone(const QString &result, int index)
     {
-        int actualIndex;
-        if ( index <= -10000 ) {
-            actualIndex = (index * -1) - 10000;
-        } else if ( index <= 1000 ) {
-            actualIndex = (index * -1) - 1000;
-        } else {
-            return; // not internal
+        quint8 type;
+        index = Helpers::decodeInternalIndex(index, type);
+        if ( type == 3 ) { // no need for index or other checks here
+             return onCallName(result);
         }
 
-        if ( actualIndex < 0 || actualIndex >= fList.size() ) {
+        if ( index < 0 || index >= fList.size() ) {
             EtherLog::logMsg("Invalid call index for token contract symbol load: " + QString::number(index), LS_Error);
             return;
         }
 
         try {
-            if ( index <= -10000 ) {
-                fList[actualIndex].loadDecimalsData(result);
-            } else if ( index <= -1000 ) {
-                fList[actualIndex].loadSymbolData(result);
-            } else {
-                EtherLog::logMsg("Invalid index type", LS_Error); // redundant
+            switch ( type ) {
+                case 0: fList[index].loadSymbolData(result); break;
+                case 1: fList[index].loadDecimalsData(result); break;
+                case 2: fList[index].loadNameData(result); break;
+                default: return EtherLog::logMsg("Invalid index type", LS_Error);
             }
         } catch (QString err) {
             EtherLog::logMsg("Error while loading token data: " + err, LS_Error);
             return;
         }
 
-        const ContractInfo info = fList.at(actualIndex);
+        const ContractInfo info = fList.at(index);
         QSettings settings;
         const QString lowerAddr = info.address().toLower();
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         settings.setValue(lowerAddr, info.toJsonString());
         settings.endGroup();
 
-        emit dataChanged(QAbstractListModel::createIndex(actualIndex, 0), QAbstractListModel::createIndex(actualIndex, 0));
+        emit dataChanged(QAbstractListModel::createIndex(index, 0), QAbstractListModel::createIndex(index, 0));
     }
 
     void ContractModel::loadERC20Data(const ContractInfo &contract, int index) const
     {
+        int i; // unused
+
         // symbol
-        int symbolIndex = -1000 - index;
-        Ethereum::Tx txSymbol(QString(), contract.address(), QString(), 0, QString(), QString(), contract.symbolCallData());
+        int symbolIndex = Helpers::encodeInternalIndex(0, index);
+        Ethereum::Tx txSymbol(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("symbol", i).getMethodID());
         fIpc.call(txSymbol, symbolIndex);
         // decimals
-        int decimalsIndex = -10000 - index;
-        Ethereum::Tx txDecimals(QString(), contract.address(), QString(), 0, QString(), QString(), contract.decimalsCallData());
+        int decimalsIndex = Helpers::encodeInternalIndex(1, index);
+        Ethereum::Tx txDecimals(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("decimals", i).getMethodID());
         fIpc.call(txDecimals, decimalsIndex);
+        // name if required
+        if ( contract.name().isEmpty() ) {
+            int nameIndex = Helpers::encodeInternalIndex(2, index);
+            Ethereum::Tx txName(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("name", i).getMethodID());
+            fIpc.call(txName, nameIndex);
+        }
+    }
+
+    void ContractModel::onCallName(const QString &result) const
+    {
+        ContractArg arg("name", "string");
+        QString prepared = result;
+        if ( prepared.startsWith("0x") ) {
+            prepared.remove(0, 2); // remove 0x
+        }
+
+        int dynamicOffset = arg.decodeInt(prepared.left(64), false).toUlong() * 2;
+        const QString raw = prepared.mid(dynamicOffset); // dynamic types cut off themselves
+        const QVariant decoded = arg.decode(raw);
+
+        emit callNameDone(decoded.toString());
     }
 
 }

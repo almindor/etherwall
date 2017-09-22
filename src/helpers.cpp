@@ -521,6 +521,20 @@ namespace Etherwall {
         return QByteArray((char*)outData, 32);
     }
 
+    int Helpers::encodeInternalIndex(quint8 type, int index)
+    {
+        qint32 result = index;
+        result = result | (type << 16);
+        result = -result;
+        return result;
+    }
+
+    int Helpers::decodeInternalIndex(quint32 internal, quint8& type)
+    {
+        type = (-internal >> 16);
+        return (-internal & 0x00ff);
+    }
+
     // ***************************** QmlHelpers ***************************** //
 
     QmlHelpers::QmlHelpers() : QObject(0) {

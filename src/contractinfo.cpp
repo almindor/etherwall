@@ -853,18 +853,6 @@ namespace Etherwall {
         return fIsERC20 && fToken.isEmpty();
     }
 
-    const QString ContractInfo::symbolCallData() const
-    {
-        int i;
-        return function("symbol", i).getMethodID();
-    }
-
-    const QString ContractInfo::decimalsCallData() const
-    {
-        int i;
-        return function("decimals", i).getMethodID();
-    }
-
     void ContractInfo::loadSymbolData(const QString &data)
     {
         int i;
@@ -880,7 +868,7 @@ namespace Etherwall {
     void ContractInfo::loadDecimalsData(const QString &data)
     {
         int i;
-        const QVariantList outputs = function("symbol", i).parseResponse(data);
+        const QVariantList outputs = function("decimals", i).parseResponse(data);
         if ( outputs.size() != 1 ) {
             throw QString("Unexpected decimals result for token contract: " + fAddress);
         }
@@ -891,6 +879,18 @@ namespace Etherwall {
         if ( !ok ) {
             throw QString("Invalid decimals result: " + row.value("value").toString() + " for token contract: " + fAddress);
         }
+    }
+
+    void ContractInfo::loadNameData(const QString &data)
+    {
+        int i;
+        const QVariantList outputs = function("name", i).parseResponse(data);
+        if ( outputs.size() != 1 ) {
+            throw QString("Unexpected name result for token contract: " + fAddress);
+        }
+
+        const QVariantMap row = outputs.at(0).toMap();
+        fName = row.value("value", "invalid").toString();
     }
 
     void ContractInfo::parse() {
@@ -923,7 +923,7 @@ namespace Etherwall {
          *  uint8 public constant decimals = 18
         */
         QJsonParseError parseError;
-        const QByteArray rawDefinition = "{\"balanceOf\":{\"constant\":true,\"inputs\":[\"address\"],\"outputs\":[\"uint256\"]},\"transfer\": {\"inputs\":[\"address\",\"uint256\"],\"outputs\":[\"bool\"]},\"symbol\":{\"constant\":true},\"decimals\":{\"constant\":true}}";
+        const QByteArray rawDefinition = "{\"balanceOf\":{\"constant\":true,\"inputs\":[\"address\"],\"outputs\":[\"uint256\"]},\"transfer\": {\"inputs\":[\"address\",\"uint256\"],\"outputs\":[\"bool\"]},\"symbol\":{\"constant\":true},\"decimals\":{\"constant\":true},\"name\":{\"constant\":true}}";
         QJsonObject required = QJsonDocument::fromJson(rawDefinition, &parseError).object();
         QMap<QString, bool> contains;
 

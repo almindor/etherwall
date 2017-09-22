@@ -72,22 +72,6 @@ Window {
         Row {
             Label {
                 width: 1 * dpi
-                text: qsTr("Name: ")
-            }
-
-            TextField {
-                id: nameField
-                width: mainColumn.width - 1 * dpi
-
-                maximumLength: 255
-
-                onTextChanged: saveButton.refresh()
-            }
-        }
-
-        Row {
-            Label {
-                width: 1 * dpi
                 text: qsTr("Address: ")
             }
 
@@ -101,11 +85,13 @@ Window {
                 maximumLength: 42
 
                 onTextChanged: {
-                    saveButton.refresh()
+                    var full = false
                     // if we have a full address on ETH main chain, we can query etherscan.io for the ABI
                     if ( text.length == 42 && !ipc.testnet ) {
                         contractModel.requestAbi(text)
+                        full = true
                     }
+                    saveButton.refresh(full)
                 }
             }
         }
@@ -129,8 +115,31 @@ Window {
 
                     onAbiResult: {
                         abiField.text = abi
+                        saveButton.refresh(true)
                     }
                 }
+            }
+        }
+
+        Row {
+            Label {
+                width: 1 * dpi
+                text: qsTr("Name: ")
+            }
+
+            TextField {
+                id: nameField
+                width: mainColumn.width - 1 * dpi
+
+                maximumLength: 255
+
+                onTextChanged: saveButton.refresh()
+            }
+
+            Connections {
+                target: contractModel
+
+                onCallNameDone: nameField.text = name
             }
         }
 
@@ -144,12 +153,13 @@ Window {
                 id: errorField
                 width: mainColumn.width - 1 * dpi
                 readOnly: true
+                property bool ready: false
 
                 style: TextFieldStyle {
                     textColor: "black"
                     background: Rectangle {
                         radius: 2
-                        border.color: errorField.text !== qsTr("Ready") ? "red" : "green"
+                        border.color: errorField.ready ? "green" : "red"
                         border.width: 1
                     }
                 }
@@ -183,7 +193,7 @@ Window {
               }
             }
 
-            function check() {
+            function check(full) {
                 var result = {
                     error: null,
                     name: null,
@@ -199,12 +209,6 @@ Window {
 
                 if ( !helpers.checkAddress(result.address) ) {
                     result.error = qsTr("Contract address invalid checksum")
-                    return result
-                }
-
-                result.name = nameField.text.trim() || ""
-                if ( result.name.length === 0 ) {
-                    result.error = qsTr("Invalid contract name")
                     return result
                 }
 
@@ -227,18 +231,30 @@ Window {
                     return result
                 }
 
+                result.name = nameField.text.trim() || ""
+                if ( result.name.length === 0 ) {
+                    // attempt to get name from contract itself if abi supports
+                    if ( full ) {
+                        contractModel.callName(result.address, result.abi)
+                    }
+                    result.error = qsTr("Invalid contract name")
+                    return result
+                }
+
                 return result;
             }
 
-            function refresh() {
-                var result = check()
+            function refresh(full) {
+                var result = check(full)
                 if ( result.error !== null ) {
                     errorField.text = result.error
                     tooltip = result.error
                     saveIcon.source = "/images/warning"
+                    errorField.ready = false
                     return result
                 } else {
                     errorField.text = qsTr("Ready")
+                    errorField.ready = true
                 }
 
                 saveIcon.source = "/images/ok"

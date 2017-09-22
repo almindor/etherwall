@@ -737,14 +737,16 @@ namespace Etherwall {
         fAddress = Helpers::vitalizeAddress(source.value("address").toString());
         fABI = source.value("abi").toArray();
         fFunctions = ContractFunctionList();
-        fToken = source.value("token").toString();
-        fDecimals = source.value("decimals").toInt(0);
 
         parse();
         if ( !source.contains("erc20") ) {
             fIsERC20 = checkERC20Compatibility();
         } else {
-            fIsERC20 = true;
+            fIsERC20 = source.value("erc20").toBool();
+            if ( fIsERC20 ) {
+                fToken = source.value("token").toString();
+                fDecimals = source.value("decimals").toInt(0);
+            }
         }
     }
 
@@ -848,22 +850,25 @@ namespace Etherwall {
 
     bool ContractInfo::needsERC20Init() const
     {
-        return fIsERC20 && ((fToken == "*tba*") || (fDecimals == 0));
+        return fIsERC20 && fToken.isEmpty();
     }
 
     const QString ContractInfo::symbolCallData() const
     {
-        return getSymbolFunction().getMethodID();
+        int i;
+        return function("symbol", i).getMethodID();
     }
 
     const QString ContractInfo::decimalsCallData() const
     {
-        return getDecimalsFunction().getMethodID();
+        int i;
+        return function("decimals", i).getMethodID();
     }
 
     void ContractInfo::loadSymbolData(const QString &data)
     {
-        const QVariantList outputs = getSymbolFunction().parseResponse(data);
+        int i;
+        const QVariantList outputs = function("symbol", i).parseResponse(data);
         if ( outputs.size() != 1 ) {
             throw QString("Unexpected symbol result for token contract: " + fAddress);
         }
@@ -874,7 +879,8 @@ namespace Etherwall {
 
     void ContractInfo::loadDecimalsData(const QString &data)
     {
-        const QVariantList outputs = getDecimalsFunction().parseResponse(data);
+        int i;
+        const QVariantList outputs = function("symbol", i).parseResponse(data);
         if ( outputs.size() != 1 ) {
             throw QString("Unexpected decimals result for token contract: " + fAddress);
         }
@@ -907,30 +913,6 @@ namespace Etherwall {
         }
     }
 
-    const ContractFunction ContractInfo::getSymbolFunction() const
-    {
-        foreach ( const ContractFunction& func, fFunctions ) {
-            const QString funcName = func.getName();
-            if ( funcName == "symbol" && func.isConstant() ) {
-                return func;
-            }
-        }
-
-        throw QString("Symbol function not found for token contract");
-    }
-
-    const ContractFunction ContractInfo::getDecimalsFunction() const
-    {
-        foreach ( const ContractFunction& func, fFunctions ) {
-            const QString funcName = func.getName();
-            if ( funcName == "decimals" && func.isConstant() ) {
-                return func;
-            }
-        }
-
-        throw QString("Decimals function not found for token contract");
-    }
-
     bool ContractInfo::checkERC20Compatibility()
     {
         /*
@@ -948,8 +930,6 @@ namespace Etherwall {
         foreach ( const QString& function, required.keys() ) {
             contains[function] = false;
         }
-
-        fToken = QString();
 
         foreach ( const ContractFunction& func, fFunctions ) {
             const QString funcName = func.getName();

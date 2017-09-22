@@ -363,12 +363,17 @@ namespace Etherwall {
             return;
         }
 
-        if ( index <= -10000 ) {
-            fList[actualIndex].loadDecimalsData(result);
-        } else if ( index <= -1000 ) {
-            fList[actualIndex].loadSymbolData(result);
-        } else {
-            EtherLog::logMsg("Invalid index type", LS_Error); // redundant
+        try {
+            if ( index <= -10000 ) {
+                fList[actualIndex].loadDecimalsData(result);
+            } else if ( index <= -1000 ) {
+                fList[actualIndex].loadSymbolData(result);
+            } else {
+                EtherLog::logMsg("Invalid index type", LS_Error); // redundant
+            }
+        } catch (QString err) {
+            EtherLog::logMsg("Error while loading token data: " + err, LS_Error);
+            return;
         }
 
         const ContractInfo info = fList.at(actualIndex);

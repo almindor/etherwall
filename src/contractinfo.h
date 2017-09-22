@@ -242,8 +242,6 @@ namespace Etherwall {
         quint8 fDecimals;
         bool fIsERC20;
 
-        const ContractFunction getSymbolFunction() const;
-        const ContractFunction getDecimalsFunction() const;
         bool checkERC20Compatibility();
     };
 

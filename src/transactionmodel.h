@@ -60,7 +60,8 @@ namespace Etherwall {
 
         Q_INVOKABLE void call(const QString& from, const QString& to,
                              const QString& value, const QString& gas,
-                             const QString& gasPrice, const QString& data, int index);
+                             const QString& gasPrice, const QString& data,
+                             int index, const QVariantMap& userData);
 
         Q_INVOKABLE const QString estimateTotal(const QString& value, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void loadHistory();

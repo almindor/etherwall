@@ -24,6 +24,7 @@ namespace Etherwall {
         static const QString toHexWeiStr(quint64 val);
         static const QString decStrToHexStr(const QString& dec);
         static const QString weiStrToEtherStr(const QString& wei);
+        static const QString baseStrToFullStr(const QString& base, quint8 decimals);
         static BigInt::Rossi decStrToRossi(const QString& dec);
         static BigInt::Rossi etherStrToRossi(const QString& dec);
         static const QString formatEtherStr(const QString& ether);
@@ -42,8 +43,6 @@ namespace Etherwall {
         static const QByteArray createBackup(const QDir& keystore, int& exported);
         static void restoreBackup(QByteArray& data, const QDir& keystore);
         static const QByteArray keccak256(const QByteArray& source);
-        static int encodeInternalIndex(quint8 type, int index);
-        static int decodeInternalIndex(quint32 internal, quint8& type);
     };
 
     class QmlHelpers : public QObject

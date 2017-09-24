@@ -22,7 +22,7 @@ namespace Etherwall {
         fWebSocket.close(); // in case we missed the app closing
     }
 
-    void RemoteIPC::getLogs(const QStringList &addresses, const QStringList &topics, quint64 fromBlock)
+    void RemoteIPC::getLogs(const QStringList &addresses, const QJsonArray &topics, quint64 fromBlock)
     {
         if ( !fIsThinClient ) {
             return EtherIPC::getLogs(addresses, topics, fromBlock);

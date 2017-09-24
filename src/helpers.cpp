@@ -86,16 +86,21 @@ namespace Etherwall {
     }
 
     const QString Helpers::weiStrToEtherStr(const QString& wei) {
-        QString weiStr = wei;
-        while ( weiStr.length() < 18 ) {
-            weiStr.insert(0, '0');
+        return baseStrToFullStr(wei, 18);
+    }
+
+    const QString Helpers::baseStrToFullStr(const QString &base, quint8 decimals)
+    {
+        QString baseStr = base;
+        while ( baseStr.length() < decimals ) {
+            baseStr.insert(0, '0');
         }
 
-        weiStr.insert(weiStr.length() - 18, '.');
-        if ( weiStr.at(0) == '.' ) {
-            weiStr.insert(0, '0');
+        baseStr.insert(baseStr.length() - decimals, '.');
+        if ( baseStr.at(0) == '.' ) {
+            baseStr.insert(0, '0');
         }
-        return weiStr;
+        return baseStr;
     }
 
     BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {
@@ -519,20 +524,6 @@ namespace Etherwall {
         u8 outData[32];
         FIPS202_KECCAK_256(inData, source.size(), outData);
         return QByteArray((char*)outData, 32);
-    }
-
-    int Helpers::encodeInternalIndex(quint8 type, int index)
-    {
-        qint32 result = index;
-        result = result | (type << 16);
-        result = -result;
-        return result;
-    }
-
-    int Helpers::decodeInternalIndex(quint32 internal, quint8& type)
-    {
-        type = (-internal >> 16);
-        return (-internal & 0x00ff);
     }
 
     // ***************************** QmlHelpers ***************************** //

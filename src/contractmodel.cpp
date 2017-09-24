@@ -186,6 +186,20 @@ namespace Etherwall {
         return -1;
     }
 
+    int ContractModel::getEventIndex(int index, const QJsonArray &topics) const
+    {
+        if ( index < 0 || index >= fList.size() ) {
+            return -1;
+        }
+
+        if ( topics.size() < 1 || topics.at(0).toString().isEmpty() ) {
+            return -1;
+        }
+
+        const QString methodID = Helpers::clearHexPrefix(topics.at(0).toString());
+        return fList.at(index).eventIndexByMethodID(methodID);
+    }
+
     const QString ContractModel::getAddress(int index) const {
         if ( index < 0 || index >= fList.size() ) {
             return QString();
@@ -208,6 +222,15 @@ namespace Etherwall {
         }
 
         return fList.at(index).functionList();
+    }
+
+    const QStringList ContractModel::getEvents(int index) const
+    {
+        if ( index < 0 || index >= fList.size() ) {
+            return QStringList();
+        }
+
+        return fList.at(index).eventList();
     }
 
     const QString ContractModel::getMethodID(int index, const QString& functionName) const {
@@ -239,17 +262,38 @@ namespace Etherwall {
         }
     }
 
-    const QVariantList ContractModel::parseResponse(int callIndex, const QString &data) const
+    const QVariantList ContractModel::getEventArguments(int index, const QString& eventName, bool indexedOnly) const
     {
-        int contractIndex = callIndex / 100000;
-        int functionIndex = callIndex - (contractIndex * 100000);
+        if ( index < 0 || index >= fList.size() ) {
+            return QVariantList();
+        }
+
+        try {
+            int eventIndex = -1;
+            return fList.at(index).event(eventName, eventIndex).getArgModel(indexedOnly);
+        } catch ( QString err ) {
+            EtherLog::logMsg(err, LS_Error);
+            emit callError(err);
+            return QVariantList();
+        }
+    }
+
+    const QVariantList ContractModel::parseResponse(int contractIndex, const QString &data, const QVariantMap& userData) const
+    {
+        if ( !userData.contains("type") || userData.value("type").toString() != "functionCall" ) {
+            EtherLog::logMsg("Invalid handler for call", LS_Error);
+            return QVariantList(); // some other call result got here sadly
+        }
+
+        bool ok = false;
+        int functionIndex = userData.value("functionIndex").toInt(&ok);
 
         if ( contractIndex < 0 || contractIndex >= fList.size() ) {
             emit callError("Invalid contract index in callIndex");
             return QVariantList();
         }
 
-        if ( functionIndex < 0 || functionIndex >= fList.at(contractIndex).functionList().size() ) {
+        if ( !ok || functionIndex < 0 || functionIndex >= fList.at(contractIndex).functionList().size() ) {
             emit callError("Invalid function index in callIndex");
             return QVariantList();
         }
@@ -261,13 +305,37 @@ namespace Etherwall {
 
     void ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) {
         try {
+            if ( index < 0 || index >= fList.size() ) {
+                throw QString("Invalid contract index");
+            }
             int funcIndex = -1;
             const ContractFunction func = fList.at(index).function(functionName, funcIndex);
-            const int callIndex = index * 100000 + funcIndex; // we need this to "parse the result" properly so we can match it to the calling contract/function when it comes back
             const QString encoded = "0x" + func.callData(params);
-            emit callEncoded(encoded, func.isConstant(), callIndex);
+            QVariantMap userData;
+            userData["functionIndex"] = QVariant(funcIndex);
+            userData["type"] = "functionCall";
+            emit callEncoded(encoded, func.isConstant(), index, userData);
         } catch ( QString err ) {
             emit callError(err);
+        }
+    }
+
+    const QString ContractModel::encodeTopics(int index, const QString &eventName, const QVariantList &params)
+    {
+        try {
+            if ( index < 0 || index >= fList.size() ) {
+                throw QString("Invalid contract index");
+            }
+            int eventIndex = -1;
+            const ContractEvent event = fList.at(index).event(eventName, eventIndex);
+            const QJsonArray topics = event.encodeTopics(params);
+            const QJsonDocument doc(topics);
+            const QString encoded = QString::fromUtf8(doc.toJson());
+
+            return encoded;
+        } catch ( QString err ) {
+            EtherLog::logMsg(err, LS_Error);
+            return QString();
         }
     }
 
@@ -323,9 +391,10 @@ namespace Etherwall {
                 continue;
             }
 
-            int nameIndex = Helpers::encodeInternalIndex(3, 0); // name but for filler use
+            QVariantMap userData;
+            userData["type"] = QVariant("nameCall");
             Ethereum::Tx txName(QString(), address, QString(), 0, QString(), QString(), "0x06fdde03"); // hardcoded method id for name
-            fIpc.call(txName, nameIndex);
+            fIpc.call(txName, 0, userData);
             return true;
         }
 
@@ -390,25 +459,45 @@ namespace Etherwall {
         emit abiResult(result);
     }
 
-    void ContractModel::onCallDone(const QString &result, int index)
+    void ContractModel::onCallDone(const QString &result, int index, const QVariantMap& userData)
     {
-        quint8 type;
-        index = Helpers::decodeInternalIndex(index, type);
-        if ( type == 3 ) { // no need for index or other checks here
-             return onCallName(result);
-        }
-
         if ( index < 0 || index >= fList.size() ) {
-            EtherLog::logMsg("Invalid call index for token contract symbol load: " + QString::number(index), LS_Error);
+            EtherLog::logMsg("Invalid contract index from call result", LS_Error);
             return;
         }
 
+        if ( !userData.contains("type") ) {
+            EtherLog::logMsg("Missing type in call result user data", LS_Error);
+            return;
+        }
+
+        const QString type = userData.value("type").toString();
+        if ( type == "nameCall" ) { // no need for index or other checks here
+            return onCallName(result);
+        } else if ( type == "balanceCall" ) { // accounts handled elsewhere
+            if ( !userData.contains("accountIndex") ) {
+                return EtherLog::logMsg("Missing account index on token balance call", LS_Error);
+            }
+            bool ok = false;
+            int accountIndex = userData.value("accountIndex").toInt(&ok);
+            if ( !ok ) {
+                return EtherLog::logMsg("Invalid account index on token balance call", LS_Error);
+            }
+            return onTokenBalance(result, index, accountIndex);
+        }
+
         try {
-            switch ( type ) {
-                case 0: fList[index].loadSymbolData(result); break;
-                case 1: fList[index].loadDecimalsData(result); break;
-                case 2: fList[index].loadNameData(result); break;
-                default: return EtherLog::logMsg("Invalid index type", LS_Error);
+            if ( type == "symbolCall" ) {
+                fList[index].loadSymbolData(result);
+            } else if ( type == "decimalsCall" ) {
+                fList[index].loadDecimalsData(result);
+            } else if ( type == "tokenNameCall" ) {
+                fList[index].loadNameData(result);
+            } else if ( type == "functionCall" ) {
+                return; // safely ignore
+            } else {
+                EtherLog::logMsg("Unknown call response type: " + type, LS_Warning);
+                return; // probably handled elsewhere
             }
         } catch (QString err) {
             EtherLog::logMsg("Error while loading token data: " + err, LS_Error);
@@ -430,18 +519,21 @@ namespace Etherwall {
         int i; // unused
 
         // symbol
-        int symbolIndex = Helpers::encodeInternalIndex(0, index);
+        QVariantMap symbolData;
+        symbolData["type"] = "symbolCall";
         Ethereum::Tx txSymbol(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("symbol", i).getMethodID());
-        fIpc.call(txSymbol, symbolIndex);
+        fIpc.call(txSymbol, index, symbolData);
         // decimals
-        int decimalsIndex = Helpers::encodeInternalIndex(1, index);
+        QVariantMap decimalsData;
+        decimalsData["type"] = "decimalsCall";
         Ethereum::Tx txDecimals(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("decimals", i).getMethodID());
-        fIpc.call(txDecimals, decimalsIndex);
+        fIpc.call(txDecimals, index, decimalsData);
         // name if required
         if ( contract.name().isEmpty() ) {
-            int nameIndex = Helpers::encodeInternalIndex(2, index);
+            QVariantMap nameData;
+            nameData["type"] = "tokenNameCall";
             Ethereum::Tx txName(QString(), contract.address(), QString(), 0, QString(), QString(), contract.function("name", i).getMethodID());
-            fIpc.call(txName, nameIndex);
+            fIpc.call(txName, index, nameData);
         }
     }
 
@@ -458,6 +550,29 @@ namespace Etherwall {
         const QVariant decoded = arg.decode(raw);
 
         emit callNameDone(decoded.toString());
+    }
+
+    void ContractModel::onTokenBalance(const QString &result, int contractIndex, int accountIndex) const
+    {
+        if ( contractIndex < 0 || contractIndex >= fList.size() ) {
+            return EtherLog::logMsg("Invalid contract index on token balance call", LS_Error);
+        }
+
+        if ( accountIndex < 0 ) { // upper bound check in accountModel
+            return EtherLog::logMsg("Invalid account index on token balance call", LS_Error);
+        }
+
+        int i;
+        QVariantList parsedSet = fList.at(contractIndex).function("balanceOf", i).parseResponse(result);
+        if ( parsedSet.size() != 1 ) {
+            return EtherLog::logMsg("Invalid response size for token balanceOf call", LS_Error);
+        }
+        const QString balanceBase = parsedSet.at(0).toString(); // in "wei" base units for token
+        // we need to get decimals for contract/token and then get the "full" units
+        const QString balanceFull = Helpers::baseStrToFullStr(balanceBase, fList.at(contractIndex).decimals());
+
+        qDebug() << "token balance done, account " << accountIndex << " balance: " << balanceFull << "\n";
+        emit tokenBalanceDone(accountIndex, balanceFull);
     }
 
 }

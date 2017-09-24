@@ -2,6 +2,7 @@
 #define CONTRACTINFO_H
 
 #include <QVariant>
+#include <QVariantList>
 #include <QAbstractListModel>
 #include <QStringList>
 #include <QJsonObject>
@@ -24,7 +25,7 @@ namespace Etherwall {
     class FilterInfo
     {
     public:
-        FilterInfo(const QString& name, const QString& address, const QString& contract, const QStringList& topics, bool active);
+        FilterInfo(const QString& name, const QString& address, const QString& contract, const QJsonArray& topics, bool active);
         FilterInfo(const QJsonObject& source);
 
         const QVariant value(const int role) const;
@@ -32,11 +33,12 @@ namespace Etherwall {
         const QString toJsonString() const;
         const QString getHandle() const;
         void setActive(bool active);
+        bool getActive() const;
     private:
         QString fName;
         QString fAddress;
         QString fContract;
-        QStringList fTopics;
+        QJsonArray fTopics;
         bool fActive;
     };
 
@@ -117,6 +119,11 @@ namespace Etherwall {
     {
     public:
         ContractEvent(const QJsonObject& source);
+
+        const QVariantList getArgModel(bool indexedOnly) const;
+        const QJsonArray encodeTopics(const QVariantList& params) const;
+    private:
+        QVariantList fArgModel;
     };
 
 
@@ -220,8 +227,11 @@ namespace Etherwall {
         const QString abi() const;
         const QJsonArray abiJson() const;
         const QStringList functionList() const;
+        const QStringList eventList() const;
         const ContractFunction function(const QString& name, int& index) const;
         const ContractFunction function(int index) const;
+        const ContractEvent event(const QString& name, int& index) const;
+        int eventIndexByMethodID(const QString& methodID) const;
         void processEvent(EventInfo& info) const;
         const QString token() const;
         quint8 decimals() const;

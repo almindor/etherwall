@@ -8,7 +8,7 @@ namespace Etherwall {
 
     // ***************************** FilterInfo ***************************** //
 
-    FilterInfo::FilterInfo(const QString& name, const QString& address, const QString& contract, const QStringList& topics, bool active) :
+    FilterInfo::FilterInfo(const QString& name, const QString& address, const QString& contract, const QJsonArray& topics, bool active) :
         fName(name), fAddress(address), fContract(contract), fTopics(topics), fActive(active)
     {
     }
@@ -17,7 +17,7 @@ namespace Etherwall {
         fName = source.value("name").toString("invalid");
         fAddress = source.value("address").toString("invalid");
         fContract = source.value("contract").toString("invalid");
-        fTopics = source.value("topics").toString("invalid").split(",");
+        fTopics = source.value("topics").toArray();
         fActive = source.value("active").toBool(false);
     }
 
@@ -37,12 +37,17 @@ namespace Etherwall {
         fActive = active;
     }
 
+    bool FilterInfo::getActive() const
+    {
+        return fActive;
+    }
+
     const QJsonObject FilterInfo::toJson() const {
         QJsonObject result;
         result["name"] = fName;
         result["address"] = fAddress;
         result["contract"] = fContract;
-        result["topics"] = fTopics.join(",");
+        result["topics"] = fTopics;
         result["active"] = fActive;
 
         return result;
@@ -564,6 +569,64 @@ namespace Etherwall {
 
     ContractEvent::ContractEvent(const QJsonObject &source) : ContractCallable(source) {
         fMethodID = QString(Helpers::keccak256(fSignature.toUtf8()).toHex());
+        fArgModel = QVariantList();
+
+        foreach ( const ContractArg carg, fArguments ) {
+            fArgModel.append(carg.toVariantMap());
+        }
+    }
+
+    const QVariantList ContractEvent::getArgModel(bool indexedOnly) const
+    {
+        if ( !indexedOnly ) {
+            return fArgModel;
+        }
+
+        QVariantList result;
+        foreach ( const ContractArg carg, fArguments ) {
+            if ( carg.indexed() ) {
+                result.append(carg.toVariantMap());
+            }
+        }
+
+        return result;
+    }
+
+    const QJsonArray ContractEvent::encodeTopics(const QVariantList &params) const
+    {
+        QJsonArray topics;
+        topics.append("0x" + fMethodID); // 0th is methodID
+
+        if ( params.size() > fArguments.size() ) {
+            EtherLog::logMsg("More params than arguments for event topic", LS_Error);
+            return topics;
+        }
+
+        int i = 0;
+        foreach ( const QVariant& param, params ) {
+            if ( param.type() == QVariant::List ) {
+                QJsonArray innerList;
+
+                foreach ( const QVariant& inner, param.toList() ) {
+                    innerList.append("0x" + fArguments.at(i).encode(inner));
+                }
+                topics.append(innerList);
+            } else {
+                if ( param.isNull() || param.toString().size() == 0 ) {
+                    topics.append(QJsonValue(QJsonValue::Null));
+                } else {
+                    topics.append("0x" + fArguments.at(i).encode(param));
+                }
+            }
+            i++;
+        }
+
+        // no need to specify nulls unless there's a non-null following them
+        while ( !topics.empty() && topics.last().isNull() ) {
+            topics.removeLast();
+        }
+
+        return topics;
     }
 
     // ***************************** ContractFunction ***************************** //
@@ -805,6 +868,16 @@ namespace Etherwall {
         return list;
     }
 
+    const QStringList ContractInfo::eventList() const {
+        QStringList list;
+
+        foreach ( ContractEvent event, fEvents ) {
+            list.append(event.getName());
+        }
+
+        return list;
+    }
+
     const ContractFunction ContractInfo::function(const QString &name, int &index) const
     {
         for ( int i = 0; i < fFunctions.size(); i++ ) {
@@ -824,6 +897,30 @@ namespace Etherwall {
         }
 
         return fFunctions.at(index);
+    }
+
+    const ContractEvent ContractInfo::event(const QString &name, int &index) const
+    {
+        for ( int i = 0; i < fEvents.size(); i++ ) {
+            if ( fEvents.at(i).getName() == name ) {
+                index = i;
+                return fEvents.at(i);
+            }
+        }
+
+        index = -1;
+        throw QString("Event " + name + " not found");
+    }
+
+    int ContractInfo::eventIndexByMethodID(const QString &methodID) const
+    {
+        for ( int i = 0; i < fEvents.size(); i++ ) {
+            if ( fEvents.at(i).getMethodID() == methodID ) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     void ContractInfo::processEvent(EventInfo& info) const {

@@ -32,6 +32,7 @@
 #include <QThread>
 #include <QProcess>
 #include <QTime>
+#include <QVariantMap>
 #include "types.h"
 #include "etherlog.h"
 #include "gethlog.h"
@@ -56,6 +57,8 @@ namespace Etherwall {
         const QString& getMethod() const;
         const QJsonArray& getParams() const;
         int getIndex() const;
+        const QVariantMap getUserData() const;
+        void setUserData(const QVariantMap& data);
         int getCallID() const;
         RequestBurden burden() const;
         static int sCallID;
@@ -65,6 +68,7 @@ namespace Etherwall {
         QString fMethod;
         QJsonArray fParams;
         int fIndex;
+        QVariantMap fUserData;
         RequestBurden fBurden;
     };
 
@@ -112,16 +116,18 @@ namespace Etherwall {
         bool refreshAccount(const QString& hash, int index);
         void newAccount(const QString& password, int index);
         void getBlockNumber();
-        void registerEventFilters(const QStringList& addresses, const QStringList& topics);
-        void loadLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
+        void loadLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock);
         void getGasPrice();
         void sendTransaction(const Ethereum::Tx& tx, const QString& password);
         void signTransaction(const Ethereum::Tx& tx, const QString& password);
         void signTransaction(const Ethereum::Tx& tx);
         void sendRawTransaction(const Ethereum::Tx& tx);
         void sendRawTransaction(const QString &rlp);
-        void call(const Ethereum::Tx& tx, int index);
+        void call(const Ethereum::Tx& tx, int index, const QVariantMap& userData);
         void getTransactionByHash(const QString& hash);
+        void newEventFilter(const QString& address, const QJsonArray& topics);
+        void uninstallFilter(const QString& filter, const QVariantMap& userData);
+        const QString getFilterIDForAddress(const QString& address);
 
         Q_INVOKABLE virtual bool closeApp();
         Q_INVOKABLE virtual void setInterval(int interval);
@@ -146,7 +152,7 @@ namespace Etherwall {
         void getBlockNumberDone(quint64 num) const;
         void sendTransactionDone(const QString& hash) const;
         void signTransactionDone(const QString& hash) const;
-        void callDone(const QString& result, int index) const;
+        void callDone(const QString& result, int index, const QVariantMap& userData) const;
         void getGasPriceDone(const QString& price) const;
         void estimateGasDone(const QString& price) const;
         void newTransaction(const TransactionInfo& info) const;
@@ -192,7 +198,7 @@ namespace Etherwall {
         int fConnectAttempts;
         QTime fKillTime;
         bool fExternal;
-        QString fEventFilterID;
+        QMap<QString, QString> fEventFilterIDs;
         quint64 fBlockNumber;
 
         void handleNewAccount();
@@ -229,7 +235,6 @@ namespace Etherwall {
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
-        const QJsonArray parseTopics(const QStringList& topics);
         void unlockAccount(const QString& hash, const QString& password, int duration, int index);
         bool getBalance(const QString& hash, int index);
         bool getTransactionCount(const QString& hash, int index);
@@ -251,9 +256,7 @@ namespace Etherwall {
         void errorOut();
         void done();
         void newBlockFilter();
-        void newEventFilter(const QStringList& addresses, const QStringList& topics);
-        void uninstallFilter(const QString& filter);
-        virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
+        virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

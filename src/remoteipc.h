@@ -15,7 +15,7 @@ namespace Etherwall {
     public:
         RemoteIPC(GethLog& gethLog);
         virtual ~RemoteIPC();
-        virtual void getLogs(const QStringList& addresses, const QStringList& topics, quint64 fromBlock);
+        virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock);
         virtual bool isThinClient() const;
 
         Q_INVOKABLE virtual bool closeApp();

@@ -154,7 +154,8 @@ namespace Etherwall {
         AliasRole,
         DeviceRole,
         DeviceTypeRole,
-        HDPathRole
+        HDPathRole,
+        TokenBalanceRole
     };
 
     class AccountInfo
@@ -165,6 +166,7 @@ namespace Etherwall {
 
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
+        void setTokenBalance(const QString& balance);
         void setTransactionCount(quint64 count);
         void lock();
         void unlock();
@@ -185,6 +187,7 @@ namespace Etherwall {
         QString fBalance; // in ether
         quint64 fTransCount;
         QString fHDPath;
+        QString fTokenBalance;
         bool fLocked;
         int fNetwork;
 

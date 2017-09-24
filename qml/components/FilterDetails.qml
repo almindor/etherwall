@@ -26,15 +26,16 @@ import QtQuick.Window 2.0
 Window {
     id: filterDetails
     title: qsTr("Watch Details")
+    signal refresh()
 
     modality: Qt.ApplicationModal
     visible: false
     minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
+    minimumHeight: 7 * dpi
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 5 * dpi
+    height: 7 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)
@@ -44,8 +45,16 @@ Window {
         if ( index >= 0 ) {
             nameField.text = filterModel.getName(index)
             contractField.currentIndex = contractModel.getIndex(filterModel.getContract(index))
+            var topics = filterModel.getTopics(index)
+            eventField.currentIndex = contractModel.getEventIndex(contractField.currentIndex, topics)
             activeField.checked = filterModel.getActive(index)
-            topicsField.text = filterModel.getTopics(index)
+            topicsField.text = JSON.stringify(topics)
+        } else {
+            nameField.text = ""
+            contractField.currentIndex = -1
+            eventField.currentIndex = -1
+            activeField.checked = true
+            topicsField.text = ""
         }
 
         show()
@@ -64,6 +73,7 @@ Window {
         spacing: 0.2 * dpi
 
         Row {
+            spacing: 0.05 * dpi
             Label {
                 width: 1 * dpi
                 text: qsTr("Name: ")
@@ -71,11 +81,24 @@ Window {
 
             TextField {
                 id: nameField
-                width: mainColumn.width - 1 * dpi
+                width: mainColumn.width - 2.3 * dpi
 
                 maximumLength: 255
 
                 onTextChanged: saveButton.refresh()
+            }
+
+            Label {
+                text: qsTr("Active: ")
+                width: 0.7 * dpi
+            }
+
+            CheckBox {
+                id: activeField
+                width: 0.2 * dpi
+                checked: true
+
+                onCheckedChanged: saveButton.refresh()
             }
         }
 
@@ -91,22 +114,98 @@ Window {
                 model: contractModel
                 textRole: "name"
 
-                onCurrentTextChanged: saveButton.refresh()
+                onCurrentIndexChanged: {
+                    eventField.refresh()
+                    saveButton.refresh()
+                }
             }
         }
 
         Row {
             Label {
-                text: qsTr("Active: ")
                 width: 1 * dpi
+                text: qsTr("Event: ")
             }
 
-            CheckBox {
-                id: activeField
+            ComboBox {
+                id: eventField
                 width: mainColumn.width - 1 * dpi
-                checked: true
+                model: contractModel.getEvents(contractField.currentIndex)
 
-                onCheckedChanged: saveButton.refresh()
+                onCurrentTextChanged: {
+                    refresh()
+                    saveButton.refresh()
+                }
+
+                function refresh() {
+                    if ( eventField.currentIndex < 0 || contractField.currentIndex < 0 || eventField.currentText.length < 1) {
+                        return;
+                    }
+
+                    argsView.model = contractModel.getEventArguments(contractField.currentIndex, eventField.currentText, true)
+                    argsView.params = []
+                    topicsField.text = contractModel.encodeTopics(contractField.currentIndex, eventField.currentText, argsView.params);
+                    filterDetails.refresh()
+                }
+            }
+        }
+
+        ListView {
+            id: argsView
+            width: parent.width
+            height: 1.5 * dpi
+            property variant params : []
+
+            delegate: Row {
+                Label {
+                    width: 2.5 * dpi
+                    text: modelData.name + "\t" + modelData.type
+                }
+
+                ComboBox {
+                    id: boolField
+                    visible: modelData.type === "bool"
+                    width: mainColumn.width - 2.5 * dpi
+                    editable: false
+                    model: ListModel {
+                        ListElement { text: "" }
+                        ListElement { text: "true" }
+                        ListElement { text: "false" }
+                    }
+
+                    Connections {
+                        target: filterDetails
+                        onRefresh: boolField.currentIndex = 0
+                    }
+
+                    onCurrentIndexChanged: {
+                        if ( !visible || currentIndex < 0 || contractField.currentIndex < 0 ) return;
+                        argsView.params[index] = currentText
+                        topicsField.text = contractModel.encodeTopics(contractField.currentIndex, boolField.currentText, argsView.params);
+                    }
+                }
+
+                TextField {
+                    id: valField
+                    visible: modelData.type !== "bool"
+                    width: mainColumn.width - 2.5 * dpi
+                    placeholderText: modelData.placeholder
+
+                    Connections {
+                        target: filterDetails
+                        onRefresh: valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                    }
+
+                    onTextChanged: {
+                        if ( !visible || contractField.currentIndex < 0 ) return;
+                        argsView.params[index] = text
+                        topicsField.text = contractModel.encodeTopics(contractField.currentIndex, eventField.currentText, argsView.params);
+                    }
+
+                    validator: RegExpValidator {
+                        regExp: modelData.valrex
+                    }
+                }
             }
         }
 
@@ -121,8 +220,7 @@ Window {
                 width: mainColumn.width - 1 * dpi
                 height: 1.0 * dpi
                 wrapMode: Text.WrapAnywhere
-
-                onTextChanged: saveButton.refresh()
+                readOnly: true
             }
         }
 

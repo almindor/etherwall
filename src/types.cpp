@@ -139,6 +139,7 @@ namespace Etherwall {
             case DeviceRole: return QVariant(fDeviceID);
             case DeviceTypeRole: return QVariant(fDeviceID == "geth" ? "" : "⊡");
             case HDPathRole: return QVariant(fHDPath);
+            case TokenBalanceRole: return QVariant(fTokenBalance);
         }
 
         return QVariant();
@@ -146,6 +147,11 @@ namespace Etherwall {
 
     void AccountInfo::setBalance(const QString& balance) {
         fBalance = balance;
+    }
+
+    void AccountInfo::setTokenBalance(const QString &balance)
+    {
+        fTokenBalance = balance;
     }
 
     void AccountInfo::setTransactionCount(quint64 count) {

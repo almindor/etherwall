@@ -73,7 +73,7 @@ Window {
             target: ipc
 
             onCallDone: {
-                if ( index > 0 ) { // negative reserved for internal calls
+                if ( userData["type"] === "functionCall" ) {
                     tabs.currentIndex = 2
                 }
             }
@@ -104,6 +104,7 @@ Window {
                     stcTab.children[0].contractData = encoded
                     stcTab.children[0].functionIsConstant = constant
                     stcTab.children[0].callIndex = callIndex
+                    stcTab.children[0].userData = userData
                     stcTab.enabled = true
                     if ( next ) {
                         tabs.currentIndex = 1

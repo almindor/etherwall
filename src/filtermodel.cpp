@@ -43,12 +43,13 @@ namespace Etherwall {
         return fList.at(index).value(FilterContractRole).toString();
     }
 
-    const QString FilterModel::getTopics(int index) const {
+    const QJsonArray FilterModel::getTopics(int index) const {
         if ( index < 0 || index >= fList.length() ) {
-            return QString();
+            return QJsonArray();
         }
 
-        return fList.at(index).value(FilterTopicsRole).toStringList().join(',');
+        const QJsonArray topics = fList.at(index).value(FilterTopicsRole).toJsonArray();
+        return topics;
     }
 
     bool FilterModel::getActive(int index) const {
@@ -60,7 +61,16 @@ namespace Etherwall {
     }
 
     void FilterModel::addFilter(const QString& name, const QString& address, const QString& contract, const QString& topics, bool active) {
-        const FilterInfo info(name, address, contract, topics.split(","), active);
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(topics.toUtf8(), &parseError);
+
+        if ( parseError.error != QJsonParseError::NoError ) {
+            EtherLog::logMsg("Error parsing topics on addfilter", LS_Error);
+            return;
+        }
+
+        const QJsonArray topicArray = doc.array();
+        const FilterInfo info(name, address, contract, topicArray, active);
         QSettings settings;
         settings.beginGroup("filters" + fIpc.getNetworkPostfix());
         settings.setValue(info.getHandle(), info.toJsonString());
@@ -81,7 +91,7 @@ namespace Etherwall {
         fList.append(info);
         endInsertRows();
 
-        registerFilters();
+        registerFilter(info);
         loadLogs();
     }
 
@@ -107,6 +117,7 @@ namespace Etherwall {
         }
 
         const FilterInfo info = fList.at(index);
+        unregisterFilter(info);
         QSettings settings;
         settings.beginGroup("filters" + fIpc.getNetworkPostfix());
         settings.remove(info.getHandle());
@@ -115,8 +126,6 @@ namespace Etherwall {
         beginRemoveRows(QModelIndex(), index, index);
         fList.removeAt(index);
         endRemoveRows();
-
-        registerFilters();
     }
 
     void FilterModel::update(int index) {
@@ -129,29 +138,40 @@ namespace Etherwall {
         roles[3] = FilterActiveRole;
         emit dataChanged(leftIndex, rightIndex, roles);
 
-        registerFilters();
         if ( fList.at(index).value(FilterActiveRole).toBool() ) {
+            registerFilter(fList.at(index));
             loadLogs();
         }
     }
 
     void FilterModel::registerFilters() const {
-        QStringList addresses;
-        QStringList topics;
-
         foreach ( const FilterInfo info, fList ) {
             if ( !info.value(FilterActiveRole).toBool() ) {
                 continue;
             }
 
-            addresses.append(info.value(FilterAddressRole).toString());
-            const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
-            if ( infoTopics.length() > 0 ) {
-                topics += infoTopics;
-            }
+            registerFilter(info);
+        }
+    }
+
+    void FilterModel::registerFilter(const FilterInfo &info) const
+    {
+        const QString address = info.value(FilterAddressRole).toString();
+        const QJsonArray topics = info.value(FilterTopicsRole).toJsonArray();
+        fIpc.newEventFilter(address, topics);
+    }
+
+    void FilterModel::unregisterFilter(const FilterInfo &info) const
+    {
+        if ( !info.getActive() ) {
+            return;
         }
 
-        fIpc.registerEventFilters(addresses, topics);
+        const QString address = info.value(FilterAddressRole).toString();
+        const QString filterID = fIpc.getFilterIDForAddress(address);
+        QVariantMap userData;
+        userData["address"] = address;
+        fIpc.uninstallFilter(filterID, userData);
     }
 
     void FilterModel::loadLogs() const {
@@ -167,7 +187,7 @@ namespace Etherwall {
 
             QStringList addresses;
             addresses.append(info.value(FilterAddressRole).toString());
-            const QStringList infoTopics = info.value(FilterTopicsRole).toStringList();
+            const QJsonArray infoTopics = info.value(FilterTopicsRole).toJsonArray();
             fIpc.loadLogs(addresses, infoTopics, fromBlock);
         }
     }

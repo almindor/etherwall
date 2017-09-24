@@ -9,6 +9,7 @@ Item {
     property string contractData : ""
     property bool functionIsConstant : false
     property int callIndex : -1
+    property var userData : null
     // deployment properties
     property string contractName : ""
     property string contractAbi : ""
@@ -430,7 +431,7 @@ Item {
 
                 // if it's a constant functionc all just do eth_call
                 if ( functionIsConstant ) {
-                    transactionModel.call(result.from, result.to, result.txtVal, result.txtGas, result.txtGasPrice, contractData, callIndex)
+                    transactionModel.call(result.from, result.to, result.txtVal, result.txtGas, result.txtGasPrice, contractData, callIndex, userData)
                     return
                 }
 

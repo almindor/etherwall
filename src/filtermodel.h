@@ -20,7 +20,7 @@ namespace Etherwall {
 
         Q_INVOKABLE const QString getName(int index) const;
         Q_INVOKABLE const QString getContract(int index) const;
-        Q_INVOKABLE const QString getTopics(int index) const;
+        Q_INVOKABLE const QJsonArray getTopics(int index) const;
         Q_INVOKABLE bool getActive(int index) const;
 
         Q_INVOKABLE void addFilter(const QString& name, const QString& address, const QString& contract, const QString& topics, bool active);
@@ -34,6 +34,8 @@ namespace Etherwall {
     private:
         void update(int index);
         void registerFilters() const;
+        void registerFilter(const FilterInfo& info) const;
+        void unregisterFilter(const FilterInfo& info) const;
         EtherIPC& fIpc;
         EventFilters fList;
     };

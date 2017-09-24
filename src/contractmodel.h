@@ -24,6 +24,8 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include <QNetworkAccessManager>
+#include <QVariantList>
+#include <QVariantMap>
 #include "contractinfo.h"
 #include "etheripc.h"
 
@@ -55,31 +57,37 @@ namespace Etherwall {
         Q_INVOKABLE bool deleteContract(int index);
         Q_INVOKABLE const QString getName(int index) const;
         Q_INVOKABLE int getIndex(const QString name) const;
+        Q_INVOKABLE int getEventIndex(int index, const QJsonArray& topics) const;
         Q_INVOKABLE const QString getAddress(int index) const;
         Q_INVOKABLE const QString getABI(int index) const;
         Q_INVOKABLE const QStringList getFunctions(int index) const;
+        Q_INVOKABLE const QStringList getEvents(int index) const;
         Q_INVOKABLE const QString getMethodID(int index, const QString& functionName) const;
         Q_INVOKABLE const QVariantList getArguments(int index, const QString& functionName) const;
-        Q_INVOKABLE const QVariantList parseResponse(int callIndex, const QString& data) const;
+        Q_INVOKABLE const QVariantList getEventArguments(int index, const QString& eventName, bool indexedOnly) const;
+        Q_INVOKABLE const QVariantList parseResponse(int contractIndex, const QString& data, const QVariantMap& userData) const;
         Q_INVOKABLE void encodeCall(int index, const QString& functionName, const QVariantList& params);
+        Q_INVOKABLE const QString encodeTopics(int index, const QString& eventName, const QVariantList& params);
         Q_INVOKABLE void requestAbi(const QString& address);
         Q_INVOKABLE bool callName(const QString& address, const QString& jsonAbi) const;
     signals:
-        void callEncoded(const QString& encoded, bool isConstant, int callIndex) const;
+        void callEncoded(const QString& encoded, bool isConstant, int callIndex, const QVariantMap& userData) const;
         void callError(const QString& err) const;
         void newEvent(const EventInfo& info, bool isNew) const;
         void abiResult(const QString& abi) const;
         void busyChanged(bool busy) const;
         void callNameDone(const QString& name) const;
+        void tokenBalanceDone(int accountIndex, const QString& balance) const;
     public slots:
         void reload();
         void onNewEvent(const QJsonObject& event, bool isNew);
         void httpRequestDone(QNetworkReply *reply);
-        void onCallDone(const QString& result, int index);
+        void onCallDone(const QString& result, int index, const QVariantMap& userData);
     private:
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;
         void onCallName(const QString& result) const;
+        void onTokenBalance(const QString& result, int contractIndex, int accountIndex) const;
 
         ContractList fList;
         EtherIPC& fIpc;

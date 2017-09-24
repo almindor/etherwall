@@ -7,12 +7,13 @@ Item {
     anchors.fill: parent
 
     signal done
-    signal contractReady(string encoded, bool constant, int callIndex, bool next)
+    signal contractReady(string encoded, bool constant, int callIndex, var userData, bool next)
     signal contractError
     signal refresh
     property bool functionIsConstant : false
     property int functionCallIndex : -1
     property int contractIndex : -1
+    property var functionUserData : null
 
     function open(conIndex) {
         contractIndex = conIndex
@@ -168,6 +169,7 @@ Item {
                 encodedText.text = ''
                 functionIsConstant = false
                 functionCallIndex = -1
+                functionUserData = null
                 contractError()
             }
 
@@ -178,8 +180,9 @@ Item {
                 encodedText.visible = true
                 functionIsConstant = isConstant
                 functionCallIndex = callIndex
+                functionUserData = userData
 
-                contractReady(encoded, isConstant, callIndex, false)
+                contractReady(encoded, isConstant, callIndex, userData, false)
             }
         }
 
@@ -230,7 +233,7 @@ Item {
                     return
                 }
 
-                contractReady(encodedText.text, functionIsConstant, functionCallIndex, true)
+                contractReady(encodedText.text, functionIsConstant, functionCallIndex, functionUserData, true)
             }
         }
 

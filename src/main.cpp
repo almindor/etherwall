@@ -39,10 +39,10 @@
 #include "eventmodel.h"
 #include "currencymodel.h"
 #include "filtermodel.h"
+#include "tokenmodel.h"
 #include "gethlog.h"
 #include "helpers.h"
 #include "remoteipc.h"
-
 #include "trezor/trezor.h"
 #include "platform/devicemanager.h"
 
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("2.0.9");
+    QCoreApplication::setApplicationVersion("2.1.0");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
@@ -92,13 +92,17 @@ int main(int argc, char *argv[])
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);
-    ContractModel contractModel(ipc);
+    ContractModel contractModel(ipc, accountModel);
     FilterModel filterModel(ipc);
     EventModel eventModel(contractModel, filterModel);
+
+    TokenModel tokenModel(&contractModel);
 
     // main connections
     QObject::connect(&initializer, &Initializer::initDone, &ipc, &RemoteIPC::start);
     QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
+    QObject::connect(&contractModel, &ContractModel::tokenBalanceDone, &accountModel, &AccountModel::onTokenBalanceDone);
+    QObject::connect(&tokenModel, &TokenModel::selectedTokenContract, &contractModel, &ContractModel::onSelectedTokenContract);
     QObject::connect(&deviceManager, &DeviceManager::deviceInserted, &trezor, &Trezor::TrezorDevice::onDeviceInserted);
     QObject::connect(&deviceManager, &DeviceManager::deviceRemoved, &trezor, &Trezor::TrezorDevice::onDeviceRemoved);
     QObject::connect(&trezor, &Trezor::TrezorDevice::transactionReady, &transactionModel, &TransactionModel::onRawTransaction);
@@ -122,6 +126,8 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("log", &log);
     engine.rootContext()->setContextProperty("geth", &gethLog);
     engine.rootContext()->setContextProperty("helpers", &qmlHelpers);
+
+    engine.rootContext()->setContextProperty("tokenModel", &tokenModel);
 
     engine.load(QUrl(QStringLiteral("qrc:///main.qml")));
 

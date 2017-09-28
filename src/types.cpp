@@ -110,7 +110,8 @@ namespace Etherwall {
     AccountInfo::AccountInfo(const QString &hash, const QString &alias, const QString &deviceID,
                              const QString &balance, quint64 transCount, const QString& hdPath, int network) :
          fHash(Helpers::vitalizeAddress(hash)), fAlias(alias), fDeviceID(deviceID),
-         fBalance(balance), fTransCount(transCount), fHDPath(hdPath), fNetwork(network)
+         fBalance(balance), fTransCount(transCount), fHDPath(hdPath), fNetwork(network),
+         fTokenBalances(), fCurrentTokenAddress()
     {
         // old alias compatibility
         if ( alias.isEmpty() ) {
@@ -132,14 +133,14 @@ namespace Etherwall {
         switch ( role ) {
             case HashRole: return QVariant(fHash);
             case DefaultRole: return QVariant(fHash.toLower() == defaultAccount ? "✓" : "");
-            case BalanceRole: return QVariant(fBalance);
+            case BalanceRole: return getBalance();
             case TransCountRole: return QVariant(fTransCount);
             case SummaryRole: return QVariant(getSummary());
             case AliasRole: return QVariant(fAlias.isEmpty() ? fHash : fAlias);
             case DeviceRole: return QVariant(fDeviceID);
             case DeviceTypeRole: return QVariant(fDeviceID == "geth" ? "" : "⊡");
             case HDPathRole: return QVariant(fHDPath);
-            case TokenBalanceRole: return QVariant(fTokenBalance);
+            case TokenBalanceRole: return fTokenBalances.value(fCurrentTokenAddress);
         }
 
         return QVariant();
@@ -149,9 +150,14 @@ namespace Etherwall {
         fBalance = balance;
     }
 
-    void AccountInfo::setTokenBalance(const QString &balance)
+    void AccountInfo::setTokenBalance(const QString& tokenAddress, const QString &balance)
     {
-        fTokenBalance = balance;
+        fTokenBalances[tokenAddress] = balance;
+    }
+
+    void AccountInfo::setCurrentToken(const QString &tokenAddress)
+    {
+        fCurrentTokenAddress = tokenAddress;
     }
 
     void AccountInfo::setTransactionCount(quint64 count) {
@@ -211,6 +217,15 @@ namespace Etherwall {
     const QString AccountInfo::getSummary() const
     {
         return (fHDPath.isEmpty() ? "   " : "⊡ ") +  value(AliasRole).toString() + " [" + fBalance + "]";
+    }
+
+    const QString AccountInfo::getBalance() const
+    {
+        if ( fCurrentTokenAddress.isEmpty() ) {
+            return fBalance;
+        }
+
+        return fTokenBalances.value(fCurrentTokenAddress);
     }
 
 // ***************************** TransactionInfo ***************************** //

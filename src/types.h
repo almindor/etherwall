@@ -166,7 +166,8 @@ namespace Etherwall {
 
         const QVariant value(const int role) const;
         void setBalance(const QString& balance);
-        void setTokenBalance(const QString& balance);
+        void setTokenBalance(const QString& tokenAddress, const QString& balance);
+        void setCurrentToken(const QString& tokenAddress);
         void setTransactionCount(quint64 count);
         void lock();
         void unlock();
@@ -187,11 +188,13 @@ namespace Etherwall {
         QString fBalance; // in ether
         quint64 fTransCount;
         QString fHDPath;
-        QString fTokenBalance;
         bool fLocked;
         int fNetwork;
+        QMap<QString, QString> fTokenBalances; // token contract address -> balance
+        QString fCurrentTokenAddress;
 
         const QString getSummary() const;
+        const QString getBalance() const;
     };
 
     typedef QList<AccountInfo> AccountList;

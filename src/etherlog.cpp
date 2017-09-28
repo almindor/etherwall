@@ -52,8 +52,12 @@ namespace Etherwall {
             return; // skip due to severity setting
         }
 
-        if ( msg.contains("personal_unlockAccount") ) {
+        if ( msg.contains("personal_unlockAccount") || msg.contains("personal_signAndSendTransaction") ) {
             msg = "account content *REDACTED*";
+        }
+
+        if ( sev >= LS_Warning ) {
+            qDebug() << msg << "\n";
         }
 
         beginInsertRows(QModelIndex(), 0, 0);

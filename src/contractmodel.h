@@ -28,6 +28,7 @@
 #include <QVariantMap>
 #include "contractinfo.h"
 #include "etheripc.h"
+#include "accountmodel.h"
 
 namespace Etherwall {
 
@@ -46,7 +47,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
     public:
-        ContractModel(EtherIPC& ipc);
+        ContractModel(EtherIPC& ipc, AccountModel& accountModel);
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -77,12 +78,13 @@ namespace Etherwall {
         void abiResult(const QString& abi) const;
         void busyChanged(bool busy) const;
         void callNameDone(const QString& name) const;
-        void tokenBalanceDone(int accountIndex, const QString& balance) const;
+        void tokenBalanceDone(int accountIndex, const QString& tokenAddress, const QString& balance) const;
     public slots:
         void reload();
         void onNewEvent(const QJsonObject& event, bool isNew);
         void httpRequestDone(QNetworkReply *reply);
         void onCallDone(const QString& result, int index, const QVariantMap& userData);
+        void onSelectedTokenContract(int index);
     private:
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;
@@ -94,6 +96,7 @@ namespace Etherwall {
         QNetworkAccessManager fNetManager;
         bool fBusy;
         PendingContracts fPendingContracts;
+        AccountModel& fAccountModel;
     };
 
 }

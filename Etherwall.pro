@@ -55,7 +55,8 @@ SOURCES += src/main.cpp \
     src/ethereum/tx.cpp \
     src/platform/devicemanager.cpp \
     src/remoteipc.cpp \
-    src/initializer.cpp
+    src/initializer.cpp \
+    src/tokenmodel.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -102,5 +103,6 @@ HEADERS += \
     src/platform/devicemanager.h \
     src/remoteipc.h \
     src/ethereum/keccak.h \
-    src/initializer.h
+    src/initializer.h \
+    src/tokenmodel.h
 

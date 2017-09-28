@@ -37,7 +37,10 @@ namespace Etherwall {
     {
     }
 
-    ContractModel::ContractModel(EtherIPC& ipc) : QAbstractListModel(0), fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts()
+    // contract model
+
+    ContractModel::ContractModel(EtherIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
+        fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel)
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
@@ -394,7 +397,7 @@ namespace Etherwall {
             QVariantMap userData;
             userData["type"] = QVariant("nameCall");
             Ethereum::Tx txName(QString(), address, QString(), 0, QString(), QString(), "0x06fdde03"); // hardcoded method id for name
-            fIpc.call(txName, 0, userData);
+            fIpc.call(txName, -1, userData);
             return true;
         }
 
@@ -406,6 +409,7 @@ namespace Etherwall {
         settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
         const QStringList list = settings.allKeys();
 
+        beginResetModel();
         int index = 0;
         foreach ( const QString addr, list ) {
             QJsonParseError parseError;
@@ -425,6 +429,7 @@ namespace Etherwall {
         }
 
         settings.endGroup();
+        endResetModel();
     }
 
     void ContractModel::onNewEvent(const QJsonObject& event, bool isNew) {
@@ -461,17 +466,17 @@ namespace Etherwall {
 
     void ContractModel::onCallDone(const QString &result, int index, const QVariantMap& userData)
     {
-        if ( index < 0 || index >= fList.size() ) {
-            EtherLog::logMsg("Invalid contract index from call result", LS_Error);
-            return;
-        }
-
         if ( !userData.contains("type") ) {
             EtherLog::logMsg("Missing type in call result user data", LS_Error);
             return;
         }
 
         const QString type = userData.value("type").toString();
+        if ( type != "nameCall" && (index < 0 || index >= fList.size()) ) {
+            EtherLog::logMsg("Invalid contract index from call result", LS_Error);
+            return;
+        }
+
         if ( type == "nameCall" ) { // no need for index or other checks here
             return onCallName(result);
         } else if ( type == "balanceCall" ) { // accounts handled elsewhere
@@ -512,6 +517,36 @@ namespace Etherwall {
         settings.endGroup();
 
         emit dataChanged(QAbstractListModel::createIndex(index, 0), QAbstractListModel::createIndex(index, 0));
+    }
+
+    void ContractModel::onSelectedTokenContract(int index)
+    {
+        if ( index < 0 ) {
+            fAccountModel.selectToken("ETH", QString());
+        } else if ( index < fList.size() ) {
+            const AccountList& accounts = fAccountModel.getAccounts();
+            const ContractInfo& contract = fList.at(index);
+
+            for ( int accountIndex = 0; accountIndex < accounts.size(); accountIndex++ ) {
+                const QString accountAddress = accounts.at(accountIndex).hash();
+                QVariantList params;
+                params.append(accountAddress);
+
+                int funcIndex = -1;
+                const ContractFunction func = contract.function("balanceOf", funcIndex);
+                const QString encoded = "0x" + func.callData(params);
+                QVariantMap userData;
+                userData["type"] = "balanceCall";
+                userData["accountIndex"] = accountIndex;
+
+                Ethereum::Tx txBalance(QString(), contract.address(), QString(), 0, QString(), QString(), encoded);
+                fIpc.call(txBalance, index, userData);
+            }
+
+            fAccountModel.selectToken(contract.token(), contract.address());
+        } else {
+            EtherLog::logMsg("Token selection out of contract bounds", LS_Error);
+        }
     }
 
     void ContractModel::loadERC20Data(const ContractInfo &contract, int index) const
@@ -571,8 +606,7 @@ namespace Etherwall {
         // we need to get decimals for contract/token and then get the "full" units
         const QString balanceFull = Helpers::baseStrToFullStr(balanceBase, fList.at(contractIndex).decimals());
 
-        qDebug() << "token balance done, account " << accountIndex << " balance: " << balanceFull << "\n";
-        emit tokenBalanceDone(accountIndex, balanceFull);
+        emit tokenBalanceDone(accountIndex, fList.at(contractIndex).address(), balanceFull);
     }
 
 }

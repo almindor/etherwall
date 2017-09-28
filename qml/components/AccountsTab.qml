@@ -64,6 +64,26 @@ Tab {
             }
 
             Label {
+                id: tokenLabel
+                anchors.rightMargin: 0.01 * dpi
+                anchors.right: tokenCombo.left
+                anchors.verticalCenter: parent.verticalCenter
+                text: qsTr("Token")
+            }
+
+            ComboBox {
+                id: tokenCombo
+                width: 1 * dpi
+                anchors.right: currencyLabel.left
+                anchors.rightMargin: 0.01 * dpi
+                anchors.verticalCenter: parent.verticalCenter
+                height: newAccountButton.height
+                model: tokenModel
+                textRole: "token"
+                onActivated: tokenModel.selectToken(index)
+            }
+
+            Label {
                 id: currencyLabel
                 anchors.rightMargin: 0.01 * dpi
                 anchors.right: currencyCombo.left
@@ -183,7 +203,7 @@ Tab {
             TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
-                title: qsTr("Balance ") + "(" + currencyModel.currencyName + ")"
+                title: qsTr("Balance ") + "(" + (accountModel.currentToken === "ETH" ? currencyModel.currencyName : accountModel.currentToken) + ")"
                 width: parent.width * 0.31
             }
 

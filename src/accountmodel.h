@@ -49,6 +49,7 @@ namespace Etherwall {
         Q_PROPERTY(QString total READ getTotal NOTIFY totalChanged)
         Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
         Q_PROPERTY(int defaultIndex READ getDefaultIndex NOTIFY defaultIndexChanged)
+        Q_PROPERTY(QString currentToken READ getCurrentToken NOTIFY currentTokenChanged)
     public:
         AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor);
         QString getError() const;
@@ -65,6 +66,8 @@ namespace Etherwall {
         const QString getSelectedAccountDeviceID() const;
         const QString getSelectedAccountHDPath() const;
         bool getSelectedAccountDefault() const;
+        const AccountList& getAccounts() const;
+        void selectToken(const QString& name, const QString& tokenAddress);
 
         Q_INVOKABLE void newAccount(const QString& pw);
         Q_INVOKABLE void renameAccount(const QString& name, int index);
@@ -78,6 +81,8 @@ namespace Etherwall {
         Q_INVOKABLE bool exportAccount(const QUrl& fileName, int index);
         Q_INVOKABLE void setAsDefault(const QString& address);
         Q_INVOKABLE void trezorImport(quint32 offset, quint8 count);
+    public slots:
+        void onTokenBalanceDone(int accountIndex, const QString& tokenAddress, const QString& balance);
     private slots:
         void connectToServerDone();
         void getAccountsDone(const QStringList& list);
@@ -101,6 +106,7 @@ namespace Etherwall {
         void defaultIndexChanged(int index) const;
         void promptForTrezorImport() const;
         void accountsRemoved() const;
+        void currentTokenChanged() const;
     private:
         EtherIPC& fIpc;
         AccountList fAccountList;
@@ -110,6 +116,7 @@ namespace Etherwall {
         QString fSelectedAccount;
         const CurrencyModel& fCurrencyModel;
         bool fBusy;
+        QString fCurrentToken;
 
         int getSelectedAccountRow() const;
         int getDefaultIndex() const;
@@ -121,6 +128,7 @@ namespace Etherwall {
         const QString getHDPathBase() const;
         void setAccountAlias(const QString& hash, const QString& alias);
         int exportableAddresses() const;
+        const QString getCurrentToken() const;
     };
 
 }

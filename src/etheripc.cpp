@@ -22,6 +22,7 @@
 #include "helpers.h"
 #include <QSettings>
 #include <QFileInfo>
+#include <QtConcurrent/QtConcurrent>
 
 // windblows hacks coz windblows sucks
 #ifdef Q_OS_WIN32
@@ -88,13 +89,17 @@ namespace Etherwall {
         fPath(), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
         fSyncing(false), fCurrentBlock(0), fHighestBlock(0), fStartingBlock(0),
-        fConnectAttempts(0), fKillTime(), fExternal(false), fEventFilterIDs()
+        fConnectAttempts(0), fKillTime(), fExternal(false), fEventFilterIDs(),
+        fReceivedMsg()
     {
         connect(&fSocket, (void (QLocalSocket::*)(QLocalSocket::LocalSocketError))&QLocalSocket::error, this, &EtherIPC::onSocketError);
         connect(&fSocket, &QLocalSocket::readyRead, this, &EtherIPC::onSocketReadyRead);
         connect(&fSocket, &QLocalSocket::connected, this, &EtherIPC::connectedToServer);
         connect(&fSocket, &QLocalSocket::disconnected, this, &EtherIPC::disconnectedFromServer);
         connect(&fGeth, &QProcess::started, this, &EtherIPC::connectToServer);
+        connect(this, &EtherIPC::ipcReady, this, &EtherIPC::onIpcReady);
+        connect(this, &EtherIPC::requestDone, this, &EtherIPC::onRequestDone);
+        connect(this, &EtherIPC::stopTimer, this, &EtherIPC::onStopTimer);
 
         const QSettings settings;
 
@@ -644,7 +649,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::getGasPrice() {
-        if ( !queueRequest(RequestIPC(GetGasPrice, "eth_gasPrice")) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetGasPrice, "eth_gasPrice")) ) {
             return bail();
         }
     }
@@ -664,7 +669,7 @@ namespace Etherwall {
         return fPeerCount;
     }
 
-    void EtherIPC::ipcReady()
+    void EtherIPC::onIpcReady()
     {
         EtherLog::logMsg("IPC ready, initializing poller", LS_Info);
         const QSettings settings;
@@ -674,6 +679,23 @@ namespace Etherwall {
         emit startingChanged(fStarting);
         emit connectToServerDone();
         emit connectionStateChanged();
+    }
+
+    void EtherIPC::onRequestDone()
+    {
+        emit requestChanged();
+        fActiveRequest = RequestIPC(None);
+        if ( !fRequestQueue.isEmpty() ) {
+            const RequestIPC request = fRequestQueue.dequeue();
+            writeRequest(request);
+        } else {
+            emit busyChanged(getBusy());
+        }
+    }
+
+    void EtherIPC::onStopTimer()
+    {
+        fTimer.stop();
     }
 
     bool EtherIPC::endpointWritable()
@@ -751,7 +773,7 @@ namespace Etherwall {
         }
 
         params.append(p);
-        if ( !queueRequest(RequestIPC(EstimateGas, "eth_estimateGas", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
     }
@@ -957,7 +979,7 @@ namespace Etherwall {
         params.append(o);
 
         // we can use getFilterChanges as result is the same
-        if ( !queueRequest(RequestIPC(GetLogs, "eth_getLogs", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetLogs, "eth_getLogs", params)) ) {
             return bail();
         }
     }
@@ -1013,7 +1035,7 @@ namespace Etherwall {
         QJsonArray params;
         params.append(hash);
 
-        if ( !queueRequest(RequestIPC(GetTransactionByHash, "eth_getTransactionByHash", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetTransactionByHash, "eth_getTransactionByHash", params)) ) {
             return bail();
         }
     }
@@ -1033,7 +1055,7 @@ namespace Etherwall {
         params.append(hash);
         params.append(true); // get transaction bodies
 
-        if ( !queueRequest(RequestIPC(GetBlock, "eth_getBlockByHash", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual ,GetBlock, "eth_getBlockByHash", params)) ) {
             return bail();
         }
     }
@@ -1043,7 +1065,7 @@ namespace Etherwall {
         params.append(Helpers::toHexStr(blockNum));
         params.append(true); // get transaction bodies
 
-        if ( !queueRequest(RequestIPC(GetBlock, "eth_getBlockByNumber", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual ,GetBlock, "eth_getBlockByNumber", params)) ) {
             return bail();
         }
     }
@@ -1065,7 +1087,7 @@ namespace Etherwall {
         QJsonArray params;
         params.append(hash);
 
-        if ( !queueRequest(RequestIPC(GetTransactionReceipt, "eth_getTransactionReceipt", params)) ) {
+        if ( !queueRequest(RequestIPC(NonVisual, GetTransactionReceipt, "eth_getTransactionReceipt", params)) ) {
             return bail();
         }
     }
@@ -1119,9 +1141,8 @@ namespace Etherwall {
         }
 
         emit netVersionChanged(fNetVersion);
+        emit ipcReady();
         done();
-
-        ipcReady();
     }
 
     void EtherIPC::handleGetSyncing() {
@@ -1183,7 +1204,7 @@ namespace Etherwall {
         EtherLog::logMsg("bail[" + (soft ? QString("soft") : QString("hard")) + "]: " + fError, LS_Error);
 
         if ( !soft ) {
-            fTimer.stop();
+            emit stopTimer();
             fRequestQueue.clear();
         }
 
@@ -1203,14 +1224,7 @@ namespace Etherwall {
     }
 
     void EtherIPC::done() {
-        emit requestChanged();
-        fActiveRequest = RequestIPC(None);
-        if ( !fRequestQueue.isEmpty() ) {
-            const RequestIPC request = fRequestQueue.dequeue();
-            writeRequest(request);
-        } else {
-            emit busyChanged(getBusy());
-        }
+        emit requestDone();
     }
 
     QJsonObject EtherIPC::methodToJSON(const RequestIPC& request) {
@@ -1236,7 +1250,7 @@ namespace Etherwall {
 
     bool EtherIPC::writeRequest(const RequestIPC& request) {
         fActiveRequest = request;
-        if ( fActiveRequest.burden() == Full ) {
+        if ( fActiveRequest.burden() == Full ) { // only update to busy if we're not doing background tasks
             emit busyChanged(getBusy());
         }
 
@@ -1266,7 +1280,9 @@ namespace Etherwall {
         fReadBuffer += QString(endpointRead()).trimmed();
 
         if ( fReadBuffer.at(0) == '{' && fReadBuffer.at(fReadBuffer.length() - 1) == '}' && fReadBuffer.count('{') == fReadBuffer.count('}') ) {
+            fReceivedMsg =  fReadBuffer;
             EtherLog::logMsg("Received: " + fReadBuffer, LS_Debug);
+            fReadBuffer.clear();
             return true;
         }
 
@@ -1274,20 +1290,17 @@ namespace Etherwall {
     }
 
     bool EtherIPC::readReply(QJsonValue& result) {
-        const QString data = fReadBuffer;
-        fReadBuffer.clear();
-
-        if ( data.isEmpty() ) {
+        if ( fReceivedMsg.isEmpty() ) {
             setError("Error on socket read: " + fSocket.errorString());
             fCode = 0;
             return false;
         }
 
         QJsonParseError parseError;
-        QJsonDocument resDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);
+        QJsonDocument resDoc = QJsonDocument::fromJson(fReceivedMsg.toUtf8(), &parseError);
 
         if ( parseError.error != QJsonParseError::NoError ) {
-            qDebug() << data << "\n";
+            qDebug() << fReceivedMsg << "\n";
             setError("Response parse error: " + parseError.errorString());
             fCode = 0;
             return false;
@@ -1324,7 +1337,7 @@ namespace Etherwall {
 
             if ( fActiveRequest.getType() != GetTransactionByHash ) { // this can happen if out of sync, it's not fatal for transaction get
                 setError("Result object undefined in IPC response for request: " + fActiveRequest.getMethod());
-                qDebug() << data << "\n";
+                qDebug() << fReceivedMsg << "\n";
                 return false;
             }
         }
@@ -1359,20 +1372,8 @@ namespace Etherwall {
         return fActiveRequest.getMethod();
     }
 
-    void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
-        fError = fSocket.errorString();
-        fCode = err;
-    }
-
-    void EtherIPC::onSocketReadyRead() {
-        if ( !getBusy() ) {
-            return; // probably error-ed out
-        }
-
-        if ( !readData() ) {
-            return; // not finished yet
-        }
-
+    void EtherIPC::handleRequest()
+    {
         switch ( fActiveRequest.getType() ) {
         case NoRequest: {
             break;
@@ -1386,7 +1387,7 @@ namespace Etherwall {
                 break;
             }
         case GetBlockNumber: {
-                handleGetBlockNumber();
+                handleGetBlock();
                 break;
             }
         case GetAccountRefs: {
@@ -1400,7 +1401,7 @@ namespace Etherwall {
         case GetTransactionCount: {
                 handleAccountTransactionCount();
                 break;
-            } 
+            }
         case GetPeerCount: {
                 handleGetPeerCount();
                 break;
@@ -1474,6 +1475,24 @@ namespace Etherwall {
                 break;
             }
         }
+    }
+
+    void EtherIPC::onSocketError(QLocalSocket::LocalSocketError err) {
+        fError = fSocket.errorString();
+        fCode = err;
+    }
+
+    void EtherIPC::onSocketReadyRead() {
+        if ( !getBusy() ) {
+            return; // probably error-ed out
+        }
+
+        if ( !readData() ) {
+            return; // not finished yet
+        }
+
+        // safe because we never handle more than 1 request at a time!
+        QtConcurrent::run(QThreadPool::globalInstance(), this, &EtherIPC::handleRequest);
     }
 
 }

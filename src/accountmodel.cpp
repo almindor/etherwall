@@ -35,7 +35,8 @@ namespace Etherwall {
     AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
         QAbstractListModel(0),
         fIpc(ipc), fAccountList(), fAliasMap(), fTrezor(trezor),
-        fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false)
+        fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false),
+        fCurrentToken("ETH")
     {
         connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
         connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
@@ -255,6 +256,24 @@ namespace Etherwall {
         }
     }
 
+    void AccountModel::onTokenBalanceDone(int accountIndex, const QString &tokenAddress, const QString &balance)
+    {
+        if ( accountIndex < 0 || accountIndex >= fAccountList.size() ) {
+            return EtherLog::logMsg("Invalid account index on token balance", LS_Error);
+        }
+
+        if ( tokenAddress.isEmpty() || balance.isEmpty() ) {
+            return EtherLog::logMsg("Token address or balance invalid", LS_Error);
+        }
+
+        fAccountList[accountIndex].setTokenBalance(tokenAddress, balance);
+        QVector<int> roles(1);
+        roles[0] = BalanceRole;
+        const QModelIndex& leftIndex = QAbstractListModel::createIndex(accountIndex, 0);
+        const QModelIndex& rightIndex = QAbstractListModel::createIndex(accountIndex, 0);
+        emit dataChanged(leftIndex, rightIndex, roles);
+    }
+
     const QString AccountModel::getSelectedAccountAlias() const
     {
         if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
@@ -298,6 +317,24 @@ namespace Etherwall {
         }
 
         return fSelectedAccountRow == getDefaultIndex();
+    }
+
+    const AccountList &AccountModel::getAccounts() const
+    {
+        return fAccountList;
+    }
+
+    void AccountModel::selectToken(const QString& name, const QString& tokenAddress)
+    {
+        fCurrentToken = name;
+        beginResetModel();
+        for ( int i = 0; i < fAccountList.size(); i++ ) {
+            fAccountList[i].setCurrentToken(tokenAddress);
+        }
+        endResetModel();
+
+        emit currentTokenChanged();
+        emit totalChanged();
     }
 
     void AccountModel::exportWallet(const QUrl& fileName) const {
@@ -659,6 +696,11 @@ namespace Etherwall {
         }
 
         return count;
+    }
+
+    const QString AccountModel::getCurrentToken() const
+    {
+        return fCurrentToken;
     }
 
     const QJsonArray AccountModel::getAccountsJsonArray() const {

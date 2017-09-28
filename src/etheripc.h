@@ -144,6 +144,9 @@ namespace Etherwall {
         void disconnectedFromServer();
         void onSocketReadyRead();
         void onSocketError(QLocalSocket::LocalSocketError err);
+        void onIpcReady();
+        void onRequestDone();
+        void onStopTimer();
     signals:
         void connectToServerDone();
         void getAccountsDone(const QStringList& list) const;
@@ -173,6 +176,9 @@ namespace Etherwall {
         void clientVersionChanged(const QString& ver) const;
         void netVersionChanged(int ver) const;
         void error() const;
+        void ipcReady() const;
+        void requestDone() const;
+        void stopTimer() const;
     protected:
         QString fPath;
         QLocalSocket fSocket;
@@ -200,6 +206,7 @@ namespace Etherwall {
         bool fExternal;
         QMap<QString, QString> fEventFilterIDs;
         quint64 fBlockNumber;
+        QString fReceivedMsg;
 
         void handleNewAccount();
         void handleGetAccounts();
@@ -231,7 +238,6 @@ namespace Etherwall {
         virtual const QByteArray endpointRead();
         virtual const QStringList buildGethArgs();
 
-        void ipcReady();
         void onTimer();
         bool killGeth();
         int parseVersionNum() const;
@@ -267,6 +273,7 @@ namespace Etherwall {
         bool readNumber(quint64& result);
         const QString getActiveRequestName() const;
         const QString toDecStr(const QJsonValue& jv) const;
+        void handleRequest();
     };
 
 }

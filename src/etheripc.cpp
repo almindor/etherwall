@@ -1095,8 +1095,8 @@ namespace Etherwall {
             emit error();
         }
 
-        if ( vn > 0 && vn < 106000 ) {
-            setError("Geth version older than 1.6.0 is no longer supported. Please upgrade geth to 1.6.0+.");
+        if ( vn > 0 && vn < 107000 ) {
+            setError("Geth version older than 1.7.0 is no longer supported. Please upgrade geth to 1.7.0+.");
             emit error();
         }
 

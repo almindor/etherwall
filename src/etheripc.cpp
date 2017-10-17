@@ -706,7 +706,6 @@ namespace Etherwall {
         }
 
         QStringList args;
-        args.append("--nousb");
         bool testnet = settings.value("geth/testnet", false).toBool();
         fPath = DefaultIPCPath(ddStr, testnet);
         if ( testnet ) { // geth 1.6.0+ only
@@ -715,6 +714,7 @@ namespace Etherwall {
         } else {
             args = (argStr + " --datadir " + ddStr).split(' ', QString::SkipEmptyParts);
         }
+        args.append("--nousb");
 
         return args;
     }

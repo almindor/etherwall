@@ -30,11 +30,11 @@ Window {
     modality: Qt.NonModal
     visible: false
     minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
+    minimumHeight: 5.5 * dpi
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 5.2 * dpi
+    height: 5.5 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)

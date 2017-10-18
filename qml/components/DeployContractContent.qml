@@ -89,12 +89,13 @@ Item {
                 id: errorText
                 width: mainColumn.width - 1 * dpi
                 readOnly: true
+                property bool ready: false
 
                 style: TextFieldStyle {
                     textColor: "black"
                     background: Rectangle {
                         radius: 2
-                        border.color: errorText.text !== qsTr("Ready") ? "red" : "green"
+                        border.color: errorText.ready ? "green" : "red"
                         border.width: 1
                     }
                 }
@@ -106,7 +107,7 @@ Item {
             id: deployButton
             width: parent.width
             height: 0.6 * dpi
-            text: errorText.text.length ? qsTr("Invalid Input") : qsTr("Setup Transaction")
+            text: errorText.ready ? qsTr("Setup Transaction") : qsTr("Invalid Input")
 
             Image {
                 id: callIcon
@@ -115,7 +116,7 @@ Item {
                 anchors.bottom: parent.bottom
                 anchors.margins: parent.height * 0.15
                 width: height
-                source: errorText.text.length ? "/images/warning" : "/images/ok"
+                source: errorText.ready ? "/images/ok" : "/images/warning"
             }
 
             style: ButtonStyle {
@@ -148,7 +149,8 @@ Item {
                     return result
                 }
 
-                if ( !bcField.text.match(/^(0\x)?[a-f,A-Z,0-9]+$/) ) {
+                result.bc = bcField.text.trim()
+                if ( !result.bc.match(/^(0\x)?[a-f,A-Z,0-9]+$/) || (result.bc.length % 2 !== 0) ) {
                     result.error = qsTr("Invalid bytecode")
                     return result
                 }
@@ -172,8 +174,10 @@ Item {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
+                    errorText.ready = false
                     errorText.text = result.error
                 } else {
+                    errorText.ready = true
                     errorText.text = qsTr("Ready")
                 }
             }
@@ -186,7 +190,7 @@ Item {
                     return
                 }
 
-                contractReady(nameField.text, abiField.text, bcField.text, true)
+                contractReady(nameField.text, result.abi, result.bc, true)
             }
         }
 

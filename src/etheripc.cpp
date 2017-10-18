@@ -1083,6 +1083,7 @@ namespace Etherwall {
         done();
     }
 
+
     void EtherIPC::getTransactionReceipt(const QString& hash) {
         QJsonArray params;
         params.append(hash);
@@ -1387,7 +1388,7 @@ namespace Etherwall {
                 break;
             }
         case GetBlockNumber: {
-                handleGetBlock();
+                handleGetBlockNumber();
                 break;
             }
         case GetAccountRefs: {

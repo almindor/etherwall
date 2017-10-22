@@ -272,6 +272,7 @@ namespace Etherwall {
         const QModelIndex& leftIndex = QAbstractListModel::createIndex(accountIndex, 0);
         const QModelIndex& rightIndex = QAbstractListModel::createIndex(accountIndex, 0);
         emit dataChanged(leftIndex, rightIndex, roles);
+        emit totalChanged();
     }
 
     const QString AccountModel::getSelectedAccountAlias() const

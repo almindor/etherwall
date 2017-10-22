@@ -158,7 +158,7 @@ namespace Etherwall {
         void callDone(const QString& result, int index, const QVariantMap& userData) const;
         void getGasPriceDone(const QString& price) const;
         void estimateGasDone(const QString& price) const;
-        void newTransaction(const TransactionInfo& info) const;
+        void newTransaction(const QJsonObject& info) const;
         void newBlock(const QJsonObject& block) const;
         void newEvent(const QJsonObject& event, bool isNew) const;
         void getTransactionReceiptDone(const QJsonObject& receipt) const;

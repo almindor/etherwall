@@ -602,7 +602,7 @@ namespace Etherwall {
         if ( parsedSet.size() != 1 ) {
             return EtherLog::logMsg("Invalid response size for token balanceOf call", LS_Error);
         }
-        const QString balanceBase = parsedSet.at(0).toString(); // in "wei" base units for token
+        const QString balanceBase = parsedSet.at(0).toMap().value("value").toString();
         // we need to get decimals for contract/token and then get the "full" units
         const QString balanceFull = Helpers::baseStrToFullStr(balanceBase, fList.at(contractIndex).decimals());
 

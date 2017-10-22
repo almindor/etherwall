@@ -30,6 +30,7 @@
 #include <QJsonValue>
 #include <QJsonArray>
 #include <QDateTime>
+#include <QMetaType>
 
 namespace Etherwall {
 
@@ -220,16 +221,26 @@ namespace Etherwall {
     {
     public:
         TransactionInfo();
+        TransactionInfo(const TransactionInfo& other);
         TransactionInfo(const QJsonObject& source);
         TransactionInfo(const QString& hash, quint64 blockNum); // for storing from server reply
+        ~TransactionInfo();
 
         const QVariant value(const int role) const;
+        const QString getValue() const;
         quint64 getBlockNumber() const;
+        const QString getBlockHash() const;
         void setBlockNumber(quint64 num);
         const QString getHash() const;
         void setHash(const QString& hash);
         const QString getSender() const;
         const QString getReceiver() const;
+        const QString getGas() const;
+        const QString getGasPrice() const;
+        const QString getData() const;
+        quint64 getNonce() const;
+        const QString getSenderAlias() const;
+        const QString getReceiverAlias() const;
         void setSenderAlias(const QString& alias);
         void setReceiverAlias(const QString& alias);
         void init(const QString& from, const QString& to, const QString& value, const QString& gas = QString(),
@@ -254,7 +265,6 @@ namespace Etherwall {
     };
 
     typedef QList<TransactionInfo> TransactionList;
-
 }
 
 #endif // TYPES_H

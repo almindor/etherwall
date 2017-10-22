@@ -1046,7 +1046,7 @@ namespace Etherwall {
             return bail();
         }
 
-        emit newTransaction(TransactionInfo(jv.toObject()));
+        emit newTransaction(jv.toObject());
         done();
     }
 

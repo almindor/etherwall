@@ -43,7 +43,7 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
         connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
         connect(&ipc, &EtherIPC::signTransactionDone, this, &TransactionModel::signTransactionDone);
-        connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::newTransaction);
+        connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::onNewTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
         connect(&ipc, &EtherIPC::syncingChanged, this, &TransactionModel::syncingChanged);
 
@@ -210,10 +210,12 @@ namespace Etherwall {
         fIpc.sendRawTransaction(hash);
     }
 
-    void TransactionModel::newTransaction(const TransactionInfo &info) {
+    void TransactionModel::onNewTransaction(const QJsonObject &json) {
+        const TransactionInfo info(json);
         int ai1, ai2;
         const QString& sender = info.value(SenderRole).toString().toLower();
         const QString& receiver = info.value(ReceiverRole).toString().toLower();
+
         if ( fAccountModel.containsAccount(sender, receiver, ai1, ai2) ) { // either our sent or someone sent to us
             const int n = containsTransaction(info.value(THashRole).toString());
             if ( n >= 0 ) { // ours
@@ -325,8 +327,9 @@ namespace Etherwall {
                 if ( parseError.error != QJsonParseError::NoError ) {
                     EtherLog::logMsg("Error parsing stored transaction: " + parseError.errorString(), LS_Error);
                 } else {
-                    const TransactionInfo info(jsonDoc.object());
-                    newTransaction(info);
+                    const QJsonObject json = jsonDoc.object();
+                    const TransactionInfo info(json);
+                    onNewTransaction(json);
                     // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
                     if ( info.getBlockNumber() == 0 || fBlockNumber - info.getBlockNumber() < 5400 ) {
                         fIpc.getTransactionByHash(info.getHash());
@@ -511,8 +514,7 @@ namespace Etherwall {
             }
 
             if ( containsTransaction(hash) < 0 ) {
-                TransactionInfo tx(jo);
-                newTransaction(tx);
+                onNewTransaction(jo);
                 stored++;
             }
         }

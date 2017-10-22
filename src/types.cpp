@@ -237,12 +237,28 @@ namespace Etherwall {
         fTransactionIndex = 0;
     }
 
+    TransactionInfo::TransactionInfo(const TransactionInfo &other)
+    {
+        init(other.getSender(), other.getReceiver(), other.getValue(), other.getGas(), other.getGasPrice(), other.getData());
+
+        fHash = other.getHash();
+        fNonce = other.getNonce();
+        fBlockNumber = other.getBlockNumber();
+        fSenderAlias = other.getSenderAlias();
+        fReceiverAlias = other.getReceiverAlias();
+        fBlockHash = other.getBlockHash();
+    }
+
     TransactionInfo::TransactionInfo(const QJsonObject& source) : fSenderAlias(), fReceiverAlias()
     {
         init(source);
     }
 
     TransactionInfo::TransactionInfo(const QString& hash, quint64 blockNum) : fHash(hash), fBlockNumber(blockNum), fSenderAlias(), fReceiverAlias()
+    {
+    }
+
+    TransactionInfo::~TransactionInfo()
     {
     }
 
@@ -266,8 +282,18 @@ namespace Etherwall {
         return QVariant();
     }
 
+    const QString TransactionInfo::getValue() const
+    {
+        return fValue;
+    }
+
     quint64 TransactionInfo::getBlockNumber() const {
         return fBlockNumber;
+    }
+
+    const QString TransactionInfo::getBlockHash() const
+    {
+        return fBlockHash;
     }
 
     void TransactionInfo::setBlockNumber(quint64 num) {
@@ -290,6 +316,36 @@ namespace Etherwall {
     const QString TransactionInfo::getReceiver() const
     {
         return fReceiver;
+    }
+
+    const QString TransactionInfo::getGas() const
+    {
+        return fGas;
+    }
+
+    const QString TransactionInfo::getGasPrice() const
+    {
+        return fGasPrice;
+    }
+
+    const QString TransactionInfo::getData() const
+    {
+        return fInput;
+    }
+
+    quint64 TransactionInfo::getNonce() const
+    {
+        return fNonce;
+    }
+
+    const QString TransactionInfo::getSenderAlias() const
+    {
+        return fSenderAlias;
+    }
+
+    const QString TransactionInfo::getReceiverAlias() const
+    {
+        return fReceiverAlias;
     }
 
     void TransactionInfo::setSenderAlias(const QString &alias)

@@ -80,11 +80,16 @@ Tab {
                 height: newAccountButton.height
                 model: tokenModel
                 textRole: "token"
-                onActivated: tokenModel.selectToken(index)
+                onActivated: {
+                    currencyCombo.currentIndex = 0
+                    currencyModel.setCurrencyIndex(0)
+                    tokenModel.selectToken(index)
+                }
             }
 
             Label {
                 id: currencyLabel
+                enabled: tokenCombo.currentIndex === 0
                 anchors.rightMargin: 0.01 * dpi
                 anchors.right: currencyCombo.left
                 anchors.verticalCenter: parent.verticalCenter
@@ -93,6 +98,7 @@ Tab {
 
             ComboBox {
                 id: currencyCombo
+                enabled: tokenCombo.currentIndex === 0
                 width: 1 * dpi
                 anchors.right: totalLabel.left
                 anchors.rightMargin: 0.01 * dpi
@@ -100,9 +106,7 @@ Tab {
                 height: newAccountButton.height
                 model: currencyModel
                 textRole: "name"
-                onActivated: {
-                    currencyModel.setCurrencyIndex(index);
-                }
+                onActivated: currencyModel.setCurrencyIndex(index);
             }
 
             Label {

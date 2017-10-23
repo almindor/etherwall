@@ -38,13 +38,22 @@ Window {
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
+    function open() {
+        stc.toAddress = ""
+        stc.contractData = ""
+        stc.contractName = ""
+        stc.contractAbi = "[]"
+
+        show()
+        stc.prepare()
+    }
+
     SendTransactionContent {
+        id: stc
         contractData: ""
         contractAbi: ""
         contractName: ""
-        onDone: {
-            sendDialog.close()
-        }
+        onDone: sendDialog.close()
     }
 
     Badge {

@@ -84,8 +84,8 @@ namespace Etherwall {
         void getBlockNumberDone(quint64 num);
         void getGasPriceDone(const QString& num);
         void estimateGasDone(const QString& num);
-        void sendTransactionDone(const QString& hash);
-        void signTransactionDone(const QString& hash);
+        void onSendTransactionDone(const QString& hash);
+        void onSignTransactionDone(const QString& hash);
         void onNewTransaction(const QJsonObject& json);
         void newBlock(const QJsonObject& block);
         void syncingChanged(bool syncing);

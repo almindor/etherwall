@@ -30,6 +30,10 @@ Item {
     Component.onCompleted: prepare()
 
     Connections {
+        id: ipcConnection
+        property string deployedName
+        property string deployedAbi
+        property string txTo
         target: ipc
         onError: {
             sendButton.enabled = true
@@ -42,13 +46,17 @@ Item {
         }
 
         onSendTransactionDone: {
-            done()
-            if ( contractName.length > 0 ) {
-                contractModel.addPendingContract(contractName, contractAbi, hash)
-                badge.show(qsTr("New pending contract deployment: ") + contractName)
+            if ( ipcConnection.deployedName.length ) {
+                contractModel.addPendingContract(ipcConnection.deployedName, ipcConnection.deployedAbi, hash)
+                badge.show(qsTr("New pending contract deployment: ") + ipcConnection.deployedName)
             } else {
                 badge.show(qsTr("New pending transaction to: ") + toField.text)
             }
+
+            contractName = ""
+            contractAbi = "[]"
+            contractData = ""
+            done()
         }
     }
 
@@ -434,6 +442,11 @@ Item {
                     transactionModel.call(result.from, result.to, result.txtVal, result.txtGas, result.txtGasPrice, contractData, callIndex, userData)
                     return
                 }
+
+                // otherwise full TX, set expectations
+                ipcConnection.deployedName = contractName
+                ipcConnection.deployedAbi = contractAbi
+                ipcConnection.txTo = result.to
 
                 // trezor asks for confirmation[s] on it's display, one more is cumbersome
                 if ( result.hdpath.length ) {

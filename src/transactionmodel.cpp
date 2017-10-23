@@ -41,8 +41,8 @@ namespace Etherwall {
         connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
         connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
         connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
-        connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::sendTransactionDone);
-        connect(&ipc, &EtherIPC::signTransactionDone, this, &TransactionModel::signTransactionDone);
+        connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::onSendTransactionDone);
+        connect(&ipc, &EtherIPC::signTransactionDone, this, &TransactionModel::onSignTransactionDone);
         connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::onNewTransaction);
         connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
         connect(&ipc, &EtherIPC::syncingChanged, this, &TransactionModel::syncingChanged);
@@ -199,13 +199,13 @@ namespace Etherwall {
         fIpc.sendRawTransaction(tx);
     }
 
-    void TransactionModel::sendTransactionDone(const QString& hash) {
+    void TransactionModel::onSendTransactionDone(const QString& hash) {
         fQueuedTransaction.setHash(hash);
         addTransaction(fQueuedTransaction);
         EtherLog::logMsg("Transaction sent, hash: " + hash);
     }
 
-    void TransactionModel::signTransactionDone(const QString &hash)
+    void TransactionModel::onSignTransactionDone(const QString &hash)
     {
         fIpc.sendRawTransaction(hash);
     }

@@ -67,6 +67,7 @@ namespace Etherwall {
         const QString getSelectedAccountHDPath() const;
         bool getSelectedAccountDefault() const;
         const AccountList& getAccounts() const;
+        const QVariantList getAccountAddresses() const;
         void selectToken(const QString& name, const QString& tokenAddress);
 
         Q_INVOKABLE void newAccount(const QString& pw);

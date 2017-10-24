@@ -940,6 +940,11 @@ namespace Etherwall {
         return fToken;
     }
 
+    bool ContractInfo::isERC20() const
+    {
+        return fIsERC20;
+    }
+
     quint8 ContractInfo::decimals() const
     {
         return fDecimals;

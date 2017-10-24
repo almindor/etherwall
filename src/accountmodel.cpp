@@ -325,6 +325,16 @@ namespace Etherwall {
         return fAccountList;
     }
 
+    const QVariantList AccountModel::getAccountAddresses() const
+    {
+        QVariantList result;
+        foreach ( const AccountInfo& account, fAccountList ) {
+            result.append(account.hash()); // TODO: check if we might need lowercase here
+        }
+
+        return result;
+    }
+
     void AccountModel::selectToken(const QString& name, const QString& tokenAddress)
     {
         fCurrentToken = name;

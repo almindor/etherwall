@@ -42,7 +42,7 @@ namespace Etherwall {
     ContractModel::ContractModel(EtherIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
         fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel)
     {
-        connect(&ipc, &EtherIPC::connectToServerDone, this, &ContractModel::reload);
+        connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
         connect(&ipc, &EtherIPC::callDone, this, &ContractModel::onCallDone);
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
@@ -113,6 +113,9 @@ namespace Etherwall {
 
         beginInsertRows(QModelIndex(), fList.size(), fList.size());
         fList.append(info);
+        if ( info.isERC20() ) {
+            registerTokenWatch(info);
+        }
         endInsertRows();
 
         if ( info.needsERC20Init() ) {
@@ -164,6 +167,9 @@ namespace Etherwall {
         settings.endGroup();
 
         beginRemoveRows(QModelIndex(), index, index);
+        if ( fList.at(index).isERC20() ) { // remove watch for token
+            fIpc.uninstallFilter(fList.at(index).address());
+        }
         fList.removeAt(index);
         endRemoveRows();
 
@@ -424,6 +430,9 @@ namespace Etherwall {
                     loadERC20Data(info, index);
                 }
                 fList.append(info);
+                if ( info.isERC20() ) {
+                    registerTokenWatch(info);
+                }
                 index++;
             }
         }
@@ -607,6 +616,25 @@ namespace Etherwall {
         const QString balanceFull = Helpers::baseStrToFullStr(balanceBase, fList.at(contractIndex).decimals());
 
         emit tokenBalanceDone(accountIndex, fList.at(contractIndex).address(), balanceFull);
+    }
+
+    void ContractModel::registerTokenWatch(const ContractInfo &contract)
+    {
+        QVariantList params;
+        params.append(QVariant());
+        const QVariantList addresses = fAccountModel.getAccountAddresses();
+        params.insert(params.size(), addresses);
+        int eventIndex; // out
+
+        try {
+            const ContractEvent event = contract.event("Transfer", eventIndex);
+            const QJsonArray topics = event.encodeTopics(params);
+
+            fIpc.newEventFilter(contract.address(), topics);
+            qDebug() << "added new filter with topics: " << topics << "\n";
+        } catch ( QString error ) {
+            return EtherLog::logMsg(error, LS_Error);
+        }
     }
 
 }

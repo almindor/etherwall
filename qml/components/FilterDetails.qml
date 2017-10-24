@@ -28,7 +28,6 @@ Window {
     title: qsTr("Watch Details")
     signal refresh()
 
-    modality: Qt.ApplicationModal
     visible: false
     minimumWidth: 6 * dpi
     minimumHeight: 7 * dpi

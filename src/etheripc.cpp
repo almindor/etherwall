@@ -826,6 +826,15 @@ namespace Etherwall {
         }
     }
 
+    void EtherIPC::uninstallFilter(const QString &address)
+    {
+        if ( fEventFilterIDs.contains(address) ) {
+            QVariantMap userData;
+            userData["address"] = address;
+            uninstallFilter(fEventFilterIDs.value(address), userData);
+        }
+    }
+
     const QString EtherIPC::getFilterIDForAddress(const QString &address)
     {
         if ( fEventFilterIDs.contains(address) ) {

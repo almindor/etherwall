@@ -234,6 +234,7 @@ namespace Etherwall {
         int eventIndexByMethodID(const QString& methodID) const;
         void processEvent(EventInfo& info) const;
         const QString token() const;
+        bool isERC20() const;
         quint8 decimals() const;
         bool needsERC20Init() const;
         void loadSymbolData(const QString& data);

@@ -126,6 +126,7 @@ namespace Etherwall {
         void call(const Ethereum::Tx& tx, int index, const QVariantMap& userData);
         void getTransactionByHash(const QString& hash);
         void newEventFilter(const QString& address, const QJsonArray& topics);
+        void uninstallFilter(const QString& address);
         void uninstallFilter(const QString& filter, const QVariantMap& userData);
         const QString getFilterIDForAddress(const QString& address);
 

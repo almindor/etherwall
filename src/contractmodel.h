@@ -90,6 +90,7 @@ namespace Etherwall {
         void loadERC20Data(const ContractInfo& contract, int index) const;
         void onCallName(const QString& result) const;
         void onTokenBalance(const QString& result, int contractIndex, int accountIndex) const;
+        void registerTokenWatch(const ContractInfo& contract);
 
         ContractList fList;
         EtherIPC& fIpc;

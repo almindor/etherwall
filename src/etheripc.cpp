@@ -293,7 +293,7 @@ namespace Etherwall {
         if ( fSocket.state() == QLocalSocket::ConnectedState ) {
             bool removed = false;
             if ( !fBlockFilterID.isEmpty() ) { // remove block filter if still connected
-                uninstallFilter(fBlockFilterID, QVariantMap());
+                uninstallFilter(fBlockFilterID);
                 fBlockFilterID.clear();
                 removed = true;
             }
@@ -302,9 +302,7 @@ namespace Etherwall {
                 QMapIterator<QString, QString> i(fEventFilterIDs);
                 while (i.hasNext()) {
                     i.next();
-                    QVariantMap userData;
-                    userData["address"] = i.key();
-                    uninstallFilter(i.value(), userData);
+                    uninstallFilter(i.key());
                 }
                 fEventFilterIDs.clear();
                 removed = true;
@@ -802,16 +800,10 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::newEventFilter(const QString& address, const QJsonArray& topics) {
-        if ( fEventFilterIDs.contains(address) ) {
-            QVariantMap userData;
-            userData["address"] = address;
-            uninstallFilter(fEventFilterIDs.value(address), userData);
-        }
-
+    void EtherIPC::newEventFilter(const QJsonArray& addresses, const QJsonArray& topics, const QString& internalID) {
         QJsonArray params;
         QJsonObject o;
-        o["address"] = address;
+        o["address"] = addresses;
         if ( topics.size() > 0 ) {
             o["topics"] = topics;
         }
@@ -819,29 +811,11 @@ namespace Etherwall {
 
         RequestIPC request(NewEventFilter, "eth_newFilter", params);
         QVariantMap userData;
-        userData["address"] = address;
+        userData["internalID"] = internalID;
         request.setUserData(userData);
         if ( !queueRequest(request) ) {
             return bail();
         }
-    }
-
-    void EtherIPC::uninstallFilter(const QString &address)
-    {
-        if ( fEventFilterIDs.contains(address) ) {
-            QVariantMap userData;
-            userData["address"] = address;
-            uninstallFilter(fEventFilterIDs.value(address), userData);
-        }
-    }
-
-    const QString EtherIPC::getFilterIDForAddress(const QString &address)
-    {
-        if ( fEventFilterIDs.contains(address) ) {
-            return fEventFilterIDs.value(address);
-        }
-
-        return QString();
     }
 
     void EtherIPC::handleNewBlockFilter() {
@@ -850,6 +824,7 @@ namespace Etherwall {
             return bail();
         }
         fBlockFilterID = jv.toString();
+        // qDebug() << "new block filter: " << fBlockFilterID << "\n";
 
         if ( fBlockFilterID.isEmpty() ) {
             setError("Block filter ID invalid");
@@ -869,8 +844,9 @@ namespace Etherwall {
             setError("Event filter ID invalid");
             return bail();
         }
-        const QString address = fActiveRequest.getUserData().value("address").toString();
-        fEventFilterIDs[address] = id;
+        const QString internalID = fActiveRequest.getUserData().value("internalID").toString();
+        fEventFilterIDs[internalID] = id;
+        qDebug() << "new event filter: " << id << " internalID: " << internalID << "\n";
 
         done();
     }
@@ -933,7 +909,12 @@ namespace Etherwall {
         QJsonArray params;
         params.append(filterID);
 
-        if ( !queueRequest(RequestIPC(NonVisual, GetFilterChanges, "eth_getFilterChanges", params)) ) {
+        RequestIPC request(NonVisual, GetFilterChanges, "eth_getFilterChanges", params);
+        QVariantMap userData;
+        userData["filterID"] = filterID;
+        request.setUserData(userData);
+
+        if ( !queueRequest(request) ) {
             return bail();
         }
     }
@@ -949,7 +930,8 @@ namespace Etherwall {
         foreach( const QJsonValue v, ar ) {
             if ( v.isObject() ) { // event filter result
                 const QJsonObject logs = v.toObject();
-                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges); // get logs is not "new"
+                const QString filterID = fActiveRequest.getUserData().value("filterID").toString();
+                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges, filterID); // get logs is not "new"
             } else { // block filter (we don't use transaction filters yet)
                 const QString hash = v.toString("bogus");
                 getBlockByHash(hash);
@@ -959,19 +941,25 @@ namespace Etherwall {
         done();
     }
 
-    void EtherIPC::uninstallFilter(const QString& filter, const QVariantMap& userData) {
-        if ( filter.isEmpty() ) {
-            setError("Filter not set");
+    void EtherIPC::uninstallFilter(const QString& internalID) {
+        if ( internalID.isEmpty() ) {
+            setError("internalID not set");
             return bail(true);
         }
 
+        bool isEventFilter = fEventFilterIDs.contains(internalID);
+        const QString filterID = isEventFilter ? fEventFilterIDs.value(internalID) : internalID; // block filter is direct
+
         QJsonArray params;
-        params.append(filter);
+        params.append(filterID);
 
         RequestIPC request(UninstallFilter, "eth_uninstallFilter", params);
-        if ( !userData.isEmpty() ) {
+        if ( isEventFilter ) {
+            QVariantMap userData;
+            userData["internalID"] = internalID;
             request.setUserData(userData);
         }
+
         if ( !queueRequest(request) ) {
             return bail();
         }
@@ -1004,9 +992,10 @@ namespace Etherwall {
             return bail();
         }
 
-        if ( fActiveRequest.getUserData().contains("address") ) {
-            const QString address = fActiveRequest.getUserData().value("address").toString();
-            fEventFilterIDs.remove(address);
+        if ( fActiveRequest.getUserData().contains("internalID") ) {
+            const QString internalID = fActiveRequest.getUserData().value("internalID").toString();
+            fEventFilterIDs.remove(internalID);
+            qDebug() << "removed event filter: " << internalID << "\n";
         }
 
         done();
@@ -1180,7 +1169,7 @@ namespace Etherwall {
 
         if ( !fSyncing ) {
             if ( !fBlockFilterID.isEmpty() ) {
-                uninstallFilter(fBlockFilterID, QVariantMap());
+                uninstallFilter(fBlockFilterID);
                 fBlockFilterID.clear();
             }
             fSyncing = true;

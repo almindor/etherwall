@@ -81,7 +81,7 @@ namespace Etherwall {
         void tokenBalanceDone(int accountIndex, const QString& tokenAddress, const QString& balance) const;
     public slots:
         void reload();
-        void onNewEvent(const QJsonObject& event, bool isNew);
+        void onNewEvent(const QJsonObject& event, bool isNew, const QString& filterID);
         void httpRequestDone(QNetworkReply *reply);
         void onCallDone(const QString& result, int index, const QVariantMap& userData);
         void onSelectedTokenContract(int index);
@@ -90,7 +90,7 @@ namespace Etherwall {
         void loadERC20Data(const ContractInfo& contract, int index) const;
         void onCallName(const QString& result) const;
         void onTokenBalance(const QString& result, int contractIndex, int accountIndex) const;
-        void registerTokenWatch(const ContractInfo& contract);
+        void registerTokensFilter();
 
         ContractList fList;
         EtherIPC& fIpc;

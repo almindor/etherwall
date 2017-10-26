@@ -29,6 +29,7 @@ namespace Etherwall {
         static BigInt::Rossi etherStrToRossi(const QString& dec);
         static const QString formatEtherStr(const QString& ether);
         static const QJsonArray toQJsonArray(const AccountList& list);
+        static void mergeJsonArrays(QJsonArray& dest, const QJsonArray& source);
         static quint64 toQUInt64(const QJsonValue& jv);
         static int parseAppVersion(const QString& ver);
         static QJsonObject parseHTTPReply(QNetworkReply *reply);

@@ -34,10 +34,10 @@ namespace Etherwall {
     private:
         void update(int index);
         void registerFilters() const;
-        void registerFilter(const FilterInfo& info) const;
-        void unregisterFilter(const FilterInfo& info) const;
         EtherIPC& fIpc;
         EventFilters fList;
+
+        int getActiveCount() const;
     };
 
 }

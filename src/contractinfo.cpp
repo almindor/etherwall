@@ -11,6 +11,7 @@ namespace Etherwall {
     FilterInfo::FilterInfo(const QString& name, const QString& address, const QString& contract, const QJsonArray& topics, bool active) :
         fName(name), fAddress(address), fContract(contract), fTopics(topics), fActive(active)
     {
+        fHash = calculateHash();
     }
 
     FilterInfo::FilterInfo(const QJsonObject& source) {
@@ -19,6 +20,7 @@ namespace Etherwall {
         fContract = source.value("contract").toString("invalid");
         fTopics = source.value("topics").toArray();
         fActive = source.value("active").toBool(false);
+        fHash = calculateHash();
     }
 
     const QVariant FilterInfo::value(const int role) const {
@@ -40,6 +42,20 @@ namespace Etherwall {
     bool FilterInfo::getActive() const
     {
         return fActive;
+    }
+
+    const QString FilterInfo::getHash() const
+    {
+        return fHash;
+    }
+
+    const QString FilterInfo::calculateHash() const
+    {
+        // md5 good enough here, not security related and we need speed
+        const QJsonDocument doc(fTopics);
+        const QByteArray topicsString = doc.toJson();
+        const QByteArray allString = (fName + fAddress + fContract).toUtf8() + topicsString;
+        return QCryptographicHash::hash(allString, QCryptographicHash::Md5).toHex();
     }
 
     const QJsonObject FilterInfo::toJson() const {

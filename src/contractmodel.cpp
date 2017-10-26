@@ -45,6 +45,7 @@ namespace Etherwall {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
         connect(&ipc, &EtherIPC::callDone, this, &ContractModel::onCallDone);
+        connect(&ipc, &EtherIPC::newAccountDone, this, &ContractModel::registerTokensFilter);
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
     }
 
@@ -113,9 +114,6 @@ namespace Etherwall {
 
         beginInsertRows(QModelIndex(), fList.size(), fList.size());
         fList.append(info);
-        if ( info.isERC20() ) {
-            registerTokenWatch(info);
-        }
         endInsertRows();
 
         if ( info.needsERC20Init() ) {
@@ -430,28 +428,35 @@ namespace Etherwall {
                     loadERC20Data(info, index);
                 }
                 fList.append(info);
-                if ( info.isERC20() ) {
-                    registerTokenWatch(info);
-                }
                 index++;
             }
         }
 
         settings.endGroup();
         endResetModel();
+
+        registerTokensFilter();
     }
 
-    void ContractModel::onNewEvent(const QJsonObject& event, bool isNew) {
+    void ContractModel::onNewEvent(const QJsonObject& event, bool isNew, const QString& filterID) {
         EventInfo info(event);
-
         // find the right contract and process/fill the params
         foreach ( const ContractInfo ci, fList ) {
             if ( ci.address() == info.address() ) {
                 ci.processEvent(info);
+                break;
             }
         }
 
-        emit newEvent(info, isNew);
+        if ( filterID == "tokensFilter" ) {
+            // TODO
+            const QVariantList params = info.getParams();
+            qDebug() << "got event for token at: " << info.contract() << " from: " << params.at(0).toString() << " to: " << params.at(1).toString() << "\n";
+        } else if ( filterID == "watchFilter" ) {
+            emit newEvent(info, isNew);
+        } else {
+            return EtherLog::logMsg("Unknown filterID: " + filterID, LS_Error);
+        }
     }
 
     void ContractModel::httpRequestDone(QNetworkReply *reply) {
@@ -618,23 +623,34 @@ namespace Etherwall {
         emit tokenBalanceDone(accountIndex, fList.at(contractIndex).address(), balanceFull);
     }
 
-    void ContractModel::registerTokenWatch(const ContractInfo &contract)
+    void ContractModel::registerTokensFilter()
     {
         QVariantList params;
-        params.append(QVariant());
-        const QVariantList addresses = fAccountModel.getAccountAddresses();
-        params.insert(params.size(), addresses);
+        params.append(QVariant()); // from any
+        const QVariantList accountAddresses = fAccountModel.getAccountAddresses();
+        params.insert(params.size(), accountAddresses); // to one of our addresses
         int eventIndex; // out
+        QJsonArray topics;
+        QJsonArray contractAddresses;
 
-        try {
-            const ContractEvent event = contract.event("Transfer", eventIndex);
-            const QJsonArray topics = event.encodeTopics(params);
+        foreach ( const ContractInfo& contract, fList ) {
+            if ( !contract.isERC20() ) {
+                continue;
+            }
 
-            fIpc.newEventFilter(contract.address(), topics);
-            qDebug() << "added new filter with topics: " << topics << "\n";
-        } catch ( QString error ) {
-            return EtherLog::logMsg(error, LS_Error);
+            contractAddresses.append(contract.address());
+            try {
+                const ContractEvent event = contract.event("Transfer", eventIndex);
+                const QJsonArray tmp = event.encodeTopics(params);
+
+                Helpers::mergeJsonArrays(topics, tmp);
+            } catch ( QString error ) {
+                return EtherLog::logMsg(error, LS_Error);
+            }
         }
+
+        fIpc.uninstallFilter("tokensFilter");
+        fIpc.newEventFilter(contractAddresses, topics, "tokensFilter");
     }
 
 }

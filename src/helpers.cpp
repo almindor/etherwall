@@ -155,6 +155,28 @@ namespace Etherwall {
         return result;
     }
 
+    void Helpers::mergeJsonArrays(QJsonArray &dest, const QJsonArray &source)
+    {
+        // equalize dest with nulls first
+        while ( dest.size() < source.size() ) {
+            dest.append(QJsonValue());
+        }
+
+        for ( int i = 0; i < source.size(); i++ ) {
+            if ( dest.at(i).isNull() && !source.at(i).isNull() ) { // override nulls with actual values
+                dest.replace(i, source.at(i));
+            } else if ( !dest.at(i).isNull() && !source.at(i).isNull() ) { // append to existing
+                QJsonArray inner = dest.at(i).isArray() ? dest.at(i).toArray() : QJsonArray();
+                if ( source.at(i).isArray() ) {
+                    inner = inner + source.at(i).toArray();
+                } else {
+                    inner.append(source.at(i));
+                }
+                inner.replace(i, inner);
+            } // both null, leave as is, nulls don't merge
+        }
+    }
+
     quint64 Helpers::toQUInt64(const QJsonValue& jv) {
         std::string hexStr = jv.toString("0x0").remove(0, 2).toStdString();
         BigInt::Vin vin(hexStr, 16);

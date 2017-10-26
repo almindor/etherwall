@@ -34,12 +34,16 @@ namespace Etherwall {
         const QString getHandle() const;
         void setActive(bool active);
         bool getActive() const;
+        const QString getHash() const;
     private:
         QString fName;
         QString fAddress;
         QString fContract;
         QJsonArray fTopics;
         bool fActive;
+        QString fHash;
+
+        const QString calculateHash() const;
     };
 
     typedef QList<FilterInfo> EventFilters;

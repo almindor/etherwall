@@ -1,4 +1,5 @@
 #include "filtermodel.h"
+#include "helpers.h"
 #include <QSettings>
 
 namespace Etherwall {
@@ -91,7 +92,7 @@ namespace Etherwall {
         fList.append(info);
         endInsertRows();
 
-        registerFilter(info);
+        registerFilters();
         loadLogs();
     }
 
@@ -117,7 +118,7 @@ namespace Etherwall {
         }
 
         const FilterInfo info = fList.at(index);
-        unregisterFilter(info);
+        registerFilters();
         QSettings settings;
         settings.beginGroup("filters" + fIpc.getNetworkPostfix());
         settings.remove(info.getHandle());
@@ -138,40 +139,42 @@ namespace Etherwall {
         roles[3] = FilterActiveRole;
         emit dataChanged(leftIndex, rightIndex, roles);
 
-        if ( fList.at(index).value(FilterActiveRole).toBool() ) {
-            registerFilter(fList.at(index));
+        registerFilters();
+        if ( fList.at(index).getActive() ) {
             loadLogs();
         }
     }
 
     void FilterModel::registerFilters() const {
-        foreach ( const FilterInfo info, fList ) {
-            if ( !info.value(FilterActiveRole).toBool() ) {
-                continue;
+        if ( getActiveCount() > 0 ) {
+            QJsonArray addresses;
+            QJsonArray topics;
+            foreach ( const FilterInfo& info, fList ) {
+                if ( !info.getActive() ) {
+                    continue;
+                }
+
+                addresses.append(info.value(FilterAddressRole).toString());
+                Helpers::mergeJsonArrays(topics, info.value(FilterTopicsRole).toJsonArray());
             }
 
-            registerFilter(info);
+            fIpc.uninstallFilter("watchFilter");
+            fIpc.newEventFilter(addresses, topics, "watchFilter");
+        } else {
+            fIpc.uninstallFilter("watchFilter");
         }
     }
 
-    void FilterModel::registerFilter(const FilterInfo &info) const
+    int FilterModel::getActiveCount() const
     {
-        const QString address = info.value(FilterAddressRole).toString();
-        const QJsonArray topics = info.value(FilterTopicsRole).toJsonArray();
-        fIpc.newEventFilter(address, topics);
-    }
-
-    void FilterModel::unregisterFilter(const FilterInfo &info) const
-    {
-        if ( !info.getActive() ) {
-            return;
+        int count = 0;
+        foreach ( const FilterInfo& info, fList ) {
+            if ( info.getActive() ) {
+                count++;
+            }
         }
 
-        const QString address = info.value(FilterAddressRole).toString();
-        const QString filterID = fIpc.getFilterIDForAddress(address);
-        QVariantMap userData;
-        userData["address"] = address;
-        fIpc.uninstallFilter(filterID, userData);
+        return count;
     }
 
     void FilterModel::loadLogs() const {

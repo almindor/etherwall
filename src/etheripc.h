@@ -125,10 +125,8 @@ namespace Etherwall {
         void sendRawTransaction(const QString &rlp);
         void call(const Ethereum::Tx& tx, int index, const QVariantMap& userData);
         void getTransactionByHash(const QString& hash);
-        void newEventFilter(const QString& address, const QJsonArray& topics);
-        void uninstallFilter(const QString& address);
-        void uninstallFilter(const QString& filter, const QVariantMap& userData);
-        const QString getFilterIDForAddress(const QString& address);
+        void newEventFilter(const QJsonArray& addresses, const QJsonArray& topics, const QString& internalID);
+        void uninstallFilter(const QString& internalID);
 
         Q_INVOKABLE virtual bool closeApp();
         Q_INVOKABLE virtual void setInterval(int interval);
@@ -161,7 +159,7 @@ namespace Etherwall {
         void estimateGasDone(const QString& price) const;
         void newTransaction(const QJsonObject& info) const;
         void newBlock(const QJsonObject& block) const;
-        void newEvent(const QJsonObject& event, bool isNew) const;
+        void newEvent(const QJsonObject& event, bool isNew, const QString& filterID) const;
         void getTransactionReceiptDone(const QJsonObject& receipt) const;
 
         void peerCountChanged(quint64 num) const;

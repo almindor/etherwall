@@ -178,6 +178,12 @@ ApplicationWindow {
     }
 
     Connections {
+        target: contractModel
+
+        onReceivedTokens: badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)
+    }
+
+    Connections {
         target: accountModel
 
         onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))

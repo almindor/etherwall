@@ -244,7 +244,7 @@ namespace Etherwall {
         bool getBalance(const QString& hash, int index);
         bool getTransactionCount(const QString& hash, int index);
         void getSyncing();
-        void getFilterChanges(const QString& filterID);
+        void getFilterChanges(const QString& filterID, const QString& internalFilterID);
         void getClientVersion();
         void getNetVersion();
         void getPeerCount();

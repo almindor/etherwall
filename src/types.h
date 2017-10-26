@@ -170,6 +170,7 @@ namespace Etherwall {
         void setTokenBalance(const QString& tokenAddress, const QString& balance);
         void setCurrentToken(const QString& tokenAddress);
         void setTransactionCount(quint64 count);
+        const QString getCurrentTokenAddress() const;
         void lock();
         void unlock();
         bool isLocked() const;

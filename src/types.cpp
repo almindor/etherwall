@@ -164,6 +164,11 @@ namespace Etherwall {
         fTransCount = count;
     }
 
+    const QString AccountInfo::getCurrentTokenAddress() const
+    {
+        return fCurrentTokenAddress;
+    }
+
     bool AccountInfo::isLocal() const
     {
         return fHDPath.isEmpty();

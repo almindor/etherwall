@@ -267,12 +267,15 @@ namespace Etherwall {
         }
 
         fAccountList[accountIndex].setTokenBalance(tokenAddress, balance);
-        QVector<int> roles(1);
-        roles[0] = BalanceRole;
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(accountIndex, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(accountIndex, 0);
-        emit dataChanged(leftIndex, rightIndex, roles);
-        emit totalChanged();
+
+        if ( fAccountList.at(accountIndex).getCurrentTokenAddress() == tokenAddress ) {
+            QVector<int> roles(1);
+            roles[0] = BalanceRole;
+            const QModelIndex& leftIndex = QAbstractListModel::createIndex(accountIndex, 0);
+            const QModelIndex& rightIndex = QAbstractListModel::createIndex(accountIndex, 0);
+            emit dataChanged(leftIndex, rightIndex, roles);
+            emit totalChanged();
+        }
     }
 
     const QString AccountModel::getSelectedAccountAlias() const

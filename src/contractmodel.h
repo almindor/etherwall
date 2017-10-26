@@ -79,9 +79,10 @@ namespace Etherwall {
         void busyChanged(bool busy) const;
         void callNameDone(const QString& name) const;
         void tokenBalanceDone(int accountIndex, const QString& tokenAddress, const QString& balance) const;
+        void receivedTokens(const QString& value, const QString& token, const QString& sender) const;
     public slots:
         void reload();
-        void onNewEvent(const QJsonObject& event, bool isNew, const QString& filterID);
+        void onNewEvent(const QJsonObject& event, bool isNew, const QString& internalFilterID);
         void httpRequestDone(QNetworkReply *reply);
         void onCallDone(const QString& result, int index, const QVariantMap& userData);
         void onSelectedTokenContract(int index);
@@ -89,6 +90,7 @@ namespace Etherwall {
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;
         void onCallName(const QString& result) const;
+        void refreshTokenBalance(const QString& accountAddress, int accountIndex, const ContractInfo& contract, int contractIndex) const;
         void onTokenBalance(const QString& result, int contractIndex, int accountIndex) const;
         void registerTokensFilter();
 

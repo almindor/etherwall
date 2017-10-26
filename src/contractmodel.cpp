@@ -438,24 +438,46 @@ namespace Etherwall {
         registerTokensFilter();
     }
 
-    void ContractModel::onNewEvent(const QJsonObject& event, bool isNew, const QString& filterID) {
+    void ContractModel::onNewEvent(const QJsonObject& event, bool isNew, const QString& internalFilterID) {
         EventInfo info(event);
+        int contractIndex = 0;
         // find the right contract and process/fill the params
         foreach ( const ContractInfo ci, fList ) {
             if ( ci.address() == info.address() ) {
                 ci.processEvent(info);
                 break;
             }
+            contractIndex++;
         }
 
-        if ( filterID == "tokensFilter" ) {
-            // TODO
-            const QVariantList params = info.getParams();
-            qDebug() << "got event for token at: " << info.contract() << " from: " << params.at(0).toString() << " to: " << params.at(1).toString() << "\n";
-        } else if ( filterID == "watchFilter" ) {
+        const ContractInfo& contract = fList.at(contractIndex);
+        const QVariantList params = info.getParams();
+        if ( params.size() < 3 ) {
+            return EtherLog::logMsg("Invalid amount of Transfer event params: " + params.size(), LS_Error);
+        }
+
+        const QString fromAddress = params.at(0).toString().toLower();
+        const QString toAddress = params.at(1).toString().toLower();
+        const QString value = Helpers::baseStrToFullStr(params.at(2).toString(), contract.decimals());
+
+        if ( internalFilterID == "tokensFilter" ) {
+            const AccountList& accounts = fAccountModel.getAccounts();
+
+            // call balance for given account
+            for ( int accountIndex = 0; accountIndex < accounts.size(); accountIndex++ ) {
+                const QString accountAddress = accounts.at(accountIndex).hash();
+                if ( accountAddress.toLower() != toAddress ) {
+                    continue;
+                }
+
+                refreshTokenBalance(accountAddress, accountIndex, contract, contractIndex);
+                emit receivedTokens(value, contract.token(), fromAddress);
+                break;
+            }
+        } else if ( internalFilterID == "watchFilter" ) {
             emit newEvent(info, isNew);
         } else {
-            return EtherLog::logMsg("Unknown filterID: " + filterID, LS_Error);
+            return EtherLog::logMsg("Unknown internal filterID: " + internalFilterID, LS_Error);
         }
     }
 
@@ -541,20 +563,11 @@ namespace Etherwall {
             const AccountList& accounts = fAccountModel.getAccounts();
             const ContractInfo& contract = fList.at(index);
 
+            // TODO: optimize this, we don't need to call each time, just 1st + on new token additions
             for ( int accountIndex = 0; accountIndex < accounts.size(); accountIndex++ ) {
                 const QString accountAddress = accounts.at(accountIndex).hash();
-                QVariantList params;
-                params.append(accountAddress);
 
-                int funcIndex = -1;
-                const ContractFunction func = contract.function("balanceOf", funcIndex);
-                const QString encoded = "0x" + func.callData(params);
-                QVariantMap userData;
-                userData["type"] = "balanceCall";
-                userData["accountIndex"] = accountIndex;
-
-                Ethereum::Tx txBalance(QString(), contract.address(), QString(), 0, QString(), QString(), encoded);
-                fIpc.call(txBalance, index, userData);
+                refreshTokenBalance(accountAddress, accountIndex, contract, index);
             }
 
             fAccountModel.selectToken(contract.token(), contract.address());
@@ -599,6 +612,22 @@ namespace Etherwall {
         const QVariant decoded = arg.decode(raw);
 
         emit callNameDone(decoded.toString());
+    }
+
+    void ContractModel::refreshTokenBalance(const QString& accountAddress, int accountIndex, const ContractInfo& contract, int contractIndex) const
+    {
+        QVariantList params;
+        params.append(accountAddress);
+
+        int funcIndex = -1;
+        const ContractFunction func = contract.function("balanceOf", funcIndex);
+        const QString encoded = "0x" + func.callData(params);
+        QVariantMap userData;
+        userData["type"] = "balanceCall";
+        userData["accountIndex"] = accountIndex;
+
+        Ethereum::Tx txBalance(QString(), contract.address(), QString(), 0, QString(), QString(), encoded);
+        fIpc.call(txBalance, contractIndex, userData);
     }
 
     void ContractModel::onTokenBalance(const QString &result, int contractIndex, int accountIndex) const

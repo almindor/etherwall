@@ -856,14 +856,16 @@ namespace Etherwall {
         getSyncing();
 
         if ( !fBlockFilterID.isEmpty() && !fSyncing ) {
-            getFilterChanges(fBlockFilterID);
+            getFilterChanges(fBlockFilterID, QString());
         } else {
             getBlockNumber();
         }
 
         if ( !fEventFilterIDs.isEmpty() ) {
-            foreach ( const QString& eventFilterID, fEventFilterIDs ) {
-                getFilterChanges(eventFilterID);
+            QMapIterator<QString, QString> i(fEventFilterIDs);
+            while ( i.hasNext() ) {
+                i.next();
+                getFilterChanges(i.value(), i.key());
             }
         }
     }
@@ -900,7 +902,7 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::getFilterChanges(const QString& filterID) {
+    void EtherIPC::getFilterChanges(const QString& filterID, const QString& internalFilterID) {
         if ( filterID < 0 ) {
             setError("Filter ID invalid");
             return bail();
@@ -911,7 +913,7 @@ namespace Etherwall {
 
         RequestIPC request(NonVisual, GetFilterChanges, "eth_getFilterChanges", params);
         QVariantMap userData;
-        userData["filterID"] = filterID;
+        userData["internalFilterID"] = internalFilterID;
         request.setUserData(userData);
 
         if ( !queueRequest(request) ) {
@@ -930,8 +932,8 @@ namespace Etherwall {
         foreach( const QJsonValue v, ar ) {
             if ( v.isObject() ) { // event filter result
                 const QJsonObject logs = v.toObject();
-                const QString filterID = fActiveRequest.getUserData().value("filterID").toString();
-                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges, filterID); // get logs is not "new"
+                const QString internalFilterID = fActiveRequest.getUserData().value("internalFilterID").toString();
+                emit newEvent(logs, fActiveRequest.getType() == GetFilterChanges, internalFilterID); // get logs is not "new"
             } else { // block filter (we don't use transaction filters yet)
                 const QString hash = v.toString("bogus");
                 getBlockByHash(hash);

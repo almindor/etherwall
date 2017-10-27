@@ -30,11 +30,11 @@ Window {
     modality: Qt.NonModal
     visible: false
     minimumWidth: 7 * dpi
-    minimumHeight: 5.2 * dpi
+    minimumHeight: 5.5 * dpi
     maximumWidth: 10 * dpi
     maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 5.2 * dpi
+    height: 5.5 * dpi
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)
@@ -48,6 +48,9 @@ Window {
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
+        stcTab.children[0].tokenIndex = 0
+        stcTab.children[0].tokenAddress = ""
+        stcTab.children[0].prepare()
 
         cccTab.active = true
         cccTab.children[0].open(index) // ensure first function is selected ok

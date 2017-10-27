@@ -43,6 +43,8 @@ Window {
         stc.contractData = ""
         stc.contractName = ""
         stc.contractAbi = "[]"
+        stc.tokenIndex = 0
+        stc.tokenAddress = ""
 
         show()
         stc.prepare()

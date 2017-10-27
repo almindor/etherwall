@@ -20,6 +20,8 @@ Item {
     signal done
 
     function prepare() {
+        valueField.text = "0"
+        toField.text = toAddress
         tokenCombo.currentIndex = 0
         if ( contractName.length ) {
             gasField.text = "3141592"

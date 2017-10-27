@@ -42,12 +42,15 @@ Window {
 
     function open() {
         stcTab.active = true
-        //stcTab.children[0].toAddress = contractModel.getAddress(index)
+        stcTab.children[0].toAddress = ""
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
+        stcTab.children[0].tokenIndex = 0
+        stcTab.children[0].tokenAddress = ""
         stcTab.children[0].functionIsConstant = false
         stcTab.enabled = false
+        stcTab.children[0].prepare()
 
         cccTab.active = true
         //cccTab.children[0].contractIndex = index

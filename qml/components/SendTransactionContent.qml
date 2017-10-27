@@ -5,8 +5,12 @@ import QtQuick.Controls.Styles 1.1
 Item {
     id: transactionContent
     anchors.fill: parent
+    property int tokenIndex : 0
+    property int decimals : 18
+    property string tokenAddress: ""
     property string toAddress : ""
     property string contractData : ""
+    property string txValue : "0"
     property bool functionIsConstant : false
     property int callIndex : -1
     property var userData : null
@@ -16,6 +20,7 @@ Item {
     signal done
 
     function prepare() {
+        tokenCombo.currentIndex = 0
         if ( contractName.length ) {
             gasField.text = "3141592"
         } else {
@@ -218,16 +223,49 @@ Item {
 
             TextField {
                 id: valueField
-                width: mainColumn.width - 1 * dpi - sendAllButton.width
+                width: mainColumn.width - 1 * dpi - sendAllButton.width - tokenCombo.width
                 validator: RegExpValidator {
-                    regExp: /^[0-9]+([.][0-9]{1,18})?$/
+                    id: valueValidator
+                    regExp: /^[0-9]{1,40}([.][0-9]{1,18})?$/
                 }
 
                 maximumLength: 50
                 onTextChanged: {
-                    if ( !text || !text.length || ( sendButton && sendButton.status < 0 ) ) sendButton.refresh()
+                    if ( sendButton ) {
+                        txValue = text
+                        if ( tokenIndex > 0 ) {
+                            txValue = "0" // enforce 0 ETH on token sends
+                        }
+                        var result = sendButton.refresh()
+                        contractData = tokenModel.getTokenTransferData(tokenIndex, toField.text, text)
+                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                    }
                 }
                 text: "0"
+            }
+
+            ComboBox {
+                id: tokenCombo
+                width: 1 * dpi
+                enabled: (toAddress.length === 0 && contractName.length === 0) // not an invoke or deploy
+                model: tokenModel
+                textRole: "token"
+                onActivated: {
+                    tokenIndex = index
+                    tokenAddress = tokenModel.getTokenAddress(index)
+                    decimals = tokenModel.getTokenDecimals(index)
+
+                    txValue = "0"
+                    if ( valueField.text !== "0" ) {
+                        valueField.text = 0
+                    } else {
+                        var result = sendButton.refresh()
+                        contractData = tokenModel.getTokenTransferData(tokenIndex, toField.text, "0")
+                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                    }
+                    var regstr = "^[0-9]{1,40}([.][0-9]{1," + decimals + "})?$"
+                    valueValidator.regExp = new RegExp(regstr)
+                }
             }
 
             ToolButton {
@@ -238,7 +276,11 @@ Item {
 
                 tooltip: qsTr("Send all", "send all ether from account")
                 onClicked: {
-                    valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text, gasPriceField.text)
+                    if ( tokenIndex > 0 ) {
+                        valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
+                    } else {
+                        valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text, gasPriceField.text)
+                    }
                 }
             }
         }
@@ -259,7 +301,7 @@ Item {
                     regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
 
-                text: transactionModel.estimateTotal(valueField.text, gasField.text, gasPriceField.text)
+                text: transactionModel.estimateTotal(txValue, gasField.text, gasPriceField.text)
                 onTextChanged: sendButton.setHelperText(text, sendButton.getGasTotal())
             }
         }
@@ -357,12 +399,13 @@ Item {
                     result.error = qsTr('Address checksum mismatch. <a href="https://www.etherwall.com/faq/#checksum">Click here for more info.</a>')
                 }
 
-                result.txtVal = valueField.text.trim() || ""
+                result.txtVal = txValue.trim() || ""
                 result.value = result.txtVal.length > 0 ? Number(result.txtVal) : NaN
                 if ( isNaN(result.value) || result.value < 0.0 ) {
                     result.error = qsTr("Invalid value")
                     return result
                 }
+
 
                 result.chain_id = ipc.testnet ? 4 : 1 // TODO: this should be handled better
                 result.nonce = accountModel.getAccountNonce(accountIndex)
@@ -375,6 +418,12 @@ Item {
 
                 result.txtGas = gasField.text
                 result.txtGasPrice = gasPriceField.text
+
+                // if we're tokening use token address and value
+                if ( tokenIndex > 0 ) {
+                    result.to = tokenAddress // we're sending to token contract, actual destination is in data
+                    result.txtVal = 0 // we're sending 0 eth, token size is in data
+                }
 
                 return result;
             }

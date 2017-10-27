@@ -169,6 +169,11 @@ namespace Etherwall {
         return fCurrentTokenAddress;
     }
 
+    const QString AccountInfo::getTokenBalance(const QString &tokenAddress) const
+    {
+        return fTokenBalances.value(tokenAddress, "0");
+    }
+
     bool AccountInfo::isLocal() const
     {
         return fHDPath.isEmpty();

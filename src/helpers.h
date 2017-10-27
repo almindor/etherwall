@@ -25,6 +25,7 @@ namespace Etherwall {
         static const QString decStrToHexStr(const QString& dec);
         static const QString weiStrToEtherStr(const QString& wei);
         static const QString baseStrToFullStr(const QString& base, quint8 decimals);
+        static const QString fullStrToBaseStr(const QString& full, quint8 decimals);
         static BigInt::Rossi decStrToRossi(const QString& dec);
         static BigInt::Rossi etherStrToRossi(const QString& dec);
         static const QString formatEtherStr(const QString& ether);
@@ -55,6 +56,7 @@ namespace Etherwall {
         Q_INVOKABLE const QString localURLToString(const QUrl& url) const;
         Q_INVOKABLE const QString exportAddress(const QString& address, bool testnet) const;
         Q_INVOKABLE int parseAppVersion(const QString& ver) const;
+        Q_INVOKABLE const QString fullStrToBaseStr(const QString& full, quint8 decimals) const;
     };
 
 }

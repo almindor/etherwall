@@ -4,8 +4,8 @@
 
 namespace Etherwall {
 
-    TokenModel::TokenModel(QAbstractItemModel* source) :
-        QAbstractListModel(0)
+    TokenModel::TokenModel(ContractModel* source) :
+        QAbstractListModel(0), fContractModel(*source)
     {
         fFilteredContracts.setSourceModel(source);
         fFilteredContracts.setFilterRole(TokenRole);
@@ -20,7 +20,9 @@ namespace Etherwall {
     QHash<int, QByteArray> TokenModel::roleNames() const
     {
         QHash<int, QByteArray> roles;
+        roles[AddressRole] = "address";
         roles[TokenRole] = "token";
+        roles[DecimalsRole] = "decimals";
 
         return roles;
     }
@@ -31,9 +33,19 @@ namespace Etherwall {
     }
 
     QVariant TokenModel::data(const QModelIndex &index, int role) const
-    {
+    {        
+        if ( role != TokenRole && role != DecimalsRole && role != AddressRole ) {
+            return QVariant("Invalid role");
+        }
+
         if ( index.row() == 0 ) {
-            return QVariant("ETH");
+            if ( role == TokenRole ) {
+                return QVariant("ETH");
+            } else if ( role == DecimalsRole ) {
+                return QVariant(18);
+            } else if ( role == AddressRole ) {
+                return QVariant("0x0000000000000000000000000000000000000000");
+            }
         }
 
         QModelIndex origIndex = fFilteredContracts.index(index.row(), index.column());
@@ -51,15 +63,54 @@ namespace Etherwall {
         }
 
         if ( index == 0 ) {
-            emit selectedTokenContract(-1);
+            emit selectedTokenContract(-1, true);
             return;
         }
 
-        index -= 1; // discount the ETH
-        const QModelIndex modelIndex = fFilteredContracts.index(index, 0);
-        const QModelIndex mappedIndex = fFilteredContracts.mapToSource(modelIndex);
+        emit selectedTokenContract(mapIndex(index), true);
+    }
 
-        emit selectedTokenContract(mappedIndex.row());
+    const QString TokenModel::getTokenAddress(int index) const
+    {
+        if ( index < 0 || index > fFilteredContracts.rowCount() ) {
+            return QString("invalid");
+        }
+
+        if ( index == 0 ) {
+            return QString("0x000000000000000000000000000000000000000");
+        }
+
+        int mapped = mapIndex(index);
+
+        return fContractModel.getAddress(mapped);
+    }
+
+    int TokenModel::getTokenDecimals(int index) const
+    {
+        if ( index < 0 || index > fFilteredContracts.rowCount() ) {
+            return -1;
+        }
+
+        if ( index == 0 ) {
+            return 18;
+        }
+
+        int mapped = mapIndex(index);
+        return fContractModel.getDecimals(mapped);
+    }
+
+    const QString TokenModel::getTokenTransferData(int index, const QString &toAddress, const QString& value) const
+    {
+        if ( index < 0 || index > fFilteredContracts.rowCount() ) {
+            return QString();
+        }
+
+        if ( index == 0 ) {
+            return QString();
+        }
+
+        int mapped = mapIndex(index);
+        return fContractModel.encodeTransfer(mapped, toAddress, value);
     }
 
     void TokenModel::onDataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
@@ -79,6 +130,15 @@ namespace Etherwall {
         Q_UNUSED(last);
         beginResetModel();
         endResetModel();
+    }
+
+    int TokenModel::mapIndex(int index) const
+    {
+        index -= 1; // discount the ETH
+        const QModelIndex modelIndex = fFilteredContracts.index(index, 0);
+        const QModelIndex mappedIndex = fFilteredContracts.mapToSource(modelIndex);
+
+        return mappedIndex.row();
     }
 
 }

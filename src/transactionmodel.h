@@ -101,7 +101,7 @@ namespace Etherwall {
         void latestVersionChanged(const QString& version) const;
         void latestVersionSame(const QString& version) const;
         void receivedTransaction(const QString& toAddress) const;
-        void confirmedTransaction(const QString& toAddress, const QString& hash) const;
+        void confirmedTransaction(const QString& fromAddress, const QString& toAddress, const QString& hash) const;
     private:
         EtherIPC& fIpc;
         const AccountModel& fAccountModel;

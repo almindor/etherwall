@@ -103,6 +103,36 @@ namespace Etherwall {
         return baseStr;
     }
 
+    const QString Helpers::fullStrToBaseStr(const QString &full, quint8 decimals)
+    {
+        QString result = full;
+        int i;
+        int n = full.indexOf(".");
+        if ( n > 0 ) {
+            result.remove(n, 1);
+        } else {
+            n = full.length();
+        }
+
+        int d = 0;
+
+        for ( i = n; d < decimals; i++ ) {
+            if ( i == result.length() ) {
+                result.append("0");
+            }
+            d++;
+        }
+
+        if ( result.length() > i ) {
+            result.remove(i, result.length());
+        }
+
+        while ( result.at(0) == '0' && result.length() > 1 ) {
+            result.remove(0, 1);
+        }
+        return result;
+    }
+
     BigInt::Rossi Helpers::decStrToRossi(const QString& dec) {
         return BigInt::Rossi(dec.toStdString(), 10);
     }
@@ -576,6 +606,11 @@ namespace Etherwall {
 
     int QmlHelpers::parseAppVersion(const QString& ver) const {
         return Helpers::parseAppVersion(ver);
+    }
+
+    const QString QmlHelpers::fullStrToBaseStr(const QString &full, quint8 decimals) const
+    {
+        return Helpers::fullStrToBaseStr(full, decimals);
     }
 
 }

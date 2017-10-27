@@ -40,7 +40,7 @@ namespace Etherwall {
     // contract model
 
     ContractModel::ContractModel(EtherIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
-        fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel)
+        fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel), fTokenBalanceTabs()
     {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
         connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
@@ -215,6 +215,15 @@ namespace Etherwall {
         return fList.at(index).address();
     }
 
+    int ContractModel::getDecimals(int index) const
+    {
+        if ( index < 0 || index >= fList.size() ) {
+            return -1;
+        }
+
+        return fList.at(index).decimals();
+    }
+
     const QString ContractModel::getABI(int index) const {
         if ( index < 0 || index >= fList.size() ) {
             return QString();
@@ -327,6 +336,25 @@ namespace Etherwall {
         }
     }
 
+    const QString ContractModel::encodeTransfer(int index, const QString &toAddress, const QString& value)
+    {
+        try {
+            if ( index < 0 || index >= fList.size() ) {
+                throw QString("Invalid contract index");
+            }
+            int funcIndex = -1;
+            const ContractFunction func = fList.at(index).function("transfer", funcIndex);
+            const QString valueBase = Helpers::fullStrToBaseStr(value, fList.at(index).decimals());
+            QVariantList params;
+            params.append(toAddress);
+            params.append(valueBase);
+            return ("0x" + func.callData(params));
+        } catch ( QString err ) {
+            EtherLog::logMsg(err, LS_Error);
+            return QString();
+        }
+    }
+
     const QString ContractModel::encodeTopics(int index, const QString &eventName, const QVariantList &params)
     {
         try {
@@ -424,10 +452,13 @@ namespace Etherwall {
                 EtherLog::logMsg("Error parsing stored contract: " + parseError.errorString(), LS_Error);
             } else {
                 const ContractInfo info(jsonDoc.object());
+                fList.append(info);
                 if ( info.needsERC20Init() ) {
                     loadERC20Data(info, index);
+                } else if ( info.isERC20() ) {
+                    onSelectedTokenContract(index, false); // get balances but don't select given token for accounts
                 }
-                fList.append(info);
+
                 index++;
             }
         }
@@ -555,24 +586,52 @@ namespace Etherwall {
         emit dataChanged(QAbstractListModel::createIndex(index, 0), QAbstractListModel::createIndex(index, 0));
     }
 
-    void ContractModel::onSelectedTokenContract(int index)
+    void ContractModel::onSelectedTokenContract(int index, bool forwardToAccounts)
     {
         if ( index < 0 ) {
-            fAccountModel.selectToken("ETH", QString());
+            if ( forwardToAccounts ) {
+                fAccountModel.selectToken("ETH", QString());
+            }
         } else if ( index < fList.size() ) {
             const AccountList& accounts = fAccountModel.getAccounts();
             const ContractInfo& contract = fList.at(index);
 
-            // TODO: optimize this, we don't need to call each time, just 1st + on new token additions
             for ( int accountIndex = 0; accountIndex < accounts.size(); accountIndex++ ) {
                 const QString accountAddress = accounts.at(accountIndex).hash();
+                const QString tab = contract.address() + accountAddress;
+
+                // don't re-refresh token/account combos we already checked, they get updated via filter events and tx events
+                if ( fTokenBalanceTabs.value(tab, false) ) {
+                    continue;
+                }
+
+                fTokenBalanceTabs[tab] = true;
 
                 refreshTokenBalance(accountAddress, accountIndex, contract, index);
             }
 
-            fAccountModel.selectToken(contract.token(), contract.address());
+            if ( forwardToAccounts ) {
+                fAccountModel.selectToken(contract.token(), contract.address());
+            }
         } else {
             EtherLog::logMsg("Token selection out of contract bounds", LS_Error);
+        }
+    }
+
+    void ContractModel::onConfirmedTransaction(const QString &fromAddress, const QString& toAddress, const QString& hash)
+    {
+        Q_UNUSED(hash);
+
+        try {
+            int contractIndex;
+            int accountIndex = fAccountModel.getAccountIndex(fromAddress);
+            const ContractInfo& contract = getContractByAddress(toAddress, contractIndex);
+
+            refreshTokenBalance(fromAddress, accountIndex, contract, contractIndex);
+        } catch ( QString error ) {
+            Q_UNUSED(error);
+            // nothing as this could be a normal tx
+            qDebug() << error << "\n";
         }
     }
 
@@ -680,6 +739,20 @@ namespace Etherwall {
 
         fIpc.uninstallFilter("tokensFilter");
         fIpc.newEventFilter(contractAddresses, topics, "tokensFilter");
+    }
+
+    const ContractInfo &ContractModel::getContractByAddress(const QString &address, int& index) const
+    {
+        index = -1;
+        const QString addressLower = address.toLower();
+        for ( int i = 0; i < fList.size(); i++ ) {
+            if ( fList.at(i).address().toLower() == addressLower ) {
+                index = i;
+                return fList.at(i);
+            }
+        }
+
+        throw QString("Contract not found");
     }
 
 }

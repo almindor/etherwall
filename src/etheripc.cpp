@@ -846,7 +846,7 @@ namespace Etherwall {
         }
         const QString internalID = fActiveRequest.getUserData().value("internalID").toString();
         fEventFilterIDs[internalID] = id;
-        qDebug() << "new event filter: " << id << " internalID: " << internalID << "\n";
+        // qDebug() << "new event filter: " << id << " internalID: " << internalID << "\n";
 
         done();
     }
@@ -997,7 +997,7 @@ namespace Etherwall {
         if ( fActiveRequest.getUserData().contains("internalID") ) {
             const QString internalID = fActiveRequest.getUserData().value("internalID").toString();
             fEventFilterIDs.remove(internalID);
-            qDebug() << "removed event filter: " << internalID << "\n";
+            // qDebug() << "removed event filter: " << internalID << "\n";
         }
 
         done();

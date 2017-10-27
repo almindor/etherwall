@@ -60,6 +60,7 @@ namespace Etherwall {
         Q_INVOKABLE int getIndex(const QString name) const;
         Q_INVOKABLE int getEventIndex(int index, const QJsonArray& topics) const;
         Q_INVOKABLE const QString getAddress(int index) const;
+        Q_INVOKABLE int getDecimals(int index) const;
         Q_INVOKABLE const QString getABI(int index) const;
         Q_INVOKABLE const QStringList getFunctions(int index) const;
         Q_INVOKABLE const QStringList getEvents(int index) const;
@@ -68,6 +69,7 @@ namespace Etherwall {
         Q_INVOKABLE const QVariantList getEventArguments(int index, const QString& eventName, bool indexedOnly) const;
         Q_INVOKABLE const QVariantList parseResponse(int contractIndex, const QString& data, const QVariantMap& userData) const;
         Q_INVOKABLE void encodeCall(int index, const QString& functionName, const QVariantList& params);
+        Q_INVOKABLE const QString encodeTransfer(int index, const QString& toAddress, const QString& value);
         Q_INVOKABLE const QString encodeTopics(int index, const QString& eventName, const QVariantList& params);
         Q_INVOKABLE void requestAbi(const QString& address);
         Q_INVOKABLE bool callName(const QString& address, const QString& jsonAbi) const;
@@ -85,7 +87,8 @@ namespace Etherwall {
         void onNewEvent(const QJsonObject& event, bool isNew, const QString& internalFilterID);
         void httpRequestDone(QNetworkReply *reply);
         void onCallDone(const QString& result, int index, const QVariantMap& userData);
-        void onSelectedTokenContract(int index);
+        void onSelectedTokenContract(int index, bool forwardToAccounts = true);
+        void onConfirmedTransaction(const QString &fromAddress, const QString& toAddress, const QString& hash);
     private:
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;
@@ -93,6 +96,7 @@ namespace Etherwall {
         void refreshTokenBalance(const QString& accountAddress, int accountIndex, const ContractInfo& contract, int contractIndex) const;
         void onTokenBalance(const QString& result, int contractIndex, int accountIndex) const;
         void registerTokensFilter();
+        const ContractInfo& getContractByAddress(const QString& address, int& index) const;
 
         ContractList fList;
         EtherIPC& fIpc;
@@ -100,6 +104,7 @@ namespace Etherwall {
         bool fBusy;
         PendingContracts fPendingContracts;
         AccountModel& fAccountModel;
+        QMap<QString, bool> fTokenBalanceTabs;
     };
 
 }

@@ -68,6 +68,7 @@ namespace Etherwall {
         bool getSelectedAccountDefault() const;
         const AccountList& getAccounts() const;
         const QVariantList getAccountAddresses() const;
+        int getAccountIndex(const QString& address) const;
         void selectToken(const QString& name, const QString& tokenAddress);
 
         Q_INVOKABLE void newAccount(const QString& pw);
@@ -82,6 +83,7 @@ namespace Etherwall {
         Q_INVOKABLE bool exportAccount(const QUrl& fileName, int index);
         Q_INVOKABLE void setAsDefault(const QString& address);
         Q_INVOKABLE void trezorImport(quint32 offset, quint8 count);
+        Q_INVOKABLE const QString getMaxTokenValue(int accountIndex, const QString& tokenAddress) const;
     public slots:
         void onTokenBalanceDone(int accountIndex, const QString& tokenAddress, const QString& balance);
     private slots:

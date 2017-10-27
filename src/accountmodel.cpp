@@ -256,6 +256,15 @@ namespace Etherwall {
         }
     }
 
+    const QString AccountModel::getMaxTokenValue(int accountIndex, const QString &tokenAddress) const
+    {
+        if ( accountIndex < 0 || accountIndex >= fAccountList.size() ) {
+            return "0";
+        }
+
+        return fAccountList.at(accountIndex).getTokenBalance(tokenAddress);
+    }
+
     void AccountModel::onTokenBalanceDone(int accountIndex, const QString &tokenAddress, const QString &balance)
     {
         if ( accountIndex < 0 || accountIndex >= fAccountList.size() ) {
@@ -336,6 +345,18 @@ namespace Etherwall {
         }
 
         return result;
+    }
+
+    int AccountModel::getAccountIndex(const QString &address) const
+    {
+        const QString addressLower = address.toLower();
+        for ( int i = 0; i < fAccountList.size(); i++ ) {
+            if ( fAccountList.at(i).hash().toLower() == addressLower ) {
+                return i;
+            }
+        }
+
+        throw QString("Account not found");
     }
 
     void AccountModel::selectToken(const QString& name, const QString& tokenAddress)

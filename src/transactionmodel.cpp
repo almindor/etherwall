@@ -258,7 +258,7 @@ namespace Etherwall {
                 emit dataChanged(leftIndex, rightIndex, roles);
                 const TransactionInfo info = fTransactionList.at(n);
                 storeTransaction(fTransactionList.at(n));
-                emit confirmedTransaction(info.value(ReceiverRole).toString(), info.value(THashRole).toString());
+                emit confirmedTransaction(info.getSender(), info.getReceiver(), info.getHash());
             } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
                 const TransactionInfo info = TransactionInfo(to);
                 addTransaction(info);

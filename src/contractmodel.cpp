@@ -502,6 +502,7 @@ namespace Etherwall {
                 }
 
                 refreshTokenBalance(accountAddress, accountIndex, contract, contractIndex);
+                fIpc.getTransactionByHash(info.transactionHash()); // get the TX so we know which one it came from
                 emit receivedTokens(value, contract.token(), fromAddress);
                 break;
             }

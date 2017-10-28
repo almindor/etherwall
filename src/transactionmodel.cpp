@@ -227,6 +227,8 @@ namespace Etherwall {
             } else { // external from someone to us
                 addTransaction(info);
             }
+        } else {
+            addTransaction(info);
         }
     }
 

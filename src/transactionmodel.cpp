@@ -230,7 +230,7 @@ namespace Etherwall {
                 storeTransaction(fQueuedTransaction);
             }
         } else {
-            // addTransaction(info); // TODO handle tokens
+            addTransaction(info); // TODO handle tokens
         }
     }
 

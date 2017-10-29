@@ -507,9 +507,12 @@ Item {
 
                 if ( contractName.length > 0 ) {
                     transactionSendDialog.msg = qsTr("Confirm creation of contract: ") + contractName
-                } else {
+                } else if ( tokenIndex === 0 ) {
                     transactionSendDialog.msg = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
+                } else {
+                    transactionSendDialog.msg = qsTr("Confirm send of ") + valueField.text + " " + tokenCombo.currentText + qsTr(" to: ") + toField.text
                 }
+
                 transactionSendDialog.open()
             }
         }

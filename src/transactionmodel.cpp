@@ -202,6 +202,7 @@ namespace Etherwall {
     void TransactionModel::onSendTransactionDone(const QString& hash) {
         fQueuedTransaction.setHash(hash);
         addTransaction(fQueuedTransaction);
+        storeTransaction(fQueuedTransaction);
         EtherLog::logMsg("Transaction sent, hash: " + hash);
     }
 
@@ -226,9 +227,10 @@ namespace Etherwall {
                 storeTransaction(fTransactionList.at(n));
             } else { // external from someone to us
                 addTransaction(info);
+                storeTransaction(fQueuedTransaction);
             }
         } else {
-            addTransaction(info);
+            // addTransaction(info); // TODO handle tokens
         }
     }
 
@@ -264,6 +266,7 @@ namespace Etherwall {
             } else if ( fAccountModel.containsAccount(sender, receiver, i1, i2) ) {
                 const TransactionInfo info = TransactionInfo(to);
                 addTransaction(info);
+                storeTransaction(info);
                 emit receivedTransaction(info.value(ReceiverRole).toString());
             }
         }
@@ -298,8 +301,6 @@ namespace Etherwall {
         beginInsertRows(QModelIndex(), index, index);
         fTransactionList.insert(index, info);
         endInsertRows();
-
-        storeTransaction(info);
     }
 
     void TransactionModel::storeTransaction(const TransactionInfo& info) {
@@ -315,7 +316,8 @@ namespace Etherwall {
         return a.getBlockNumber() > b.getBlockNumber();
     }
 
-    void TransactionModel::refresh() {
+    void TransactionModel::refresh()
+    {
         QSettings settings;
         settings.beginGroup("transactions");
         QStringList list = settings.allKeys();
@@ -330,11 +332,12 @@ namespace Etherwall {
                     EtherLog::logMsg("Error parsing stored transaction: " + parseError.errorString(), LS_Error);
                 } else {
                     const QJsonObject json = jsonDoc.object();
-                    const TransactionInfo info(json);
-                    onNewTransaction(json);
+                    addTransaction(json);
+
+                    quint64 txBlockNum = Helpers::toQUInt64(json.value("blockNumber"));
                     // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
-                    if ( info.getBlockNumber() == 0 || fBlockNumber - info.getBlockNumber() < 5400 ) {
-                        fIpc.getTransactionByHash(info.getHash());
+                    if ( txBlockNum == 0 || fBlockNumber - txBlockNum < 5400 ) {
+                        fIpc.getTransactionByHash(json.value("hash").toString());
                     }
                 }
             } else if ( val != "bogus" ) { // old format, re-get and store full data
@@ -345,6 +348,7 @@ namespace Etherwall {
         settings.endGroup();
 
         qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
+
         lookupAccountsAliases();
     }
 
@@ -516,7 +520,9 @@ namespace Etherwall {
             }
 
             if ( containsTransaction(hash) < 0 ) {
-                onNewTransaction(jo);
+                const TransactionInfo info(jo);
+                addTransaction(info);
+                storeTransaction(info);
                 stored++;
             }
         }

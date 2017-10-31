@@ -629,10 +629,8 @@ namespace Etherwall {
             const ContractInfo& contract = getContractByAddress(toAddress, contractIndex);
 
             refreshTokenBalance(fromAddress, accountIndex, contract, contractIndex);
-        } catch ( QString error ) {
-            Q_UNUSED(error);
-            // nothing as this could be a normal tx
-            qDebug() << error << "\n";
+        } catch ( QString error ) { // nothing here as this could be a normal tx
+            EtherLog::logMsg(error, LS_Debug);
         }
     }
 

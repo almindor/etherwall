@@ -31,13 +31,15 @@ Window {
     height: 4 * dpi
     minimumWidth: 8 * dpi
     minimumHeight: 4 * dpi
+    property int accountIndex : -1
 
     Component.onCompleted: {
         setX(Screen.width / 2.0 - width / 2.0)
         setY(Screen.height / 2.0 - height / 2.0)
     }
 
-    function open() {
+    function open(index) {
+        accountIndex = index
         visible = true;
     }
 
@@ -126,7 +128,7 @@ Window {
             text: qsTr("Save")
             onClicked: {
                 if ( aliasField.text.length ) {
-                    accountModel.renameAccount(aliasField.text, accountView.selectedAccountRow);
+                    accountModel.renameAccount(aliasField.text, accountIndex);
                 }
                 close()
             }

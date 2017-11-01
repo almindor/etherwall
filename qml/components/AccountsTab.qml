@@ -232,7 +232,7 @@ Tab {
 
                 MenuItem {
                     text: qsTr("Details", "account")
-                    onTriggered: accountDetails.open()
+                    onTriggered: accountDetails.open(accountModel.selectedAccountRow)
                 }
 
                 MenuItem {

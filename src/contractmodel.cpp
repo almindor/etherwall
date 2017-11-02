@@ -484,7 +484,7 @@ namespace Etherwall {
         const ContractInfo& contract = fList.at(contractIndex);
         const QVariantList params = info.getParams();
         if ( params.size() < 3 ) {
-            return EtherLog::logMsg("Invalid amount of Transfer event params: " + params.size(), LS_Error);
+            return EtherLog::logMsg("Invalid amount of Transfer event params: " + QString::number(params.size()), LS_Error);
         }
 
         const QString fromAddress = params.at(0).toString().toLower();

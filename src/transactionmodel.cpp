@@ -332,9 +332,13 @@ namespace Etherwall {
                     EtherLog::logMsg("Error parsing stored transaction: " + parseError.errorString(), LS_Error);
                 } else {
                     const QJsonObject json = jsonDoc.object();
-                    addTransaction(json);
-
                     quint64 txBlockNum = Helpers::toQUInt64(json.value("blockNumber"));
+
+                    if ( txBlockNum > 0 ) { // don't add "pending", we might have a failed leftover
+                        addTransaction(json);
+                    } else {
+                        settings.remove(bns);
+                    }
                     // if transaction is newer than 1 day restore it from geth anyhow to ensure correctness in case of reorg
                     if ( txBlockNum == 0 || fBlockNumber - txBlockNum < 5400 ) {
                         fIpc.getTransactionByHash(json.value("hash").toString());

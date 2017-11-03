@@ -1,3 +1,5 @@
+* 2.1.0 - add ERC20 support, performance improvements
+----
 * 2.0.4 - fix minor bugs introduced in 2.0.3 refactor, add initial ERC20 support (WIP)
 * 2.0.3 - fix contract constant method calls (eth_call), add geth log copy to clipboard
 * 2.0.2 - fix comma crash, transaction account alias fix

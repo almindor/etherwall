@@ -116,7 +116,7 @@ namespace Etherwall {
         bool refreshAccount(const QString& hash, int index);
         void newAccount(const QString& password, int index);
         void getBlockNumber();
-        void loadLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock);
+        void loadLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID);
         void getGasPrice();
         void sendTransaction(const Ethereum::Tx& tx, const QString& password);
         void signTransaction(const Ethereum::Tx& tx, const QString& password);
@@ -261,7 +261,7 @@ namespace Etherwall {
         void errorOut();
         void done();
         void newBlockFilter();
-        virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock);
+        virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID);
 
         QJsonObject methodToJSON(const RequestIPC& request);
         bool queueRequest(const RequestIPC& request);

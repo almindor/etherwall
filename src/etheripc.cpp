@@ -322,9 +322,9 @@ namespace Etherwall {
         return killGeth();
     }
 
-    void EtherIPC::loadLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock) {
+    void EtherIPC::loadLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID) {
         if ( addresses.length() > 0 ) {
-            getLogs(addresses, topics, fromBlock);
+            getLogs(addresses, topics, fromBlock, internalID);
         }
     }
 
@@ -967,7 +967,7 @@ namespace Etherwall {
         }
     }
 
-    void EtherIPC::getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock) {
+    void EtherIPC::getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID) {
         QJsonArray params;
         QJsonObject o;
         o["fromBlock"] = fromBlock == 0 ? "latest" : Helpers::toHexStr(fromBlock);
@@ -978,7 +978,11 @@ namespace Etherwall {
         params.append(o);
 
         // we can use getFilterChanges as result is the same
-        if ( !queueRequest(RequestIPC(NonVisual, GetLogs, "eth_getLogs", params)) ) {
+        RequestIPC request(NonVisual, GetLogs, "eth_getLogs", params);
+        QVariantMap userData;
+        userData["internalFilterID"] = internalID;
+        request.setUserData(userData);
+        if ( !queueRequest(request) ) {
             return bail();
         }
     }

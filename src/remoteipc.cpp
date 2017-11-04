@@ -22,10 +22,10 @@ namespace Etherwall {
         fWebSocket.close(); // in case we missed the app closing
     }
 
-    void RemoteIPC::getLogs(const QStringList &addresses, const QJsonArray &topics, quint64 fromBlock)
+    void RemoteIPC::getLogs(const QStringList &addresses, const QJsonArray &topics, quint64 fromBlock, const QString& internalID)
     {
         if ( !fIsThinClient ) {
-            return EtherIPC::getLogs(addresses, topics, fromBlock);
+            return EtherIPC::getLogs(addresses, topics, fromBlock, internalID);
         }
 
         // do nothing on remote, getlogs is too expensive we just don't support it on a thin client

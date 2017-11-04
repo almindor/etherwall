@@ -183,7 +183,7 @@ namespace Etherwall {
         quint64 fromBlock = fIpc.blockNumber() > day ? fIpc.blockNumber() - day : 1;
 
         emit beforeLoadLogs();
-        foreach ( const FilterInfo info, fList ) {
+        foreach ( const FilterInfo& info, fList ) {
             if ( !info.value(FilterActiveRole).toBool() ) {
                 continue;
             }
@@ -191,7 +191,8 @@ namespace Etherwall {
             QStringList addresses;
             addresses.append(info.value(FilterAddressRole).toString());
             const QJsonArray infoTopics = info.value(FilterTopicsRole).toJsonArray();
-            fIpc.loadLogs(addresses, infoTopics, fromBlock);
+            info.getHandle();
+            fIpc.loadLogs(addresses, infoTopics, fromBlock, "watchFilter");
         }
     }
 

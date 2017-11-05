@@ -72,7 +72,7 @@ Item {
             TableViewColumn {
                 role: "token"
                 title: qsTr("Token (ERC20)")
-                width: 0.1 * parent.width
+                width: 0.2 * parent.width
             }
             TableViewColumn {
                 role: "address"

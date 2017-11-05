@@ -472,27 +472,32 @@ namespace Etherwall {
     void ContractModel::onNewEvent(const QJsonObject& event, bool isNew, const QString& internalFilterID) {
         EventInfo info(event);
         int contractIndex = 0;
+        bool found = false;
         // find the right contract and process/fill the params
         foreach ( const ContractInfo ci, fList ) {
             if ( ci.address() == info.address() ) {
                 ci.processEvent(info);
+                found = true;
                 break;
             }
             contractIndex++;
         }
 
-        const ContractInfo& contract = fList.at(contractIndex);
-        const QVariantList params = info.getParams();
-        if ( params.size() < 3 ) {
-            return EtherLog::logMsg("Invalid amount of Transfer event params: " + QString::number(params.size()), LS_Error);
+        if ( !found ) {
+            return EtherLog::logMsg("Contract for event not found", LS_Error);
         }
-
-        const QString fromAddress = params.at(0).toString().toLower();
-        const QString toAddress = params.at(1).toString().toLower();
-        const QString value = Helpers::baseStrToFullStr(params.at(2).toString(), contract.decimals());
 
         if ( internalFilterID == "tokensFilter" ) {
             const AccountList& accounts = fAccountModel.getAccounts();
+            const ContractInfo& contract = fList.at(contractIndex);
+            const QVariantList params = info.getParams();
+            if ( params.size() < 3 ) {
+                return EtherLog::logMsg("Invalid amount of Transfer event params: " + QString::number(params.size()), LS_Error);
+            }
+
+            const QString fromAddress = params.at(0).toString().toLower();
+            const QString toAddress = params.at(1).toString().toLower();
+            const QString value = Helpers::baseStrToFullStr(params.at(2).toString(), contract.decimals());
 
             // call balance for given account
             for ( int accountIndex = 0; accountIndex < accounts.size(); accountIndex++ ) {
@@ -737,7 +742,9 @@ namespace Etherwall {
         }
 
         fIpc.uninstallFilter("tokensFilter");
-        fIpc.newEventFilter(contractAddresses, topics, "tokensFilter");
+        if ( contractAddresses.size() > 0 ) { // ensure we don't watch everything
+            fIpc.newEventFilter(contractAddresses, topics, "tokensFilter");
+        }
     }
 
     const ContractInfo &ContractModel::getContractByAddress(const QString &address, int& index) const

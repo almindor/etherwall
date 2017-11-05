@@ -146,6 +146,7 @@ namespace Etherwall {
     }
 
     void FilterModel::registerFilters() const {
+        fIpc.uninstallFilter("watchFilter");
         if ( getActiveCount() > 0 ) {
             QJsonArray addresses;
             QJsonArray topics;
@@ -158,10 +159,9 @@ namespace Etherwall {
                 Helpers::mergeJsonArrays(topics, info.value(FilterTopicsRole).toJsonArray());
             }
 
-            fIpc.uninstallFilter("watchFilter");
-            fIpc.newEventFilter(addresses, topics, "watchFilter");
-        } else {
-            fIpc.uninstallFilter("watchFilter");
+            if ( addresses.size() > 0 ) { // ensure we don't watch everything
+                fIpc.newEventFilter(addresses, topics, "watchFilter");
+            }
         }
     }
 

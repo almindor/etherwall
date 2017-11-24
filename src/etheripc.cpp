@@ -281,10 +281,12 @@ namespace Etherwall {
     }
 
     bool EtherIPC::closeApp() {
-        EtherLog::logMsg("Closing etherwall");
-        fClosingApp = true;
-        fTimer.stop();
-        emit closingChanged(true);
+        if ( !fClosingApp ) {
+            EtherLog::logMsg("Closing etherwall");
+            fClosingApp = true;
+            fTimer.stop();
+            emit closingChanged(true);
+        }
 
         if ( fSocket.state() == QLocalSocket::ConnectedState && getBusy() ) { // wait for operation first if we're still connected
             return false;

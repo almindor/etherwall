@@ -301,7 +301,7 @@ Window {
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
-                    errorDialog.msg = result.error
+                    errorDialog.text = result.error
                     errorDialog.open()
                     return
                 }

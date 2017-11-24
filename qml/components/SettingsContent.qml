@@ -19,11 +19,11 @@ TabView {
                 left: parent.left
             }
 
-            // TODO: rename to infodialog
-            ErrorDialog {
+            MessageDialog {
                 id: confirmThinClientDialog
+                icon: StandardIcon.Warning
                 title: qsTr("Warning")
-                msg: qsTr("Changing node type requires a restart of Etherwall.")
+                text: qsTr("Changing node type requires a restart of Etherwall.")
             }
 
             ToggleButton {
@@ -41,7 +41,7 @@ TabView {
                     }
 
                     if ( settings.contains("program/v2firstrun") ) {
-                        confirmThinClientDialog.show()
+                        confirmThinClientDialog.open()
                     }
                 }
             }
@@ -195,11 +195,11 @@ TabView {
                 text: qsTr("Advanced settings only available in full node mode")
             }
 
-            // TODO: rename to infodialog
-            ErrorDialog {
+            MessageDialog {
                 id: confirmDialogTestnet
+                icon: StandardIcon.Warning
                 title: qsTr("Warning")
-                msg: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
+                text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
             }
 
             Row {
@@ -218,7 +218,7 @@ TabView {
                     onClicked: {
                         settings.setValue("geth/testnet", gethTestnetCheck.checked)
                         if ( settings.contains("program/v2firstrun") ) {
-                            confirmDialogTestnet.show()
+                            confirmDialogTestnet.open()
                         }
                     }
                 }

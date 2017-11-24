@@ -19,105 +19,95 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.4
 
-BaseDialog {
-    width: Math.max(parent.width * 0.6, 6 * dpi)
+Dialog {
     property string password
+    signal validPassword(string password)
+    signal invalidPassword()
+    standardButtons: StandardButton.Save | StandardButton.Cancel
 
-    function openFocused(m, ae) {
-        accountPW0.text = ""
-        accountPW1.text = ""
-        password = ""
-
-        title = m || "Confirm operation"
-        open()
-        accountPW0.focus = true
-    }
-
-    function doAccept() {
-        if ( password.length == 0 ) {
-            return;
+    function checkMatch(pw1, pw2) {
+        if ( accountPW0.text === accountPW1.text && accountPW0.text.length > 0 ) {
+            pwcheck.color = "green"
+            return true
         }
 
-        close()
-        accepted()
-        accountPW0.text = ""
-        accountPW1.text = ""
-        password = ""
+        pwcheck.color = "red"
+        return false
     }
 
-    function submit() {
-        if (accountPW0.text === accountPW1.text && accountPW0.text.length > 0) {
-            password = accountPW0.text
-            doAccept()
+    onAccepted: {
+        if (checkMatch(accountPW0.text, accountPW1.text)) {
+            validPassword(accountPW0.text)
+        } else {
+            invalidPassword()
         }
     }
 
-    Row {
-        id: topRow
-        anchors.bottom: bottomRow.top
-        anchors.bottomMargin: 0.1 * dpi
-        x: 0.1 * dpi
-
-        Keys.onEscapePressed: {
-            close()
+    onVisibleChanged: {
+        if ( visible ) {
             accountPW0.text = ""
-            password = ""
-        }
-
-        Keys.onEnterPressed: doAccept()
-        Keys.onReturnPressed: doAccept()
-
-        Label {
-            text: qsTr("Password: ")
-        }
-
-        TextField {
-            id: accountPW0
-            echoMode: TextInput.Password
-            width: parent.parent.width * 0.6
-            focus: true
+            accountPW1.text = ""
+            accountPW0.focus = true
         }
     }
 
-    Row {
-        id: bottomRow
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0.1 * dpi
-        x: 0.1 * dpi
+    Column {
+        width: 5 * dpi
+        Row {
+            Keys.onEscapePressed: {
+                close()
+                accountPW0.text = ""
+                password = ""
+            }
 
-        Keys.onEscapePressed: {
-            close()
-            accountPW1.text = ""
-            password = ""
+            Label {
+                text: qsTr("Password: ")
+                width: 1.2 * dpi
+            }
+
+            TextField {
+                id: accountPW0
+                echoMode: TextInput.Password
+                width: parent.parent.width * 0.6
+                onTextChanged: checkMatch(text, accountPW1.text)
+            }
+
         }
 
-        Keys.onEnterPressed: doAccept()
-        Keys.onReturnPressed: doAccept()
+        Row {
+            Keys.onEscapePressed: {
+                close()
+                accountPW1.text = ""
+                password = ""
+            }
 
-        Label {
-            text: qsTr("Repeat: ", "password") + "    "
-        }
+            Label {
+                text: qsTr("Repeat: ", "password")
+                width: 1.2 * dpi
+            }
 
-        function submit() {
+            Column {
+                width: parent.parent.width * 0.6
+                spacing: 1
 
-        }
+                TextField {
+                    id: accountPW1
+                    width: parent.width
+                    echoMode: TextInput.Password
+                    onTextChanged: checkMatch(text, accountPW0.text)
+                }
 
-        TextField {
-            id: accountPW1
-            echoMode: TextInput.Password
-            width: parent.parent.width * 0.6
-            Keys.onReturnPressed: submit()
-            Keys.onEnterPressed: submit()
-        }
-
-        Button {
-            id: okButton
-            text: "OK"
-            enabled: accountPW0.text === accountPW1.text && accountPW0.text.length > 0
-            onClicked: submit()
+                Rectangle {
+                    id: pwcheck
+                    width: parent.width
+                    height: 1
+                    color: "white"
+                }
+            }
         }
     }
 }

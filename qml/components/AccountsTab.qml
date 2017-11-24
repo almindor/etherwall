@@ -19,6 +19,7 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
 import AccountProxyModel 0.1
@@ -48,7 +49,7 @@ Tab {
                 enabled: !ipc.syncing && !ipc.closing && !ipc.starting
                 text: qsTr("New account")
                 onClicked: {
-                    accountNewDialog.openFocused("New account password")
+                    accountNewDialog.open()
                 }
             }
 
@@ -131,8 +132,10 @@ Tab {
         AccountDialog {
             id: accountNewDialog
 
-            onAccepted: {
-                accountModel.newAccount(password)
+            onValidPassword: accountModel.newAccount(password)
+            onInvalidPassword: {
+                errorDialog.text = qsTr("Password mismatch or invalid password")
+                errorDialog.open()
             }
         }
 
@@ -147,10 +150,13 @@ Tab {
             }
         }
 
-        ConfirmDialog {
+        MessageDialog {
             id: accountRemoveDialog
             title: qsTr("Confirm removal of account")
+            icon: StandardIcon.Question
+            standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
             onYes: accountModel.removeAccount(accountModel.selectedAccount)
+            onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
         }
 
         QRExportDialog {
@@ -262,7 +268,7 @@ Tab {
                     text: qsTr("Remove", "account")
                     visible: accountModel.selectedAccountHDPath
                     onTriggered: {
-                        accountRemoveDialog.msg = qsTr("Remove", "account") + " " + accountModel.selectedAccount + ' <a href="http://www.etherwall.com/faq/#removeaccount">?</a>'
+                        accountRemoveDialog.text = qsTr("Remove", "account") + " " + accountModel.selectedAccount + '?'
                         accountRemoveDialog.open()
                     }
                 }

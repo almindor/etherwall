@@ -334,7 +334,7 @@ Item {
             onAccepted: {
                 var result = sendButton.check(fromField.currentIndex)
                 if ( result.error !== null ) {
-                    errorDialog.msg = result.error
+                    errorDialog.text = result.error
                     errorDialog.open()
                     return
                 }
@@ -483,7 +483,7 @@ Item {
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
-                    errorDialog.msg = result.error
+                    errorDialog.text = result.error
                     errorDialog.open()
                     return
                 }

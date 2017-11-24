@@ -97,7 +97,7 @@ ApplicationWindow {
 
         onWarning: {
             if (warning && warning.length) {
-                warningDialog.msg = warning
+                warningDialog.text = warning
                 warningDialog.open()
             }
         }
@@ -106,7 +106,7 @@ ApplicationWindow {
     Connections {
         target: ipc
         onError: {
-            errorDialog.msg = ipc.error
+            errorDialog.text = ipc.error
             errorDialog.open()
         }
     }
@@ -122,12 +122,12 @@ ApplicationWindow {
         }
         onPassphraseRequest: trezorPasswordDialog.open()
         onFailure: {
-            errorDialog.msg = "TREZOR: " + error
+            errorDialog.text = "TREZOR: " + error
             errorDialog.open()
         }
         onError: {
             log.log(error, 3)
-            errorDialog.msg = "TREZOR critical error: " + error
+            errorDialog.text = "TREZOR critical error: " + error
             errorDialog.open()
         }
     }
@@ -147,7 +147,7 @@ ApplicationWindow {
 
             manualVersionCheck = false
             versionDialog.title = qsTr("Update available")
-            versionDialog.msg = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
+            versionDialog.text = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
             versionDialog.open()
         }
         onLatestVersionSame: {
@@ -157,7 +157,7 @@ ApplicationWindow {
 
             manualVersionCheck = false
             versionDialog.title = qsTr("Etherwall up to date")
-            versionDialog.msg = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
+            versionDialog.text = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
             versionDialog.open()
         }
 
@@ -249,17 +249,14 @@ ApplicationWindow {
         }
     }
 
-    ConfirmDialog {
+    MessageDialog {
         id: aboutDialog
+        icon: StandardIcon.Information
         width: 5 * dpi
         title: qsTr("About Etherwall")
-        yesText: qsTr("Check for updates")
-        noText: qsTr("OK")
-        msg: '<html><body>Etherwall ' + Qt.application.version + ' copyright 2015-2017 by Aleš Katona. For more info please visit the <a href="http://etherwall.com">homepage</a></body></html>'
-        onYes: {
-            manualVersionCheck = true
-            transactionModel.checkVersion()
-        }
+        standardButtons: StandardButton.Ok | StandardButton.Help
+        text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2017 by Aleš Katona.'
+        onHelp: Qt.openUrlExternally("https://www.etherwall.com")
     }
 
     TrezorImportDialog {
@@ -269,21 +266,24 @@ ApplicationWindow {
         noText: qsTr("Cancel")
     }
 
-    ErrorDialog {
+    MessageDialog {
         id: errorDialog
+        icon: StandardIcon.Critical
         width: 5 * dpi
     }
 
-    ErrorDialog {
+    MessageDialog {
         id: warningDialog
+        icon: StandardIcon.Warning
         width: 5 * dpi
         title: qsTr("Warning")
 
         onAccepted: initializer.proceed()
     }
 
-    ErrorDialog {
+    MessageDialog {
         id: versionDialog
+        icon: StandardIcon.Information
         width: 5 * dpi
         title: qsTr("New version available")
     }

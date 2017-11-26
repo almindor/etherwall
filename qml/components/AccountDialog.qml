@@ -24,6 +24,7 @@ import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.4
 
 Dialog {
+    modality: Qt.NonModal
     property string password
     signal validPassword(string password)
     signal invalidPassword()

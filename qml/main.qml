@@ -26,7 +26,6 @@ import "components"
 
 ApplicationWindow {
     property int dpi: Screen.pixelDensity * 25.4;
-    property bool manualVersionCheck: false
 
     id: appWindow
     visible: true
@@ -74,22 +73,13 @@ ApplicationWindow {
         // visible: true
     }
 
-    ButtonRequestDialog {
-        id: buttonRequestDialog
-    }
-
     PasswordDialog {
         id: trezorPasswordDialog
         title: qsTr("TREZOR passphrase")
-        msg: qsTr("Please provide your TREZOR passphrase")
+        text: qsTr("Please provide your TREZOR passphrase")
 
-        onAccepted: {
-            trezor.submitPassphrase(password)
-        }
-
-        onRejected: {
-            trezor.cancel()
-        }
+        onPasswordSubmitted: trezor.submitPassphrase(password)
+        onPasswordRejected: trezor.cancel()
     }
 
     Connections {
@@ -120,7 +110,7 @@ ApplicationWindow {
                 badge.show(badge.button_msg(code))
             }
         }
-        onPassphraseRequest: trezorPasswordDialog.open()
+        onPassphraseRequest: trezorPasswordDialog.openFocused()
         onFailure: {
             errorDialog.text = "TREZOR: " + error
             errorDialog.open()
@@ -157,7 +147,8 @@ ApplicationWindow {
 
             manualVersionCheck = false
             versionDialog.title = qsTr("Etherwall up to date")
-            versionDialog.text = qsTr("Etherwall is up to date: ") + transactionModel.latestVersion
+            versionDialog.text = qsTr("Etherwall is up to date")
+            versionDialog.detailedText = "Current version: " + Qt.application.version + "\nLatest stable version: " + transactionModel.latestVersion
             versionDialog.open()
         }
 
@@ -189,7 +180,7 @@ ApplicationWindow {
         onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
         onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
         onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
-        onPromptForTrezorImport: trezorImportDialog.open(qsTr("Detected TREZOR device with unimported accounts.") + '<br><a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
+        onPromptForTrezorImport: trezorImportDialog.display(qsTr("Detected TREZOR device with unimported accounts. Import addresses from TREZOR?"), "https://www.etherwall.com/faq/#importaccount")
         onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
     }
 
@@ -233,18 +224,28 @@ ApplicationWindow {
             title: "Wallet"
 
             MenuItem {
-                text: "About"
+                text: qsTr("About", "etherwall")
                 onTriggered: aboutDialog.open()
             }
 
             MenuItem {
-                text: "Export"
+                text: qsTr("Check for updates", "in main menu")
+                onTriggered: transactionModel.checkVersion(true)
+            }
+
+            MenuItem {
+                text: qsTr("Export", "wallet")
                 onTriggered: exportFileDialog.open()
             }
 
             MenuItem {
-                text: "Import"
+                text: qsTr("Import", "wallet")
                 onTriggered: importFileDialog.open()
+            }
+
+            MenuItem {
+                text: qsTr("Quit")
+                onTriggered: appWindow.close()
             }
         }
     }
@@ -256,18 +257,17 @@ ApplicationWindow {
         title: qsTr("About Etherwall")
         standardButtons: StandardButton.Ok | StandardButton.Help
         text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2017 by Aleš Katona.'
+        detailedText: qsTr("Etherwall version: ", "about details") + Qt.application.version + "\nGeth version: " + ipc.clientVersion + "\n" + (ipc.testnet ? "Running on testnet (rinkeby)" : "")
         onHelp: Qt.openUrlExternally("https://www.etherwall.com")
     }
 
     TrezorImportDialog {
         id: trezorImportDialog
-        width: 5 * dpi
-        yesText: qsTr("Import")
-        noText: qsTr("Cancel")
     }
 
     MessageDialog {
         id: errorDialog
+        modality: Qt.NonModal
         icon: StandardIcon.Critical
         width: 5 * dpi
     }
@@ -324,8 +324,12 @@ ApplicationWindow {
         InfoTab {}
     }
 
-    BaseDialog {
+    MessageDialog {
         id: trezorDialog
+        title: "TREZOR"
+        text: "TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID
+        icon: StandardIcon.Information
+        standardButtons: StandardButton.Ok
     }
 
     statusBar: StatusBar {
@@ -431,8 +435,6 @@ ApplicationWindow {
                 enabled: trezor.initialized
                 tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
                 onClicked: {
-                    trezorDialog.title = "TREZOR"
-                    trezorDialog.msg = "TREZOR " + qsTr("device id: ") + trezor.deviceID
                     trezorDialog.open()
                 }
             }

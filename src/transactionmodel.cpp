@@ -454,10 +454,11 @@ namespace Etherwall {
         }
     }
 
-    void TransactionModel::checkVersion() {
+    void TransactionModel::checkVersion(bool manual) {
         // get latest app version
         QNetworkRequest request(QUrl("https://data.etherwall.com/api/version"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+        request.setRawHeader("x-internal-manual", manual ? "t" : "f");
         QJsonObject objectJson;
         const QByteArray data = QJsonDocument(objectJson).toJson();
 
@@ -474,15 +475,16 @@ namespace Etherwall {
             const QString error = resObj.value("error").toString("unknown error");
             return EtherLog::logMsg("Response error: " + error, LS_Error);
         }
+        bool manual = reply->request().rawHeader("x-internal-manual") == "t";
         const QJsonValue rv = resObj.value("result");
         fLatestVersion = rv.toString("0.0.0");
         int latestIntVer = Helpers::parseAppVersion(fLatestVersion);
         int intVer = Helpers::parseAppVersion(QCoreApplication::applicationVersion());
 
         if ( intVer < latestIntVer ) {
-            emit latestVersionChanged(fLatestVersion);
+            emit latestVersionChanged(fLatestVersion, manual);
         } else {
-            emit latestVersionSame(fLatestVersion);
+            emit latestVersionSame(fLatestVersion, manual);
         }
     }
 

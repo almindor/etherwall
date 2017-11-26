@@ -142,9 +142,8 @@ Tab {
         InputDialog {
             id: accountRenameDialog
             query: qsTr("Account Alias: ")
-            //standardButtons: StandardButton.Ok | StandardButton.Cancel
 
-            onAccepted: {
+            onAcceptedInput: {
                 accountModel.renameAccount(value, accountView.currentRow);
                 transactionModel.lookupAccountsAliases();
             }

@@ -281,16 +281,18 @@ TabView {
             Button {
                 enabled: trezor.initialized
                 text: qsTr("Import accounts")
-                onClicked: trezorImportDialog.open('<a href="http://www.etherwall.com/faq/#importaccount">' + qsTr("Import addresses from TREZOR?") + '</a>')
+                onClicked: trezorImportDialog.display(qsTr("Import addresses from TREZOR?"))
             }
 
             Row {
                 spacing: 0.05 * dpi
 
-                ConfirmDialog {
+                MessageDialog {
                     id: accountRemoveDialog
                     title: qsTr("Confirm removal of all TREZOR accounts")
-                    msg: qsTr("All your TREZOR accounts will be removed from Etherwall") + ' <a href="http://www.etherwall.com/faq/#removeaccount">?</a>'
+                    text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
+                    standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
+                    onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
                     onYes: accountModel.removeAccounts()
                 }
 

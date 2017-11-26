@@ -5,8 +5,6 @@
         <file>components/AccountsTab.qml</file>
         <file>components/TransactionsTab.qml</file>
         <file>components/SettingsTab.qml</file>
-        <file>components/ConfirmDialog.qml</file>
-        <file>components/BaseDialog.qml</file>
         <file>components/LogTab.qml</file>
         <file>components/TransactionDetails.qml</file>
         <file>components/InputDialog.qml</file>
@@ -37,7 +35,6 @@
         <file>components/QRCode.qml</file>
         <file>components/QRExportDialog.qml</file>
         <file>components/PinMatrixDialog.qml</file>
-        <file>components/ButtonRequestDialog.qml</file>
         <file>components/AccountDetails.qml</file>
         <file>components/TrezorImportDialog.qml</file>
         <file>components/FunctionResultsContent.qml</file>

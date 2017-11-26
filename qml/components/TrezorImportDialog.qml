@@ -19,48 +19,58 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 
-ConfirmDialog {
+Dialog {
+    modality: Qt.NonModal
+    id: theDialog
     title: qsTr("Import accounts from TREZOR")
-    minimumHeight: 1.5 * dpi
-    height: 1.5 * dpi
+    standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
+    onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#importaccount")
 
-    function open(_msg) {
-        msg = _msg
-        opened();
-        visible = true;
+    function display(_msg) {
+        mainLabel.text = _msg
+        open()
     }
 
     onYes: accountModel.trezorImport(offsetSpin.value, countSpin.value)
 
-    Row {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.margins: 0.1 * dpi
-        spacing: 0.3 * dpi
+    Column {
+        width: 5 * dpi
+        spacing: 0.2 * dpi
 
         Label {
-            text: qsTr("Offset")
+            id: mainLabel
+            width: parent.width
+            wrapMode: Text.Wrap
         }
 
-        SpinBox {
-            id: offsetSpin
-            minimumValue: 0
-            maximumValue: 4294967295 - countSpin.value
-            value: 0
-        }
+        Row {
+            width: parent.width
+            spacing: 0.3 * dpi
 
-        Label {
-            text: qsTr("Count")
-        }
+            Label {
+                text: qsTr("Offset")
+            }
 
-        SpinBox {
-            id: countSpin
-            minimumValue: 1
-            maximumValue: 255
-            value: 5
+            SpinBox {
+                id: offsetSpin
+                minimumValue: 0
+                maximumValue: 4294967295 - countSpin.value
+                value: 0
+            }
+
+            Label {
+                text: qsTr("Count")
+            }
+
+            SpinBox {
+                id: countSpin
+                minimumValue: 1
+                maximumValue: 255
+                value: 5
+            }
         }
     }
 }

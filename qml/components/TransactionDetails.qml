@@ -11,7 +11,7 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file BaseDialog.qml
+/** @file TransactionDetails.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2015
  *

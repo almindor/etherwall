@@ -19,28 +19,30 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 
-BaseDialog {
-    width: Math.max(parent.width * 0.6, 500)
-    property string value
+Dialog {
+    modality: Qt.NonModal
+    width: 5 * dpi
+    standardButtons: StandardButton.Apply | StandardButton.Cancel
+    signal acceptedInput(string value)
     property string query: qsTr("Value: ", "Generic query question")
 
-    function openFocused(m, ae) {
+    function openFocused(m) {
         title = m || "Confirm operation"
         open()
         inputField.focus = true
     }
 
-    function doAccept() {
-        if ( value.length == 0 ) {
+    onApply: {
+        if ( inputField.text.length === 0 ) {
             return;
         }
 
         close()
-        accepted()
+        acceptedInput(inputField.text)
         inputField.text = ""
-        value = ""
     }
 
     Row {
@@ -48,11 +50,10 @@ BaseDialog {
         Keys.onEscapePressed: {
             close()
             inputField.text = ""
-            value = ""
         }
 
-        Keys.onEnterPressed: doAccept()
-        Keys.onReturnPressed: doAccept()
+        Keys.onEnterPressed: apply()
+        Keys.onReturnPressed: apply()
 
         Label {
             text: qsTr(query)
@@ -62,17 +63,6 @@ BaseDialog {
             id: inputField
             width: parent.parent.width * 0.6
             focus: true
-
-            onTextChanged: {
-                value = text
-            }
-        }
-
-        Button {
-            text: "OK"
-            onClicked: {
-                doAccept()
-            }
         }
     }
 }

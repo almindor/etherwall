@@ -19,75 +19,69 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 
-BaseDialog {
-    width: Math.max(parent.width * 0.6, 6 * dpi)
-    property string password
-    property bool acceptEmpty: true
-    property bool wasAccepted: false
-    signal rejected
+Dialog {
+    id: theDialog
+    title: qsTr("Confirm operation", "generic dialog")
+    width: dpi * 5
+    standardButtons: StandardButton.Yes | StandardButton.No
+    modality: Qt.NonModal
+    property string text : ""
+    signal passwordSubmitted(string password)
+    signal passwordRejected
 
-    function openFocused(m, ae) {
-        title = m || "Confirm operation"
+    function openFocused(m) {
+        title = m || title
         open()
         accountPW.focus = true
     }
 
-    function doAccept() {
-        if ( !acceptEmpty && password.length == 0 ) {
-            return;
-        }
-
-        wasAccepted = true
-        close()
-        accepted()
+    onYes: {
+        passwordSubmitted(accountPW.text)
         accountPW.text = ""
-        password = ""
     }
 
-    onVisibleChanged: {
-        if ( !visible && !wasAccepted ) {
-            rejected()
-        } else {
-            wasAccepted = false
-        }
+    onNo: {
+        passwordRejected()
+        accountPW.text = ""
     }
 
-    Row {
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 0.1 * dpi
-        x: 0.1 * dpi
+    function doYes() {
+        yes()
+        close()
+    }
 
-        Keys.onEscapePressed: {
-            close()
-            accountPW.text = ""
-            password = ""
-        }
+    function doNo() {
+        no()
+        close()
+    }
 
-        Keys.onEnterPressed: doAccept()
-        Keys.onReturnPressed: doAccept()
+    Column {
+        width: parent.width
+
+        Keys.onEnterPressed: doYes()
+        Keys.onReturnPressed: doYes()
+        Keys.onEscapePressed: doNo()
 
         Label {
-            text: qsTr("Password: ")
+            text: theDialog.text
+            visible: theDialog.text.length > 0
         }
 
-        TextField {
-            id: accountPW
-            echoMode: TextInput.Password
-            width: parent.parent.width * 0.6
-            focus: true
-
-            onTextChanged: {
-                password = text
+        Row {
+            Label {
+                text: qsTr("Password: ")
             }
-        }
 
-        Button {
-            text: "OK"
-            onClicked: {
-                doAccept()
+            TextField {
+                id: accountPW
+                echoMode: TextInput.Password
+                width: parent.parent.width * 0.6
+                focus: true
             }
         }
     }
+
 }

@@ -227,7 +227,7 @@ namespace Etherwall {
                 storeTransaction(fTransactionList.at(n));
             } else { // external from someone to us
                 addTransaction(info);
-                storeTransaction(fQueuedTransaction);
+                storeTransaction(info);
             }
         } else {
             addTransaction(info); // TODO handle tokens

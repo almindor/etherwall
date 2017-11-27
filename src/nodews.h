@@ -4,17 +4,17 @@
 #include <QtWebSockets/QtWebSockets>
 #include <QObject>
 #include "gethlog.h"
-#include "etheripc.h"
+#include "nodeipc.h"
 
 namespace Etherwall {
 
-    class RemoteIPC: public EtherIPC
+    class NodeWS: public NodeIPC
     {
         Q_OBJECT
         Q_PROPERTY(bool thinClient READ isThinClient NOTIFY thinClientChanged)
     public:
-        RemoteIPC(GethLog& gethLog);
-        virtual ~RemoteIPC();
+        NodeWS(GethLog& gethLog);
+        virtual ~NodeWS();
         virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID);
         virtual bool isThinClient() const;
 

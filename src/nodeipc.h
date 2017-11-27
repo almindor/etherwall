@@ -41,40 +41,40 @@
 
 namespace Etherwall {
 
-    enum RequestBurden {
+    enum NodeRequestBurden {
         Full,
         NonVisual,
         None
     };
 
-    class RequestIPC {
+    class NodeRequest {
     public:
-        RequestIPC(RequestBurden burden, RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
-        RequestIPC(RequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
-        RequestIPC(RequestBurden burden);
+        NodeRequest(NodeRequestBurden burden, NodeRequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
+        NodeRequest(NodeRequestTypes type, const QString method, const QJsonArray params = QJsonArray(), int index = -1);
+        NodeRequest(NodeRequestBurden burden);
 
-        RequestTypes getType() const;
+        NodeRequestTypes getType() const;
         const QString& getMethod() const;
         const QJsonArray& getParams() const;
         int getIndex() const;
         const QVariantMap getUserData() const;
         void setUserData(const QVariantMap& data);
         int getCallID() const;
-        RequestBurden burden() const;
+        NodeRequestBurden burden() const;
         static int sCallID;
     private:
         int fCallID;
-        RequestTypes fType;
+        NodeRequestTypes fType;
         QString fMethod;
         QJsonArray fParams;
         int fIndex;
         QVariantMap fUserData;
-        RequestBurden fBurden;
+        NodeRequestBurden fBurden;
     };
 
-    typedef QQueue<RequestIPC> RequestQueue;
+    typedef QQueue<NodeRequest> RequestQueue;
 
-    class EtherIPC: public QObject
+    class NodeIPC: public QObject
     {
         Q_OBJECT
         Q_PROPERTY(QString error READ getError NOTIFY error)
@@ -95,8 +95,8 @@ namespace Etherwall {
         Q_PROPERTY(quint64 blockNumber MEMBER fBlockNumber NOTIFY getBlockNumberDone)
         Q_PROPERTY(QString activeRequestName READ getActiveRequestName NOTIFY requestChanged)
     public:
-        EtherIPC(GethLog& gethLog);
-        virtual ~EtherIPC();
+        NodeIPC(GethLog& gethLog);
+        virtual ~NodeIPC();
         void init();
         virtual bool isThinClient() const;
 
@@ -189,7 +189,7 @@ namespace Etherwall {
         int fCode;
         TransactionList fTransactionList;
         RequestQueue fRequestQueue;
-        RequestIPC fActiveRequest;
+        NodeRequest fActiveRequest;
         QTimer fTimer;
         int fNetVersion;
         QString fClientVersion;
@@ -263,9 +263,9 @@ namespace Etherwall {
         void newBlockFilter();
         virtual void getLogs(const QStringList& addresses, const QJsonArray& topics, quint64 fromBlock, const QString& internalID);
 
-        QJsonObject methodToJSON(const RequestIPC& request);
-        bool queueRequest(const RequestIPC& request);
-        bool writeRequest(const RequestIPC& request);
+        QJsonObject methodToJSON(const NodeRequest& request);
+        bool queueRequest(const NodeRequest& request);
+        bool writeRequest(const NodeRequest& request);
         bool readData();
         bool readReply(QJsonValue& result);
         bool readVin(BigInt::Vin& result);

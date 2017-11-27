@@ -42,7 +42,7 @@
 #include "tokenmodel.h"
 #include "gethlog.h"
 #include "helpers.h"
-#include "remoteipc.h"
+#include "nodews.h"
 #include "trezor/trezor.h"
 #include "platform/devicemanager.h"
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     Initializer initializer;
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
-    RemoteIPC ipc(gethLog);
+    NodeWS ipc(gethLog);
     CurrencyModel currencyModel;
     AccountModel accountModel(ipc, currencyModel, trezor);
     TransactionModel transactionModel(ipc, accountModel);
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     TokenModel tokenModel(&contractModel);
 
     // main connections
-    QObject::connect(&initializer, &Initializer::initDone, &ipc, &RemoteIPC::start);
+    QObject::connect(&initializer, &Initializer::initDone, &ipc, &NodeWS::start);
     QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
     QObject::connect(&contractModel, &ContractModel::tokenBalanceDone, &accountModel, &AccountModel::onTokenBalanceDone);
     QObject::connect(&transactionModel, &TransactionModel::confirmedTransaction, &contractModel, &ContractModel::onConfirmedTransaction);

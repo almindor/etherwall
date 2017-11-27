@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QAbstractListModel>
 #include "contractinfo.h"
-#include "etheripc.h"
+#include "nodeipc.h"
 
 namespace Etherwall {
 
@@ -12,7 +12,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        FilterModel(EtherIPC& ipc);
+        FilterModel(NodeIPC& ipc);
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -34,7 +34,7 @@ namespace Etherwall {
     private:
         void update(int index);
         void registerFilters() const;
-        EtherIPC& fIpc;
+        NodeIPC& fIpc;
         EventFilters fList;
 
         int getActiveCount() const;

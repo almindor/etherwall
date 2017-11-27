@@ -32,19 +32,19 @@
 
 namespace Etherwall {
 
-    AccountModel::AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
+    AccountModel::AccountModel(NodeIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
         QAbstractListModel(0),
         fIpc(ipc), fAccountList(), fAliasMap(), fTrezor(trezor),
         fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false),
         fCurrentToken("ETH")
     {
-        connect(&ipc, &EtherIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
-        connect(&ipc, &EtherIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
-        connect(&ipc, &EtherIPC::newAccountDone, this, &AccountModel::newAccountDone);
-        connect(&ipc, &EtherIPC::accountBalanceChanged, this, &AccountModel::accountBalanceChanged);
-        connect(&ipc, &EtherIPC::accountSentTransChanged, this, &AccountModel::accountSentTransChanged);
-        connect(&ipc, &EtherIPC::newBlock, this, &AccountModel::newBlock);
-        connect(&ipc, &EtherIPC::syncingChanged, this, &AccountModel::syncingChanged);
+        connect(&ipc, &NodeIPC::connectToServerDone, this, &AccountModel::connectToServerDone);
+        connect(&ipc, &NodeIPC::getAccountsDone, this, &AccountModel::getAccountsDone);
+        connect(&ipc, &NodeIPC::newAccountDone, this, &AccountModel::newAccountDone);
+        connect(&ipc, &NodeIPC::accountBalanceChanged, this, &AccountModel::accountBalanceChanged);
+        connect(&ipc, &NodeIPC::accountSentTransChanged, this, &AccountModel::accountSentTransChanged);
+        connect(&ipc, &NodeIPC::newBlock, this, &AccountModel::newBlock);
+        connect(&ipc, &NodeIPC::syncingChanged, this, &AccountModel::syncingChanged);
 
         connect(&currencyModel, &CurrencyModel::currencyChanged, this, &AccountModel::currencyChanged);
 

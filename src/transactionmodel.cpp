@@ -32,20 +32,20 @@
 
 namespace Etherwall {
 
-    TransactionModel::TransactionModel(EtherIPC& ipc, const AccountModel& accountModel) :
+    TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
         QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
-        connect(&ipc, &EtherIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
-        connect(&ipc, &EtherIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
-        connect(&ipc, &EtherIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
-        connect(&ipc, &EtherIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
-        connect(&ipc, &EtherIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
-        connect(&ipc, &EtherIPC::sendTransactionDone, this, &TransactionModel::onSendTransactionDone);
-        connect(&ipc, &EtherIPC::signTransactionDone, this, &TransactionModel::onSignTransactionDone);
-        connect(&ipc, &EtherIPC::newTransaction, this, &TransactionModel::onNewTransaction);
-        connect(&ipc, &EtherIPC::newBlock, this, &TransactionModel::newBlock);
-        connect(&ipc, &EtherIPC::syncingChanged, this, &TransactionModel::syncingChanged);
+        connect(&ipc, &NodeIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
+        connect(&ipc, &NodeIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
+        connect(&ipc, &NodeIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
+        connect(&ipc, &NodeIPC::getGasPriceDone, this, &TransactionModel::getGasPriceDone);
+        connect(&ipc, &NodeIPC::estimateGasDone, this, &TransactionModel::estimateGasDone);
+        connect(&ipc, &NodeIPC::sendTransactionDone, this, &TransactionModel::onSendTransactionDone);
+        connect(&ipc, &NodeIPC::signTransactionDone, this, &TransactionModel::onSignTransactionDone);
+        connect(&ipc, &NodeIPC::newTransaction, this, &TransactionModel::onNewTransaction);
+        connect(&ipc, &NodeIPC::newBlock, this, &TransactionModel::newBlock);
+        connect(&ipc, &NodeIPC::syncingChanged, this, &TransactionModel::syncingChanged);
 
 
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));

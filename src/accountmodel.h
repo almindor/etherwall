@@ -30,7 +30,7 @@
 #include <QUrl>
 #include "types.h"
 #include "currencymodel.h"
-#include "etheripc.h"
+#include "nodeipc.h"
 #include "etherlog.h"
 #include "trezor/trezor.h"
 
@@ -51,7 +51,7 @@ namespace Etherwall {
         Q_PROPERTY(int defaultIndex READ getDefaultIndex NOTIFY defaultIndexChanged)
         Q_PROPERTY(QString currentToken READ getCurrentToken NOTIFY currentTokenChanged)
     public:
-        AccountModel(EtherIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor);
+        AccountModel(NodeIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor);
         QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -111,7 +111,7 @@ namespace Etherwall {
         void accountsRemoved() const;
         void currentTokenChanged() const;
     private:
-        EtherIPC& fIpc;
+        NodeIPC& fIpc;
         AccountList fAccountList;
         QMap<QString, QString> fAliasMap;
         Trezor::TrezorDevice& fTrezor;

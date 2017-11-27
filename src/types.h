@@ -118,7 +118,7 @@ namespace Etherwall {
 
     typedef QList<CurrencyInfo> CurrencyInfos;
 
-    enum RequestTypes {
+    enum NodeRequestTypes {
         NoRequest,
         NewAccount,
         UnlockAccount,

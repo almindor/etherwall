@@ -39,13 +39,13 @@ namespace Etherwall {
 
     // contract model
 
-    ContractModel::ContractModel(EtherIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
+    ContractModel::ContractModel(NodeIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
         fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel), fTokenBalanceTabs()
     {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
-        connect(&ipc, &EtherIPC::newEvent, this, &ContractModel::onNewEvent);
-        connect(&ipc, &EtherIPC::callDone, this, &ContractModel::onCallDone);
-        connect(&ipc, &EtherIPC::newAccountDone, this, &ContractModel::registerTokensFilter);
+        connect(&ipc, &NodeIPC::newEvent, this, &ContractModel::onNewEvent);
+        connect(&ipc, &NodeIPC::callDone, this, &ContractModel::onCallDone);
+        connect(&ipc, &NodeIPC::newAccountDone, this, &ContractModel::registerTokensFilter);
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
     }
 

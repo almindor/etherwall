@@ -31,7 +31,6 @@ macx {
 SOURCES += src/main.cpp \
     src/accountmodel.cpp \
     src/types.cpp \
-    src/etheripc.cpp \
     src/settings.cpp \
     src/bigint.cpp \
     src/transactionmodel.cpp \
@@ -54,9 +53,10 @@ SOURCES += src/main.cpp \
     src/trezor/hdpath.cpp \
     src/ethereum/tx.cpp \
     src/platform/devicemanager.cpp \
-    src/remoteipc.cpp \
     src/initializer.cpp \
-    src/tokenmodel.cpp
+    src/tokenmodel.cpp \
+    src/nodeipc.cpp \
+    src/nodews.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -78,7 +78,6 @@ lupdate_only {
 HEADERS += \
     src/accountmodel.h \
     src/types.h \
-    src/etheripc.h \
     src/settings.h \
     src/bigint.h \
     src/transactionmodel.h \
@@ -101,8 +100,9 @@ HEADERS += \
     src/trezor/hdpath.h \
     src/ethereum/tx.h \
     src/platform/devicemanager.h \
-    src/remoteipc.h \
     src/ethereum/keccak.h \
     src/initializer.h \
-    src/tokenmodel.h
+    src/tokenmodel.h \
+    src/nodeipc.h \
+    src/nodews.h
 

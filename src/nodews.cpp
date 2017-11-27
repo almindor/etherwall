@@ -1,39 +1,39 @@
-#include "remoteipc.h"
+#include "nodews.h"
 #include "helpers.h"
 #include <QUrl>
 
 namespace Etherwall {
 
-    RemoteIPC::RemoteIPC(GethLog& gethLog) :
-        EtherIPC(gethLog),
+    NodeWS::NodeWS(GethLog& gethLog) :
+        NodeIPC(gethLog),
         fWebSocket("http://localhost"), fEndpoint(), fReceivedMessage()
     {
-        QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &RemoteIPC::onDisconnectedWS);
-        QObject::connect(&fWebSocket, &QWebSocket::connected, this, &RemoteIPC::onConnectedWS);
-        QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &RemoteIPC::onErrorWS);
-        QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &RemoteIPC::onTextMessageReceivedWS);
+        QObject::connect(&fWebSocket, &QWebSocket::disconnected, this, &NodeWS::onDisconnectedWS);
+        QObject::connect(&fWebSocket, &QWebSocket::connected, this, &NodeWS::onConnectedWS);
+        QObject::connect(&fWebSocket, (void (QWebSocket::*)(QAbstractSocket::SocketError))&QWebSocket::error, this, &NodeWS::onErrorWS);
+        QObject::connect(&fWebSocket, &QWebSocket::textMessageReceived, this, &NodeWS::onTextMessageReceivedWS);
 
         const QSettings settings;
         fIsThinClient = settings.value("geth/thinclient", true).toBool();
     }
 
-    RemoteIPC::~RemoteIPC()
+    NodeWS::~NodeWS()
     {
         fWebSocket.close(); // in case we missed the app closing
     }
 
-    void RemoteIPC::getLogs(const QStringList &addresses, const QJsonArray &topics, quint64 fromBlock, const QString& internalID)
+    void NodeWS::getLogs(const QStringList &addresses, const QJsonArray &topics, quint64 fromBlock, const QString& internalID)
     {
         if ( !fIsThinClient ) {
-            return EtherIPC::getLogs(addresses, topics, fromBlock, internalID);
+            return NodeIPC::getLogs(addresses, topics, fromBlock, internalID);
         }
 
         // do nothing on remote, getlogs is too expensive we just don't support it on a thin client
     }
 
-    bool RemoteIPC::closeApp()
+    bool NodeWS::closeApp()
     {
-        bool result = EtherIPC::closeApp();
+        bool result = NodeIPC::closeApp();
 
         // wait for websocket if we're still not disconnected (only after all others are done tho!)
         if ( result && fWebSocket.state() != QAbstractSocket::UnconnectedState ) {
@@ -44,13 +44,13 @@ namespace Etherwall {
         return result;
     }
 
-    void RemoteIPC::setInterval(int interval)
+    void NodeWS::setInterval(int interval)
     {
         Q_UNUSED(interval); // remote enforced to 10s
         fTimer.setInterval(10000);
     }
 
-    void RemoteIPC::start(const QString &version, const QString &endpoint, const QString &warning)
+    void NodeWS::start(const QString &version, const QString &endpoint, const QString &warning)
     {
         Q_UNUSED(version); // TODO
         Q_UNUSED(warning);
@@ -60,37 +60,37 @@ namespace Etherwall {
         fEndpoint = endpoint;
 
         connectWebsocket();
-        EtherIPC::start(version, endpoint, warning);
+        NodeIPC::start(version, endpoint, warning);
     }
 
-    void RemoteIPC::finishInit()
+    void NodeWS::finishInit()
     {
         // hold off until WS is done too if remote
         if ( !fIsThinClient || fWebSocket.state() == QAbstractSocket::ConnectedState ) {
-            EtherIPC::finishInit();
+            NodeIPC::finishInit();
         }
     }
 
-    bool RemoteIPC::endpointWritable()
+    bool NodeWS::endpointWritable()
     {
         if ( isRemoteRequest() ) {
             return true;
         }
 
-        return EtherIPC::endpointWritable();
+        return NodeIPC::endpointWritable();
     }
 
-    qint64 RemoteIPC::endpointWrite(const QByteArray &data)
+    qint64 NodeWS::endpointWrite(const QByteArray &data)
     {
         if ( isRemoteRequest() ) {
             qint64 sent = fWebSocket.sendBinaryMessage(data);
             return sent;
         }
 
-        return EtherIPC::endpointWrite(data);
+        return NodeIPC::endpointWrite(data);
     }
 
-    const QByteArray RemoteIPC::endpointRead()
+    const QByteArray NodeWS::endpointRead()
     {
         if ( isRemoteRequest() ) {
             const QByteArray result = fReceivedMessage;
@@ -98,12 +98,12 @@ namespace Etherwall {
             return result;
         }
 
-        return EtherIPC::endpointRead();
+        return NodeIPC::endpointRead();
     }
 
-    const QStringList RemoteIPC::buildGethArgs()
+    const QStringList NodeWS::buildGethArgs()
     {
-        QStringList args = EtherIPC::buildGethArgs();
+        QStringList args = NodeIPC::buildGethArgs();
         if ( fIsThinClient ) {
             args.append("--maxpeers=0");
             args.append("--nodiscover");
@@ -113,16 +113,16 @@ namespace Etherwall {
         return args;
     }
 
-    void RemoteIPC::onConnectedWS()
+    void NodeWS::onConnectedWS()
     {
         EtherLog::logMsg("Connected to WS endpoint", LS_Info);
         // if IPC is connected at this stage continue with init
         if ( fSocket.state() == QLocalSocket::ConnectedState ) {
-            EtherIPC::finishInit();
+            NodeIPC::finishInit();
         }
     }
 
-    void RemoteIPC::onDisconnectedWS()
+    void NodeWS::onDisconnectedWS()
     {
         if ( !fClosingApp ) {
             setError("WS: Disconnected from websocket");
@@ -130,20 +130,20 @@ namespace Etherwall {
         }
     }
 
-    void RemoteIPC::onErrorWS(QAbstractSocket::SocketError error)
+    void NodeWS::onErrorWS(QAbstractSocket::SocketError error)
     {
         Q_UNUSED(error);
         setError("WS: " + fSocket.errorString());
         bail();
     }
 
-    void RemoteIPC::onTextMessageReceivedWS(const QString &msg)
+    void NodeWS::onTextMessageReceivedWS(const QString &msg)
     {
         fReceivedMessage = msg.toUtf8();
         onSocketReadyRead();
     }
 
-    bool RemoteIPC::isRemoteRequest() const
+    bool NodeWS::isRemoteRequest() const
     {
         if ( !fIsThinClient ) {
             return false; // all are considered local in this case
@@ -182,7 +182,7 @@ namespace Etherwall {
         return false; // better safe than sorry
     }
 
-    void RemoteIPC::connectWebsocket()
+    void NodeWS::connectWebsocket()
     {
         if ( fIsThinClient && fWebSocket.state() == QAbstractSocket::UnconnectedState && !fEndpoint.isEmpty() ) {
             EtherLog::logMsg("Connecting to WS endpoint: " + fEndpoint, LS_Info);
@@ -190,7 +190,7 @@ namespace Etherwall {
         }
     }
 
-    bool RemoteIPC::isThinClient() const
+    bool NodeWS::isThinClient() const
     {
         return fIsThinClient;
     }

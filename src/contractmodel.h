@@ -27,7 +27,7 @@
 #include <QVariantList>
 #include <QVariantMap>
 #include "contractinfo.h"
-#include "etheripc.h"
+#include "nodeipc.h"
 #include "accountmodel.h"
 
 namespace Etherwall {
@@ -47,7 +47,7 @@ namespace Etherwall {
         Q_OBJECT
         Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
     public:
-        ContractModel(EtherIPC& ipc, AccountModel& accountModel);
+        ContractModel(NodeIPC& ipc, AccountModel& accountModel);
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
@@ -99,7 +99,7 @@ namespace Etherwall {
         const ContractInfo& getContractByAddress(const QString& address, int& index) const;
 
         ContractList fList;
-        EtherIPC& fIpc;
+        NodeIPC& fIpc;
         QNetworkAccessManager fNetManager;
         bool fBusy;
         PendingContracts fPendingContracts;

@@ -4,9 +4,9 @@
 
 namespace Etherwall {
 
-    FilterModel::FilterModel(EtherIPC& ipc) : QAbstractListModel(0), fIpc(ipc), fList()
+    FilterModel::FilterModel(NodeIPC& ipc) : QAbstractListModel(0), fIpc(ipc), fList()
     {
-        connect(&ipc, &EtherIPC::connectToServerDone, this, &FilterModel::reload);
+        connect(&ipc, &NodeIPC::connectToServerDone, this, &FilterModel::reload);
     }
 
     QHash<int, QByteArray> FilterModel::roleNames() const {

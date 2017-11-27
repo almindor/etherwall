@@ -28,7 +28,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include "types.h"
-#include "etheripc.h"
+#include "nodeipc.h"
 #include "accountmodel.h"
 #include "etherlog.h"
 
@@ -44,7 +44,7 @@ namespace Etherwall {
         Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
         Q_PROPERTY(QString latestVersion READ getLatestVersion NOTIFY latestVersionChanged FINAL)
     public:
-        TransactionModel(EtherIPC& ipc, const AccountModel& accountModel);
+        TransactionModel(NodeIPC& ipc, const AccountModel& accountModel);
         quint64 getBlockNumber() const;
         const QString& getGasPrice() const;
         const QString& getLatestVersion() const;
@@ -103,7 +103,7 @@ namespace Etherwall {
         void receivedTransaction(const QString& toAddress) const;
         void confirmedTransaction(const QString& fromAddress, const QString& toAddress, const QString& hash) const;
     private:
-        EtherIPC& fIpc;
+        NodeIPC& fIpc;
         const AccountModel& fAccountModel;
         TransactionList fTransactionList;
         quint64 fBlockNumber;

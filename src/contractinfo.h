@@ -8,7 +8,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
-#include "bigint.h"
+#include "ethereum/bigint.h"
 
 #include <QDebug>
 

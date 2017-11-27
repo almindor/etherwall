@@ -28,7 +28,8 @@
 #include <QPixmap>
 #include <QFile>
 #include <QDebug>
-#include "etherlog.h"
+#include "etherlogapp.h"
+#include "gethlogapp.h"
 #include "settings.h"
 #include "clipboard.h"
 #include "initializer.h"
@@ -40,7 +41,6 @@
 #include "currencymodel.h"
 #include "filtermodel.h"
 #include "tokenmodel.h"
-#include "gethlog.h"
 #include "helpers.h"
 #include "nodews.h"
 #include "trezor/trezor.h"
@@ -79,8 +79,8 @@ int main(int argc, char *argv[])
     }
 
     ClipboardAdapter clipboard;
-    EtherLog log;
-    GethLog gethLog;
+    EtherLogApp log;
+    GethLogApp gethLog;
 
     // get SSL cert for https://data.etherwall.com
     const QSslCertificate certificate(EtherWall_Cert.toUtf8());

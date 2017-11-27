@@ -2,8 +2,8 @@ TEMPLATE = app
 
 QT += qml quick widgets network websockets
 
-INCLUDEPATH += src
-DEPENDPATH += src
+INCLUDEPATH += src src/ew-node/src
+DEPENDPATH += src src/ew-node/src
 
 linux {
     CONFIG += link_pkgconfig
@@ -30,16 +30,11 @@ macx {
 
 SOURCES += src/main.cpp \
     src/accountmodel.cpp \
-    src/types.cpp \
     src/settings.cpp \
-    src/bigint.cpp \
     src/transactionmodel.cpp \
     src/clipboard.cpp \
-    src/etherlog.cpp \
     src/currencymodel.cpp \
     src/accountproxymodel.cpp \
-    src/gethlog.cpp \
-    src/helpers.cpp \
     src/contractmodel.cpp \
     src/contractinfo.cpp \
     src/eventmodel.cpp \
@@ -51,12 +46,19 @@ SOURCES += src/main.cpp \
     src/trezor/proto/types.pb.cc \
     src/trezor/wire.cpp \
     src/trezor/hdpath.cpp \
-    src/ethereum/tx.cpp \
     src/platform/devicemanager.cpp \
     src/initializer.cpp \
     src/tokenmodel.cpp \
-    src/nodeipc.cpp \
-    src/nodews.cpp
+    src/ew-node/src/etherlog.cpp \
+    src/ew-node/src/gethlog.cpp \
+    src/ew-node/src/helpers.cpp \
+    src/ew-node/src/types.cpp \
+    src/ew-node/src/ethereum/tx.cpp \
+    src/ew-node/src/ethereum/bigint.cpp \
+    src/ew-node/src/nodeipc.cpp \
+    src/ew-node/src/nodews.cpp \
+    src/gethlogapp.cpp \
+    src/etherlogapp.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -77,16 +79,11 @@ lupdate_only {
 
 HEADERS += \
     src/accountmodel.h \
-    src/types.h \
     src/settings.h \
-    src/bigint.h \
     src/transactionmodel.h \
     src/clipboard.h \
-    src/etherlog.h \
     src/currencymodel.h \
     src/accountproxymodel.h \
-    src/gethlog.h \
-    src/helpers.h \
     src/contractmodel.h \
     src/contractinfo.h \
     src/eventmodel.h \
@@ -98,12 +95,19 @@ HEADERS += \
     src/trezor/proto/types.pb.h \
     src/trezor/wire.h \
     src/trezor/hdpath.h \
-    src/ethereum/tx.h \
     src/platform/devicemanager.h \
-    src/ethereum/keccak.h \
     src/initializer.h \
     src/tokenmodel.h \
-    src/nodeipc.h \
-    src/nodews.h \
-    src/cert.h
+    src/cert.h \
+    src/ew-node/src/types.h \
+    src/ew-node/src/etherlog.h \
+    src/ew-node/src/gethlog.h \
+    src/ew-node/src/helpers.h \
+    src/ew-node/src/nodeipc.h \
+    src/ew-node/src/nodews.h \
+    src/ew-node/src/ethereum/bigint.h \
+    src/ew-node/src/ethereum/tx.h \
+    src/ew-node/src/ethereum/keccak.h \
+    src/gethlogapp.h \
+    src/etherlogapp.h
 

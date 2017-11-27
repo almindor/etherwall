@@ -133,6 +133,13 @@ namespace Etherwall {
         Q_INVOKABLE void estimateGas(const QString& from, const QString& to, const QString& valStr,
                                      const QString& gas, const QString& gasPrice, const QString& data);
         Q_INVOKABLE void getTransactionReceipt(const QString& hash);
+
+        // static & global
+        static const QString defaultIPCPath(const QString& dataDir, bool testnet);
+        static const QString defaultGethPath();
+
+        static const QString sDefaultDataDir;
+        static const QString sDefaultGethArgs;
     public slots:
         virtual void start(const QString& version, const QString& endpoint, const QString& warning);
     protected slots:

@@ -104,5 +104,6 @@ HEADERS += \
     src/initializer.h \
     src/tokenmodel.h \
     src/nodeipc.h \
-    src/nodews.h
+    src/nodews.h \
+    src/cert.h
 

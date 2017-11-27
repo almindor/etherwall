@@ -45,6 +45,7 @@
 #include "nodews.h"
 #include "trezor/trezor.h"
 #include "platform/devicemanager.h"
+#include "cert.h"
 
 using namespace Etherwall;
 
@@ -66,8 +67,8 @@ int main(int argc, char *argv[])
 
     Settings settings;
 
-    const QString gethPath = settings.value("geth/path", DefaultGethPath()).toString();
-    const QString dataPath = settings.value("geth/datadir", DefaultDataDir).toString();
+    const QString gethPath = settings.value("geth/path", NodeIPC::defaultGethPath()).toString();
+    const QString dataPath = settings.value("geth/datadir", NodeIPC::sDefaultDataDir).toString();
 
     // set defaults
     if ( !settings.contains("geth/path") ) {

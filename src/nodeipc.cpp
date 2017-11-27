@@ -85,6 +85,17 @@ namespace Etherwall {
 
 // *************************** NodeIPC **************************** //
 
+#ifdef Q_OS_WIN32
+    const QString NodeIPC::sDefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/Ethereum";
+#else
+    #ifdef Q_OS_MACX
+    const QString NodeIPC::sDefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/Library/Ethereum";
+    #else
+    const QString NodeIPC::sDefaultDataDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.ethereum";
+    #endif
+#endif
+    const QString NodeIPC::sDefaultGethArgs = "--syncmode=fast --cache 512";
+
     NodeIPC::NodeIPC(GethLog& gethLog) :
         fPath(), fBlockFilterID(), fClosingApp(false), fPeerCount(0), fActiveRequest(None),
         fGeth(), fStarting(0), fGethLog(gethLog),
@@ -132,7 +143,7 @@ namespace Etherwall {
     void NodeIPC::init() {
         QSettings settings;       
         QStringList args = buildGethArgs(); // has to run first
-        const QString progStr = settings.value("geth/path", DefaultGethPath()).toString();
+        const QString progStr = settings.value("geth/path", defaultGethPath()).toString();
 
         QFileInfo info(progStr);
         if ( !info.exists() || !info.isExecutable() ) {
@@ -716,8 +727,8 @@ namespace Etherwall {
     const QStringList NodeIPC::buildGethArgs()
     {
         QSettings settings;
-        QString argStr = settings.value("geth/args", DefaultGethArgs).toString();
-        const QString ddStr = settings.value("geth/datadir", DefaultDataDir).toString();
+        QString argStr = settings.value("geth/args", sDefaultGethArgs).toString();
+        const QString ddStr = settings.value("geth/datadir", sDefaultDataDir).toString();
 
         // check deprecated options and replace them
         if ( argStr.contains("--light") || argStr.contains("--fast") ) {
@@ -729,7 +740,7 @@ namespace Etherwall {
 
         QStringList args;
         bool testnet = settings.value("geth/testnet", false).toBool();
-        fPath = DefaultIPCPath(ddStr, testnet);
+        fPath = defaultIPCPath(ddStr, testnet);
         if ( testnet ) { // geth 1.6.0+ only
             args = (argStr + " --datadir " + ddStr + "/rinkeby").split(' ', QString::SkipEmptyParts);
             args.append("--rinkeby");
@@ -1097,6 +1108,29 @@ namespace Etherwall {
         if ( !queueRequest(NodeRequest(NonVisual, GetTransactionReceipt, "eth_getTransactionReceipt", params)) ) {
             return bail();
         }
+    }
+
+    const QString NodeIPC::defaultIPCPath(const QString& dataDir, bool testnet) {
+#ifdef Q_OS_WIN32
+        Q_UNUSED(dataDir);
+        Q_UNUSED(testnet);
+        return "\\\\.\\pipe\\geth.ipc";
+#else
+        const QString mid_fix = testnet ? "/rinkeby" : "";
+        return QDir::cleanPath(dataDir + mid_fix + "/geth.ipc");
+#endif
+    }
+
+    const QString NodeIPC::defaultGethPath() {
+#ifdef Q_OS_WIN32
+        return QApplication::applicationDirPath() + "/geth.exe";
+#else
+#ifdef Q_OS_MACX
+        return QApplication::applicationDirPath() + "/geth";
+#else
+        return "/usr/bin/geth";
+#endif
+#endif
     }
 
     void NodeIPC::handleGetTransactionReceipt() {

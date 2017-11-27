@@ -24,34 +24,10 @@
 #include <QDateTime>
 #include <QTimer>
 #include <QJsonDocument>
-#include <QApplication>
 #include <QDir>
 #include <QDebug>
 
 namespace Etherwall {
-
-    const QString DefaultIPCPath(const QString& dataDir, bool testnet) {
-    #ifdef Q_OS_WIN32
-        Q_UNUSED(dataDir);
-        Q_UNUSED(testnet);
-        return "\\\\.\\pipe\\geth.ipc";
-    #else
-        const QString mid_fix = testnet ? "/rinkeby" : "";
-        return QDir::cleanPath(dataDir + mid_fix + "/geth.ipc");
-    #endif
-    }
-
-    const QString DefaultGethPath() {
-#ifdef Q_OS_WIN32
-        return QApplication::applicationDirPath() + "/geth.exe";
-#else
-#ifdef Q_OS_MACX
-        return QApplication::applicationDirPath() + "/geth";
-#else
-        return "/usr/bin/geth";
-#endif
-#endif
-    }
 
 // ***************************** LogInfo ***************************** //
 

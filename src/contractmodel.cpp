@@ -352,6 +352,7 @@ namespace Etherwall {
             return (Helpers::hexPrefix(callData));
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
+            emit callError("Error constructing call data: " + err);
             return QString();
         }
     }

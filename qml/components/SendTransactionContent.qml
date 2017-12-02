@@ -345,7 +345,7 @@ Item {
 
         Button {
             id: sendButton
-            enabled: !ipc.syncing && !ipc.closing && !ipc.starting
+            enabled: !ipc.syncing && !ipc.closing && !ipc.starting && !ipc.busy
             width: parent.width
             height: 1.3 * dpi
             text: "Send"

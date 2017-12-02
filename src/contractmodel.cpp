@@ -348,7 +348,8 @@ namespace Etherwall {
             QVariantList params;
             params.append(toAddress);
             params.append(valueBase);
-            return ("0x" + func.callData(params));
+            const QString callData = func.callData(params);
+            return (Helpers::hexPrefix(callData));
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
             return QString();

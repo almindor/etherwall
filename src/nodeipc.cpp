@@ -784,7 +784,7 @@ namespace Etherwall {
         }
 
         params.append(p);
-        if ( !queueRequest(NodeRequest(NonVisual, EstimateGas, "eth_estimateGas", params)) ) {
+        if ( !queueRequest(NodeRequest(Full, EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
     }

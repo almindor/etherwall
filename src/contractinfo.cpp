@@ -282,11 +282,9 @@ namespace Etherwall {
             return encodeInt(addrNum);
         }
 
-        bool ok = false;
         if ( fBaseType == "int" || fBaseType == "uint" ) {
-            int ival = val.toInt(&ok);
-            if ( !ok ) throw QString(fName + ": Invalid " + fBaseType + " argument: " + val.toString());
-            return encode(ival);
+            BigInt::Rossi valNum(val.toString().toStdString(), 10);
+            return encodeInt(valNum);
         }
 
         if ( fBaseType == "fixed" || fBaseType == "ufixed" ) {
@@ -671,7 +669,8 @@ namespace Etherwall {
         int i = 0;
         int offset = fArguments.size() * 32; // dynamic offset
         foreach ( const ContractArg& arg, fArguments ) {
-            const QString encoded = arg.encode(params.at(i++));
+            const QVariant param = params.at(i++);
+            const QString encoded = arg.encode(param);
             if ( arg.dynamic() ) {
                 encStr.append(ContractArg::encodeInt(offset));
                 dynaStr.append(encoded);

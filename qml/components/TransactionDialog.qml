@@ -25,7 +25,7 @@ Window {
     id: sendDialog
     title: qsTr("Send Ether")
 
-    modality: Qt.NonModal
+    modality: Qt.WindowModal
     visible: false
     minimumWidth: 6 * dpi
     minimumHeight: 1 * dpi

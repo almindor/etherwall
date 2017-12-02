@@ -267,7 +267,7 @@ ApplicationWindow {
 
     MessageDialog {
         id: errorDialog
-        modality: Qt.NonModal
+        modality: Qt.ApplicationModal
         icon: StandardIcon.Critical
         width: 5 * dpi
     }

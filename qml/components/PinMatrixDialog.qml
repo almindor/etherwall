@@ -29,7 +29,7 @@ Window {
     property string pin : ""
     property bool accepted : false
 
-    modality: Qt.ApplicationModal
+    modality: Qt.WindowModal
     visible: false
     minimumWidth: 3 * dpi
     minimumHeight: 3 * dpi

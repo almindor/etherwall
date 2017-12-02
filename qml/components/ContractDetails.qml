@@ -27,7 +27,7 @@ Window {
     id: contractDetails
     title: qsTr("Contract Details")
 
-    modality: Qt.ApplicationModal
+    modality: Qt.WindowModal
     visible: false
     minimumWidth: 6 * dpi
     minimumHeight: 1 * dpi

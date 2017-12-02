@@ -351,6 +351,7 @@ namespace Etherwall {
             return ("0x" + func.callData(params));
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
+            emit callError("Error encoding data for tx: " + err);
             return QString();
         }
     }
@@ -370,6 +371,7 @@ namespace Etherwall {
             return encoded;
         } catch ( QString err ) {
             EtherLog::logMsg(err, LS_Error);
+            emit callError("Error encoding topics: " + err);
             return QString();
         }
     }

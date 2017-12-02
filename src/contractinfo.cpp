@@ -282,11 +282,9 @@ namespace Etherwall {
             return encodeInt(addrNum);
         }
 
-        bool ok = false;
         if ( fBaseType == "int" || fBaseType == "uint" ) {
-            int ival = val.toInt(&ok);
-            if ( !ok ) throw QString(fName + ": Invalid " + fBaseType + " argument: " + val.toString());
-            return encode(ival);
+            const BigInt::Rossi valNum(val.toString().toStdString(), 10);
+            return encodeInt(valNum);
         }
 
         if ( fBaseType == "fixed" || fBaseType == "ufixed" ) {

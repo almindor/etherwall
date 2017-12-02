@@ -75,6 +75,12 @@ Item {
     Connections {
         target: contractModel
 
+        onCallError: {
+            sendIcon.source = "/images/error"
+            sendButton.status = -2
+            warningField.text = err
+        }
+
         onCallEncoded: {
             var result = sendButton.refresh()
             if ( !result.error ) {

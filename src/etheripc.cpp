@@ -771,7 +771,7 @@ namespace Etherwall {
         }
 
         params.append(p);
-        if ( !queueRequest(RequestIPC(NonVisual, EstimateGas, "eth_estimateGas", params)) ) {
+        if ( !queueRequest(RequestIPC(Full, EstimateGas, "eth_estimateGas", params)) ) {
             return bail();
         }
     }

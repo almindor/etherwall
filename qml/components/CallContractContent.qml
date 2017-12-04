@@ -236,16 +236,5 @@ Item {
                 contractReady(encodedText.text, functionIsConstant, functionCallIndex, functionUserData, true)
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                done()
-            }
-        }
-
     }
 }

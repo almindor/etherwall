@@ -25,9 +25,9 @@ import QtQuick.Controls 1.1
 Dialog {
     id: theDialog
     title: qsTr("Confirm operation", "generic dialog")
-    width: dpi * 5
+    width: dpi * 7
     standardButtons: StandardButton.Yes | StandardButton.No
-    modality: Qt.NonModal
+    modality: Qt.WindowModal
     property string text : ""
     signal passwordSubmitted(string password)
     signal passwordRejected

@@ -339,6 +339,16 @@ Item {
                 height: 0.5 * dpi
                 width: mainColumn.width - 1 * dpi
                 onLinkActivated: Qt.openUrlExternally(link)
+
+                ColorAnimation on textColor {
+                    id: errorAnimation
+                    from: "black"
+                    to: "red"
+                    duration: 250
+                    running: false
+                    loops: 5
+                    onStopped: warningField.textColor = "black"
+                }
             }
         }
 
@@ -363,7 +373,7 @@ Item {
             enabled: !ipc.syncing && !ipc.closing && !ipc.starting && !ipc.busy
             width: parent.width
             height: 1.3 * dpi
-            text: "Send"
+            text: status > -2 ? qsTr("Send") : qsTr("Input errors")
             property int status : -2
 
             Image {
@@ -498,8 +508,7 @@ Item {
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
-                    errorDialog.text = result.error
-                    errorDialog.open()
+                    errorAnimation.start()
                     return
                 }
 
@@ -531,17 +540,6 @@ Item {
                 transactionSendDialog.open()
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                done()
-            }
-        }
-
     }
 
 }

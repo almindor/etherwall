@@ -193,16 +193,5 @@ Item {
                 contractReady(nameField.text, result.abi, result.bc, true)
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                done()
-            }
-        }
-
     }
 }

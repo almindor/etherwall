@@ -33,7 +33,7 @@ Item {
                 width: parent.width / 2.0
                 height: parent.height / 2.0
 
-                onClicked: details.open(-1)
+                onClicked: details.display(-1)
             }
 
             Button {
@@ -43,7 +43,7 @@ Item {
                 width: parent.width / 2.0
                 height: parent.height / 2.0
 
-                onClicked: deploy.open()
+                onClicked: deploy.display()
             }
 
             Button {
@@ -54,7 +54,7 @@ Item {
                 width: parent.width / 2.0
                 height: parent.height
 
-                onClicked: calls.open(contractView.currentRow)
+                onClicked: calls.display(contractView.currentRow)
             }
         }
 
@@ -87,16 +87,12 @@ Item {
 
                 MenuItem {
                     text: qsTr("Invoke")
-                    onTriggered: {
-                        calls.open(contractView.currentRow)
-                    }
+                    onTriggered: calls.display(contractView.currentRow)
                 }
 
                 MenuItem {
                     text: qsTr("Edit")
-                    onTriggered: {
-                        details.open(contractView.currentRow)
-                    }
+                    onTriggered: details.display(contractView.currentRow)
                 }
 
                 MenuItem {
@@ -109,22 +105,18 @@ Item {
 
                 MenuItem {
                     text: qsTr("Copy Address")
-                    onTriggered: {
-                        clipboard.setText(contractModel.getAddress(contractView.currentRow))
-                    }
+                    onTriggered: clipboard.setText(contractModel.getAddress(contractView.currentRow))
                 }
 
                 MenuItem {
                     text: qsTr("Delete")
-                    onTriggered: {
-                        contractModel.deleteContract(contractView.currentRow)
-                    }
+                    onTriggered: contractModel.deleteContract(contractView.currentRow)
                 }
             }
 
             onDoubleClicked: {
                 if ( contractView.currentRow >= 0 ) {
-                    calls.open(contractView.currentRow)
+                    calls.display(contractView.currentRow)
                 }
             }
 

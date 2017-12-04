@@ -19,26 +19,18 @@
  */
 
 import QtQuick 2.0
-import QtQuick.Window 2.0
+import QtQuick.Dialogs 1.2
 
-Window {
+Dialog {
     id: sendDialog
     title: qsTr("Send Ether")
-
+    standardButtons: StandardButton.Cancel
     modality: Qt.WindowModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
-    height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
+    height: 5.1 * dpi
 
-    function open() {
+    function display() {
         stc.toAddress = ""
         stc.contractData = ""
         stc.contractName = ""
@@ -46,8 +38,8 @@ Window {
         stc.tokenIndex = 0
         stc.tokenAddress = ""
 
-        show()
         stc.prepare()
+        open()
     }
 
     SendTransactionContent {

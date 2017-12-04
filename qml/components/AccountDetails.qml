@@ -19,32 +19,26 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
-import QtQuick.Window 2.0
 import QtQuick.Layouts 1.0
 
-Window {
-    modality: Qt.NonModal
+Dialog {
+    modality: Qt.WindowModal
     visible: false
+    standardButtons: StandardButton.Save | StandardButton.Cancel
     title: accountModel.selectedAccount
     width: 8 * dpi
     height: 4 * dpi
-    minimumWidth: 8 * dpi
-    minimumHeight: 4 * dpi
     property int accountIndex : -1
 
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
-
-    function open(index) {
+    function display(index) {
         accountIndex = index
-        visible = true;
+        open()
     }
 
-    function close() {
-        visible = false;
+    onAccepted: if ( aliasField.text.length ) {
+        accountModel.renameAccount(aliasField.text, accountIndex);
     }
 
     GridLayout {
@@ -117,20 +111,6 @@ Window {
             onClicked: {
                 accountModel.setAsDefault(accountModel.selectedAccount)
                 defaultCheck.checked = true
-            }
-        }
-
-        Label {
-            text: qsTr("Operation: ")
-        }
-
-        Button {
-            text: qsTr("Save")
-            onClicked: {
-                if ( aliasField.text.length ) {
-                    accountModel.renameAccount(aliasField.text, accountIndex);
-                }
-                close()
             }
         }
     }

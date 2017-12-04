@@ -46,7 +46,7 @@ Tab {
             width: parent.width
             height: 1 * dpi
 
-            onClicked: sendDialog.open()
+            onClicked: sendDialog.display()
         }
 
         TableView {

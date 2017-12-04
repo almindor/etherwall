@@ -23,7 +23,7 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 
 Dialog {
-    modality: Qt.NonModal
+    modality: Qt.WindowModal
     width: 5 * dpi
     standardButtons: StandardButton.Apply | StandardButton.Cancel
     signal acceptedInput(string value)

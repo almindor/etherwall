@@ -26,7 +26,7 @@ Window {
     id: ftWindow
     title: qsTr("First time setup wizard")
 
-    modality: Qt.WindowModal
+    modality: Qt.ApplicationModal
     visible: false
     minimumWidth: 6 * dpi
     minimumHeight: 1 * dpi

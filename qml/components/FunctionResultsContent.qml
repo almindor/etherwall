@@ -40,81 +40,58 @@ Item {
         }
     }
 
-
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
         running: ipc.starting || ipc.busy || ipc.syncing
     }
 
-    Column {
-        id: mainColumn
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: 0.1 * dpi
-        spacing: 0.1 * dpi
+    TableView {
+        id: responseField
+        anchors.fill: parent
 
-        TableView {
-            id: responseField
-            anchors.left: parent.left
-            anchors.right: parent.right
-            height: itemID.height - closeButton.height - 1 * dpi
+        TableViewColumn {
+            role: "number"
+            title: "#"
+            width: 0.5 * dpi
+        }
 
-            TableViewColumn {
-                role: "number"
-                title: "#"
-                width: 0.5 * dpi
-            }
+        TableViewColumn {
+            role: "type"
+            title: qsTr("Type")
+            width: 1 * dpi
+        }
 
-            TableViewColumn {
-                role: "type"
-                title: qsTr("Type")
-                width: 1 * dpi
-            }
+        TableViewColumn {
+            role: "value"
+            title: qsTr("Value")
+            width: responseField.width - 2.6 * dpi
+        }
 
-            TableViewColumn {
-                role: "value"
-                title: qsTr("Value")
-                width: responseField.width - 2.6 * dpi
-            }
+        Menu {
+            id: rowMenu
 
-            Menu {
-                id: rowMenu
-
-                MenuItem {
-                    text: qsTr("Copy Value")
-                    onTriggered: {
-                        if ( responseField.currentRow >= 0 ) {
-                            clipboard.setText(responseField.model[0].value)
-                        }
-                    }
-                }
-
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                propagateComposedEvents: true
-                acceptedButtons: Qt.RightButton
-
-                onReleased: {
+            MenuItem {
+                text: qsTr("Copy Value")
+                onTriggered: {
                     if ( responseField.currentRow >= 0 ) {
-                        rowMenu.popup()
+                        clipboard.setText(responseField.model[0].value)
                     }
                 }
             }
+
         }
 
-        Button {
-            id: closeButton
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
+        MouseArea {
+            anchors.fill: parent
+            propagateComposedEvents: true
+            acceptedButtons: Qt.RightButton
 
-            onClicked: {
-                done()
+            onReleased: {
+                if ( responseField.currentRow >= 0 ) {
+                    rowMenu.popup()
+                }
             }
         }
-
     }
 }

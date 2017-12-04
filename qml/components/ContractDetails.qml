@@ -19,34 +19,26 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
-import QtQuick.Window 2.0
 
-Window {
+Dialog {
     id: contractDetails
     title: qsTr("Contract Details")
-
+    standardButtons: StandardButton.Close
     modality: Qt.WindowModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
     height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
 
-    function open( index ) {
+    function display( index ) {
         if ( index < 0 ) {
             nameField.text = ""
             addressField.text = ""
             abiField.text = ""
 
-            show()
+            open()
             return
         }
 
@@ -54,7 +46,7 @@ Window {
         addressField.text = contractModel.getAddress(index)
         abiField.text = contractModel.getABI(index)
 
-        show()
+        open()
     }
 
     BusyIndicator {
@@ -273,16 +265,5 @@ Window {
                 contractDetails.close()
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                contractDetails.close()
-            }
-        }
-
     }
 }

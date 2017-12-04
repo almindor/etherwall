@@ -23,7 +23,7 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 
 Dialog {
-    modality: Qt.NonModal
+    modality: Qt.WindowModal
     id: theDialog
     title: qsTr("Import accounts from TREZOR")
     standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help

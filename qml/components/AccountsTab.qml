@@ -285,6 +285,13 @@ Tab {
                 }
             }
 
+            onDoubleClicked: {
+                if ( accountView.currentRow >= 0 ) {
+                    accountModel.selectedAccountRow = accountView.currentRow
+                    accountDetails.open(accountView.currentRow)
+                }
+            }
+
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true

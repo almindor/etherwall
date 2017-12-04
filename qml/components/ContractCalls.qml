@@ -19,28 +19,20 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
-import QtQuick.Window 2.0
 
-Window {
+Dialog {
     id: contractCalls
     title: qsTr("Call Contract")
-
-    modality: Qt.NonModal
+    standardButtons: StandardButton.Close
+    modality: Qt.WindowModal
     visible: false
-    minimumWidth: 7 * dpi
-    minimumHeight: 5.5 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
     height: 5.5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
 
-    function open( index ) {
+    function display( index ) {
         rsTab.active = true
 
         stcTab.active = true
@@ -49,14 +41,14 @@ Window {
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
         stcTab.children[0].tokenIndex = 0
-        stcTab.children[0].tokenAddress = ""
-        stcTab.children[0].prepare()
+        stcTab.children[0].tokenAddress = ""        
 
         cccTab.active = true
         cccTab.children[0].open(index) // ensure first function is selected ok
+        stcTab.children[0].prepare()
 
         tabs.currentIndex = 0
-        show()
+        open()
     }
 
     Badge {

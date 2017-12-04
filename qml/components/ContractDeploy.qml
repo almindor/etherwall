@@ -19,28 +19,20 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
 import QtQuick.Controls.Styles 1.1
-import QtQuick.Window 2.0
 
-Window {
+Dialog {
     id: contractDeploy
     title: qsTr("Deploy Contract")
-
-    modality: Qt.NonModal
+    standardButtons: StandardButton.Cancel
+    modality: Qt.WindowModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 5.5 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
     height: 5.5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
 
-    function open() {
+    function display() {
         stcTab.active = true
         stcTab.children[0].toAddress = ""
         stcTab.children[0].contractData = "0x"
@@ -55,7 +47,7 @@ Window {
         cccTab.active = true
         //cccTab.children[0].contractIndex = index
         tabs.currentIndex = 0
-        show()
+        open()
     }
 
     Badge {

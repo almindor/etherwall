@@ -3,4 +3,4 @@
 	url = https://github.com/trezor/trezor-common.git
 [submodule "src/ew-node"]
 	path = src/ew-node
-	url = git@github.com:almindor/ew-node.git
+	url = https://github.com/almindor/ew-node.git

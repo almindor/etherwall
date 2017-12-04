@@ -90,7 +90,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Details")
                     onTriggered: {
-                        details.open(transactionModel.getJson(transactionView.currentRow, true))
+                        details.display(transactionModel.getJson(transactionView.currentRow, true))
                     }
                 }
 
@@ -126,7 +126,7 @@ Tab {
 
             onDoubleClicked: {
                 if ( transactionView.currentRow >= 0 ) {
-                    details.open(transactionModel.getJson(transactionView.currentRow, true))
+                    details.display(transactionModel.getJson(transactionView.currentRow, true))
                 }
             }
 

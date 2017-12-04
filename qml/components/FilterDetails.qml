@@ -11,7 +11,7 @@
     You should have received a copy of the GNU General Public License
     along with etherwall. If not, see <http://www.gnu.org/licenses/>.
 */
-/** @file FirstTimeDialog.qml
+/** @file FilterDetails.qml
  * @author Ales Katona <almindor@gmail.com>
  * @date 2016
  *
@@ -19,28 +19,20 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
-import QtQuick.Window 2.0
 
-Window {
+Dialog {
     id: filterDetails
     title: qsTr("Watch Details")
     signal refresh()
-
+    standardButtons: StandardButton.Close
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 7 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
     height: 7 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
 
-    function open( index ) {
+    function display( index ) {
         if ( index >= 0 ) {
             nameField.text = filterModel.getName(index)
             contractField.currentIndex = contractModel.getIndex(filterModel.getContract(index))
@@ -56,7 +48,7 @@ Window {
             topicsField.text = ""
         }
 
-        show()
+        open()
     }
 
     BusyIndicator {
@@ -310,16 +302,5 @@ Window {
                 filterDetails.close()
             }
         }
-
-        Button {
-            text: qsTr("Close")
-            width: parent.width
-            height: 0.6 * dpi
-
-            onClicked: {
-                filterDetails.close()
-            }
-        }
-
     }
 }

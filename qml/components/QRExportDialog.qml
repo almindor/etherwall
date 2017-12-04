@@ -1,27 +1,26 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.2
-import QtQuick.Window 2.0
 import QtQuick.Dialogs 1.2
 
-Window {
+Dialog {
     id: exportWindow
+    standardButtons: StandardButton.Close | StandardButton.Save
     width: 6 * dpi
-    height: 7 * dpi
+    height: 6 * dpi
     title: qsTr("QR code for: ") + address
     property string address
 
-    function open( val, addr ) {
+    function display( val, addr ) {
         address = addr
         code.value = val
-        visible = true
+        open()
     }
+
+    onAccepted: saveDialog.open()
 
     QRCode {
         id: code
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: saveButton.top
-        anchors.top: parent.top
+        anchors.fill: parent
     }
 
     FileDialog {
@@ -33,19 +32,12 @@ Window {
         nameFilters: [ "PNG (*.png)", "All files (*)" ]
         onAccepted: {
             var path = helpers.localURLToString(fileUrl)
-            code.save(path)
-            appWindow.showBadge(qsTr("Address saved as QR Code to ") + path)
+            if ( !code.save(path) ) {
+                appWindow.showBadge(qsTr("Error saving QR code to ") + path)
+            } else {
+                appWindow.showBadge(qsTr("Address saved as QR Code to ") + path)
+            }
             exportWindow.close()
         }
-    }
-
-    Button {
-        id: saveButton
-        width: parent.width
-
-        height: 1 * dpi
-        anchors.bottom: parent.bottom
-        text: "Save"
-        onClicked: saveDialog.open()
     }
 }

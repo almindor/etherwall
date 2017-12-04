@@ -281,7 +281,7 @@ Tab {
                 MenuItem {
                     visible: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to QR Code")
-                    onTriggered: qrExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
+                    onTriggered: qrExportDialog.display(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
                 }
             }
 

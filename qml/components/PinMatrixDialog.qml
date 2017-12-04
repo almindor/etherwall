@@ -22,7 +22,7 @@ import QtQuick 2.0
 import QtQuick.Window 2.0
 import QtQuick.Controls 1.2
 
-Window {
+Window { // keep as window, since keys are needed
     id: pinMatrixDialog
     title: qsTr("Enter your TREZOR pin")
 
@@ -50,7 +50,7 @@ Window {
         }
     }
 
-    function open() {
+    function display() {
         pin = ""
         pinEdit.text = ""
         show()

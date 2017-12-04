@@ -104,7 +104,7 @@ ApplicationWindow {
     // Trezor main connections
     Connections {
         target: trezor
-        onMatrixRequest: pinMatrixDialog.open()
+        onMatrixRequest: pinMatrixDialog.display()
         onButtonRequest: {
             if ( code != 8 ) { // tx signing handled in signing windows
                 badge.show(badge.button_msg(code))
@@ -305,6 +305,7 @@ ApplicationWindow {
 
     FirstTimeDialog {
         visible: !settings.contains("program/v2firstrun")
+        onRejected: closeTimer.start()
     }
 
     TabView {

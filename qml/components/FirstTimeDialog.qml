@@ -19,27 +19,21 @@
  */
 
 import QtQuick 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Controls 1.1
-import QtQuick.Window 2.0
 
-Window {
-    id: ftWindow
+Dialog {
     title: qsTr("First time setup wizard")
-
+    standardButtons: StandardButton.Save | StandardButton.Close
     modality: Qt.ApplicationModal
     visible: false
-    minimumWidth: 6 * dpi
-    minimumHeight: 1 * dpi
-    maximumWidth: 10 * dpi
-    maximumHeight: 8 * dpi
     width: 7 * dpi
     height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
 
-    property bool done: false
+    onAccepted: {
+        settings.setValue("program/v2firstrun", new Date())
+        initializer.start();
+    }
 
     Column {
         anchors.margins: 0.1 * dpi
@@ -47,6 +41,7 @@ Window {
         spacing: 0.1 * dpi
 
         Text {
+            id: info0
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 0.1 * dpi
@@ -56,6 +51,7 @@ Window {
         }
 
         Text {
+            id: info1
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 0.1 * dpi
@@ -73,6 +69,7 @@ Window {
         }
 
         Item {
+            id: info2
             height: 0.5 * dpi
             anchors {
                 left: parent.left
@@ -120,42 +117,8 @@ Window {
             id: content
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height / 2.0
+            height: 3 * dpi
             hideTrezor: true
         }
-
-        Row {
-            anchors.right: parent.right
-
-            Button {
-                id: continueButton
-                text: qsTr("Continue", "First time dialog")
-                anchors.margins: 0.1 * dpi
-                width: 1 * dpi
-                height: 0.6 * dpi
-
-                onClicked: {
-                    done = true
-                    settings.setValue("program/v2firstrun", new Date())
-                    initializer.start();
-
-                    ftWindow.close()
-                }
-            }
-
-            Button {
-                id: quitButton
-                text: qsTr("Quit", "First time dialog")
-                anchors.margins: 0.1 * dpi
-                width: 1 * dpi
-                height: 0.6 * dpi
-
-                onClicked: {
-                    ftWindow.close()
-                    appWindow.close()
-                }
-            }
-        }
-
     }
 }

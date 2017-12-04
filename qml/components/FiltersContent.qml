@@ -20,7 +20,7 @@ Item {
             width: parent.width
             height: 1 * dpi
 
-            onClicked: details.open()
+            onClicked: details.display()
         }
 
         TableView {
@@ -59,7 +59,7 @@ Item {
                 MenuItem {
                     text: qsTr("Edit")
                     onTriggered: {
-                        details.open(filterView.currentRow)
+                        details.display(filterView.currentRow)
                     }
                 }
 
@@ -73,7 +73,7 @@ Item {
 
             onDoubleClicked: {
                 if ( filterView.currentRow >= 0 ) {
-                    details.open(filterView.currentRow)
+                    details.display(filterView.currentRow)
                 }
             }
 

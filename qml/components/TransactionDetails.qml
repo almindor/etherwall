@@ -20,27 +20,21 @@
 
 import QtQuick 2.0
 import QtQuick.Controls 1.1
-import QtQuick.Window 2.0
+import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.0
 
-Window {
+Dialog {
     property var transaction : new Object({ hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "", input: "" });
-
-    modality: Qt.NonModal
+    standardButtons: StandardButton.Close
+    modality: Qt.WindowModal
     visible: false
     title: transaction.hash
     width: 7 * dpi
-    height: 4 * dpi
-    minimumWidth: 7 * dpi
-    minimumHeight: 4 * dpi
+    height: 5.5 * dpi
 
-    function open( trans ) {
+    function display( trans ) {
         transaction = trans;
-        visible = true;
-    }
-
-    function close() {
-        visible = false;
+        open()
     }
 
     GridLayout {

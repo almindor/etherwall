@@ -36,6 +36,19 @@ Item {
 
     Component.onCompleted: prepare()
 
+    Timer {
+        id: valueChangedTimer
+        interval: 250
+        repeat: false
+        running: false
+        onTriggered: {
+            var result = sendButton.refresh()
+            if ( !result.error ) {
+                ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+            }
+        }
+    }
+
     Connections {
         id: ipcConnection
         property string deployedName
@@ -240,7 +253,9 @@ Item {
                         }
                         var result = sendButton.refresh()
                         contractData = tokenModel.getTokenTransferData(tokenIndex, toField.text, text)
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                        if ( !result.error ) {
+                            valueChangedTimer.restart()
+                        }
                     }
                 }
                 text: "0"

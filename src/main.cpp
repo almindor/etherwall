@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
 
     Settings settings;
 
-    const QString gethPath = settings.value("geth/path", NodeIPC::defaultGethPath()).toString();
+    const QString gethPath = settings.value("geth/path", Initializer::defaultGethPath()).toString();
     const QString dataPath = settings.value("geth/datadir", NodeIPC::sDefaultDataDir).toString();
 
     // set defaults
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     const QSslCertificate certificate(EtherWall_Cert.toUtf8());
     QSslSocket::addDefaultCaCertificate(certificate);
 
-    Initializer initializer;
+    Initializer initializer(gethPath);
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
     NodeWS ipc(gethLog);

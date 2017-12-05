@@ -6,7 +6,21 @@
 
 namespace Etherwall {
 
-    Initializer::Initializer(QObject *parent) : QObject(parent)
+
+    const QString Initializer::defaultGethPath() {
+    #ifdef Q_OS_WIN32
+        return QApplication::applicationDirPath() + "/geth.exe";
+    #else
+    #ifdef Q_OS_MACX
+        return QApplication::applicationDirPath() + "/geth";
+    #else
+        return "/usr/bin/geth";
+    #endif
+    #endif
+    }
+
+    Initializer::Initializer(const QString& gethPath) :
+        QObject(0), fGethPath(gethPath)
     {
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
     }
@@ -26,7 +40,7 @@ namespace Etherwall {
 
     void Initializer::proceed()
     {
-        emit initDone(fVersion, fEndpoint, fWarning);
+        emit initDone(fGethPath, fVersion, fEndpoint, fWarning);
     }
 
     void Initializer::httpRequestDone(QNetworkReply *reply)
@@ -37,7 +51,7 @@ namespace Etherwall {
         if ( !success ) {
             const QString error = resObj.value("error").toString("unknown error");
             EtherLog::logMsg("Response error: " + error, LS_Error);
-            emit initDone("0.0.0", QString(), "Unable to connect to Etherwall server");
+            emit initDone(fGethPath, "0.0.0", QString(), "Unable to connect to Etherwall server");
             return;
         }
 

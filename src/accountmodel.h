@@ -60,6 +60,7 @@ namespace Etherwall {
         const QJsonArray getAccountsJsonArray() const;
         const QString getAccountAlias(const QString& hash) const;
         const QString getTotal() const;
+        int size() const;
         void refreshAccounts();
         const QString getSelectedAccountAlias() const;
         quint64 getSelectedAccountSentTrans() const;

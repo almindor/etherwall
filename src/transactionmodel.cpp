@@ -407,6 +407,9 @@ namespace Etherwall {
     }
 
     const QString TransactionModel::getMaxValue(int row, const QString& gas, const QString& gasPrice) const {
+        if ( row < 0 || row >= fAccountModel.size() ) {
+            return "0";
+        }
         const QModelIndex index = QAbstractListModel::createIndex(row, 2);
 
         BigInt::Rossi balanceWeiRossi = Helpers::etherStrToRossi( fAccountModel.data(index, BalanceRole).toString() );

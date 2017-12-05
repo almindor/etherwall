@@ -115,6 +115,11 @@ namespace Etherwall {
         return Helpers::weiStrToEtherStr(weiStr);
     }
 
+    int AccountModel::size() const
+    {
+        return fAccountList.size();
+    }
+
     void AccountModel::newAccount(const QString& pw) {
         const int index = fAccountList.size();
         fIpc.newAccount(pw, index);

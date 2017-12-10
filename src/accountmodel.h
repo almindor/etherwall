@@ -111,6 +111,7 @@ namespace Etherwall {
         void promptForTrezorImport() const;
         void accountsRemoved() const;
         void currentTokenChanged() const;
+        void existingAccountImported(const QString& address, int accountIndex) const;
     private:
         NodeIPC& fIpc;
         AccountList fAccountList;
@@ -121,6 +122,7 @@ namespace Etherwall {
         const CurrencyModel& fCurrencyModel;
         bool fBusy;
         QString fCurrentToken;
+        QString fCurrentTokenAddress;
 
         int getSelectedAccountRow() const;
         int getDefaultIndex() const;

@@ -43,6 +43,7 @@ namespace Etherwall {
         fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel), fTokenBalanceTabs()
     {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
+        connect(&accountModel, &AccountModel::existingAccountImported, this, &ContractModel::onExistingAccountImported);
         connect(&ipc, &NodeIPC::newEvent, this, &ContractModel::onNewEvent);
         connect(&ipc, &NodeIPC::callDone, this, &ContractModel::onCallDone);
         connect(&ipc, &NodeIPC::newAccountDone, this, &ContractModel::registerTokensFilter);
@@ -638,6 +639,19 @@ namespace Etherwall {
             refreshTokenBalance(fromAddress, accountIndex, contract, contractIndex);
         } catch ( QString error ) { // nothing here as this could be a normal tx
             EtherLog::logMsg(error, LS_Debug);
+        }
+    }
+
+    void ContractModel::onExistingAccountImported(const QString &address, int accountIndex)
+    {
+        int index = 0;
+        foreach ( const ContractInfo& contract, fList ) {
+            if ( !contract.isERC20() ) {
+                index++;
+                continue;
+            }
+
+            refreshTokenBalance(address, accountIndex, contract, index++);
         }
     }
 

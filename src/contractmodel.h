@@ -89,6 +89,7 @@ namespace Etherwall {
         void onCallDone(const QString& result, int index, const QVariantMap& userData);
         void onSelectedTokenContract(int index, bool forwardToAccounts = true);
         void onConfirmedTransaction(const QString &fromAddress, const QString& toAddress, const QString& hash);
+        void onExistingAccountImported(const QString& address, int accountIndex);
     private:
         const QString getPostfix() const;
         void loadERC20Data(const ContractInfo& contract, int index) const;

@@ -367,9 +367,10 @@ namespace Etherwall {
     void AccountModel::selectToken(const QString& name, const QString& tokenAddress)
     {
         fCurrentToken = name;
+        fCurrentTokenAddress = tokenAddress;
         beginResetModel();
         for ( int i = 0; i < fAccountList.size(); i++ ) {
-            fAccountList[i].setCurrentToken(tokenAddress);
+            fAccountList[i].setCurrentTokenAddress(tokenAddress);
         }
         endResetModel();
 
@@ -464,8 +465,10 @@ namespace Etherwall {
         if ( !containsAccount(address, "unused", i1, i2) ) {
             beginInsertRows(QModelIndex(), fAccountList.size(), fAccountList.size());
             fAccountList.append(AccountInfo(address, QString(), fTrezor.getDeviceID(), EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+            fAccountList.last().setCurrentTokenAddress(fCurrentTokenAddress);
             endInsertRows();
-            fIpc.refreshAccount(address, fAccountList.size() - 1);
+            fIpc.refreshAccount(address, fAccountList.size() - 1); // refresh ETH
+            emit existingAccountImported(Helpers::vitalizeAddress(address), fAccountList.size() - 1); // refresh ERC20 (all), NOTE: needs to be vitalized!
 
             storeAccountList();
         } else if ( fAccountList.at(i1).deviceID() != fTrezor.getDeviceID() ) { // this shouldn't happen unless they reimported to another hd device
@@ -488,6 +491,7 @@ namespace Etherwall {
         if ( !hash.isEmpty() ) {
             beginInsertRows(QModelIndex(), index, index);
             fAccountList.append(AccountInfo(hash, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
+            fAccountList.last().setCurrentTokenAddress(fCurrentTokenAddress);
             endInsertRows();
             EtherLog::logMsg("New account created");
 

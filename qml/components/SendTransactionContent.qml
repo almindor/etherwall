@@ -22,7 +22,7 @@ Item {
     function prepare() {
         valueField.text = "0"
         toField.text = toAddress
-        tokenCombo.currentIndex = tokenModel.outerIndex
+        tokenCombo.currentIndex = (toAddress.length === 0 && contractName.length === 0) ? tokenModel.outerIndex : 0
         if ( contractName.length ) {
             gasField.text = "3141592"
         } else {

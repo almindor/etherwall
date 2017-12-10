@@ -80,6 +80,7 @@ Tab {
                 anchors.verticalCenter: parent.verticalCenter
                 height: newAccountButton.height
                 model: tokenModel
+                currentIndex: tokenModel.outerIndex
                 textRole: "token"
                 onActivated: {
                     currencyCombo.currentIndex = 0

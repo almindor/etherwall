@@ -22,7 +22,7 @@ Item {
     function prepare() {
         valueField.text = "0"
         toField.text = toAddress
-        tokenCombo.currentIndex = 0
+        tokenCombo.currentIndex = tokenModel.outerIndex
         if ( contractName.length ) {
             gasField.text = "3141592"
         } else {
@@ -269,6 +269,7 @@ Item {
                 textRole: "token"
                 onActivated: {
                     tokenIndex = index
+                    tokenModel.selectToken(index)
                     tokenAddress = tokenModel.getTokenAddress(index)
                     decimals = tokenModel.getTokenDecimals(index)
 

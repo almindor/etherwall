@@ -5,7 +5,7 @@
 namespace Etherwall {
 
     TokenModel::TokenModel(ContractModel* source) :
-        QAbstractListModel(0), fContractModel(*source)
+        QAbstractListModel(0), fContractModel(*source), fOuterIndex(0)
     {
         fFilteredContracts.setSourceModel(source);
         fFilteredContracts.setFilterRole(TokenRole);
@@ -56,11 +56,19 @@ namespace Etherwall {
         return result;
     }
 
-    void TokenModel::selectToken(int index) const
+    int TokenModel::getOuterIndex() const
+    {
+        return fOuterIndex;
+    }
+
+    void TokenModel::selectToken(int index)
     {
         if ( index < 0 || index > fFilteredContracts.rowCount() ) {
             return;
         }
+
+        fOuterIndex = index;
+        emit outerIndexChanged(index);
 
         if ( index == 0 ) {
             emit selectedTokenContract(-1, true);

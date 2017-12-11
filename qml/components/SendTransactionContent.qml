@@ -5,7 +5,6 @@ import QtQuick.Controls.Styles 1.1
 Item {
     id: transactionContent
     anchors.fill: parent
-    property int tokenIndex : 0
     property int decimals : 18
     property string tokenAddress: ""
     property string toAddress : ""
@@ -23,6 +22,8 @@ Item {
         valueField.text = "0"
         toField.text = toAddress
         tokenCombo.currentIndex = (toAddress.length === 0 && contractName.length === 0) ? tokenModel.outerIndex : 0
+        tokenAddress = tokenModel.getTokenAddress(tokenCombo.currentIndex)
+
         if ( contractName.length ) {
             gasField.text = "3141592"
         } else {
@@ -248,11 +249,11 @@ Item {
                 onTextChanged: {
                     if ( sendButton ) {
                         txValue = text
-                        if ( tokenIndex > 0 ) {
+                        if ( tokenCombo.currentIndex > 0 ) {
                             txValue = "0" // enforce 0 ETH on token sends
                         }
                         var result = sendButton.refresh()
-                        contractData = tokenModel.getTokenTransferData(tokenIndex, toField.text, text)
+                        contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, toField.text, text)
                         if ( !result.error ) {
                             valueChangedTimer.restart()
                         }
@@ -268,7 +269,6 @@ Item {
                 model: tokenModel
                 textRole: "token"
                 onActivated: {
-                    tokenIndex = index
                     tokenModel.selectToken(index)
                     tokenAddress = tokenModel.getTokenAddress(index)
                     decimals = tokenModel.getTokenDecimals(index)
@@ -278,7 +278,7 @@ Item {
                         valueField.text = 0
                     } else {
                         var result = sendButton.refresh()
-                        contractData = tokenModel.getTokenTransferData(tokenIndex, toField.text, "0")
+                        contractData = tokenModel.getTokenTransferData(index, toField.text, "0")
                         ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
                     }
                     var regstr = "^[0-9]{1,40}([.][0-9]{1," + decimals + "})?$"
@@ -294,7 +294,7 @@ Item {
 
                 tooltip: qsTr("Send all", "send all ether from account")
                 onClicked: {
-                    if ( tokenIndex > 0 ) {
+                    if ( tokenCombo.currentIndex > 0 ) {
                         valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
                     } else {
                         valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text, gasPriceField.text)
@@ -319,7 +319,7 @@ Item {
                     regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
 
-                text: transactionModel.estimateTotal(txValue, gasField.text, gasPriceField.text)
+                text: transactionModel.estimateTotal(txValue, gasField.text, gasPriceField.text, tokenAddress)
                 onTextChanged: sendButton.setHelperText(text, sendButton.getGasTotal())
             }
         }
@@ -448,7 +448,7 @@ Item {
                 result.txtGasPrice = gasPriceField.text
 
                 // if we're tokening use token address and value
-                if ( tokenIndex > 0 ) {
+                if ( tokenCombo.currentIndex > 0 ) {
                     result.to = tokenAddress // we're sending to token contract, actual destination is in data
                     result.txtVal = 0 // we're sending 0 eth, token size is in data
                 }
@@ -532,7 +532,7 @@ Item {
 
                 if ( contractName.length > 0 ) {
                     transactionSendDialog.text = qsTr("Confirm creation of contract: ") + contractName
-                } else if ( tokenIndex === 0 ) {
+                } else if ( tokenCombo.currentIndex === 0 ) {
                     transactionSendDialog.text = qsTr("Confirm send of Ξ") + result.value + qsTr(" to: ") + result.to
                 } else {
                     transactionSendDialog.text = qsTr("Confirm send of ") + valueField.text + " " + tokenCombo.currentText + qsTr(" to: ") + toField.text

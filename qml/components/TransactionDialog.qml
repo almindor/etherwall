@@ -35,7 +35,6 @@ Dialog {
         stc.contractData = ""
         stc.contractName = ""
         stc.contractAbi = "[]"
-        stc.tokenIndex = 0
         stc.tokenAddress = ""
 
         stc.prepare()

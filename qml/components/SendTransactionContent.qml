@@ -538,7 +538,7 @@ Item {
                     transactionSendDialog.text = qsTr("Confirm send of ") + valueField.text + " " + tokenCombo.currentText + qsTr(" to: ") + toField.text
                 }
 
-                transactionSendDialog.open()
+                transactionSendDialog.openFocused()
             }
         }
     }

@@ -151,6 +151,7 @@ Item {
                 onTextChanged: {
                     var result = sendButton.refresh()
                     if ( !result.error ) {
+                        contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, text, valueField.text)
                         ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
                     }
                 }

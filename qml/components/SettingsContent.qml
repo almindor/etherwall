@@ -204,28 +204,6 @@ TabView {
 
             Row {
                 enabled: !thinClient
-                id: rowGethTestnet
-                width: parent.width
-
-                Label {
-                    id: gethTestnetLabel
-                    text: "Testnet (rinkeby): "
-                }
-
-                CheckBox {
-                    id: gethTestnetCheck
-                    checked: settings.valueBool("geth/testnet", false)
-                    onClicked: {
-                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                        if ( settings.contains("program/v2firstrun") ) {
-                            confirmDialogTestnet.open()
-                        }
-                    }
-                }
-            }
-
-            Row {
-                enabled: !thinClient
                 width: parent.width
 
                 Label {
@@ -262,6 +240,18 @@ TabView {
                     onValueChanged: {
                         settings.setValue("geth/logsize", logBlocksField.value)
                         filterModel.loadLogs()
+                    }
+                }
+            }
+
+            CheckBox {
+                id: gethTestnetCheck
+                checked: settings.valueBool("geth/testnet", false)
+                text: qsTr("Testnet (rinkeby)")
+                onClicked: {
+                    settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                    if ( settings.contains("program/v2firstrun") ) {
+                        confirmDialogTestnet.open()
                     }
                 }
             }

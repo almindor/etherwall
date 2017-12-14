@@ -104,6 +104,7 @@ int main(int argc, char *argv[])
     QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
     QObject::connect(&contractModel, &ContractModel::tokenBalanceDone, &accountModel, &AccountModel::onTokenBalanceDone);
     QObject::connect(&transactionModel, &TransactionModel::confirmedTransaction, &contractModel, &ContractModel::onConfirmedTransaction);
+    QObject::connect(&accountModel, &AccountModel::accountsReady, &filterModel, &FilterModel::reload);
     QObject::connect(&tokenModel, &TokenModel::selectedTokenContract, &contractModel, &ContractModel::onSelectedTokenContract);
     QObject::connect(&deviceManager, &DeviceManager::deviceInserted, &trezor, &Trezor::TrezorDevice::onDeviceInserted);
     QObject::connect(&deviceManager, &DeviceManager::deviceRemoved, &trezor, &Trezor::TrezorDevice::onDeviceRemoved);

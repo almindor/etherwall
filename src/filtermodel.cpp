@@ -6,7 +6,6 @@ namespace Etherwall {
 
     FilterModel::FilterModel(NodeIPC& ipc) : QAbstractListModel(0), fIpc(ipc), fList()
     {
-        connect(&ipc, &NodeIPC::connectToServerDone, this, &FilterModel::reload);
     }
 
     QHash<int, QByteArray> FilterModel::roleNames() const {

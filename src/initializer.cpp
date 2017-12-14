@@ -3,6 +3,7 @@
 #include "helpers.h"
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QApplication>
 
 namespace Etherwall {
 

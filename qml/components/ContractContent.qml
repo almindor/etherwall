@@ -77,7 +77,7 @@ Item {
             TableViewColumn {
                 role: "address"
                 title: qsTr("Address")
-                width: 0.55 * parent.width
+                width: 0.45 * parent.width
             }
 
             model: contractModel

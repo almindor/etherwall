@@ -145,7 +145,7 @@ Item {
                 }
 
                 text: toAddress
-                readOnly: contractData.length > 0
+                readOnly: !(toAddress.length === 0 && contractName.length === 0)
                 maximumLength: 42
 
                 onTextChanged: {
@@ -255,7 +255,7 @@ Item {
                         }
                         var result = sendButton.refresh()
                         contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, toField.text, text)
-                        if ( !result.error ) {
+                        if ( !result.error && tokenCombo.currentIndex > 0 ) { // only redo estimates on value changes for tokens (due to data changing)
                             valueChangedTimer.restart()
                         }
                     }

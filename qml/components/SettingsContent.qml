@@ -246,6 +246,7 @@ TabView {
 
             CheckBox {
                 id: gethTestnetCheck
+                enabled: !thinClient
                 checked: settings.valueBool("geth/testnet", false)
                 text: qsTr("Testnet (rinkeby)")
                 onClicked: {

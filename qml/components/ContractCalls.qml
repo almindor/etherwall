@@ -40,11 +40,10 @@ Dialog {
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
-        stcTab.children[0].tokenAddress = ""        
+        stcTab.children[0].tokenAddress = ""
 
         cccTab.active = true
         cccTab.children[0].open(index) // ensure first function is selected ok
-        stcTab.children[0].prepare()
 
         tabs.currentIndex = 0
         open()
@@ -99,6 +98,7 @@ Dialog {
                     stcTab.children[0].functionIsConstant = constant
                     stcTab.children[0].callIndex = callIndex
                     stcTab.children[0].userData = userData
+                    stcTab.children[0].prepare()
                     stcTab.enabled = true
                     if ( next ) {
                         tabs.currentIndex = 1
@@ -110,6 +110,7 @@ Dialog {
         Tab {
             id: stcTab
             title: qsTr("Transaction")
+            enabled: false
             SendTransactionContent {
                 onDone: contractCalls.close()
             }

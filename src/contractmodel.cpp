@@ -320,7 +320,7 @@ namespace Etherwall {
         return func.parseResponse(data);
     }
 
-    void ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) {
+    const QVariantMap ContractModel::encodeCall(int index, const QString& functionName, const QVariantList& params) {
         try {
             if ( index < 0 || index >= fList.size() ) {
                 throw QString("Invalid contract index");
@@ -328,12 +328,19 @@ namespace Etherwall {
             int funcIndex = -1;
             const ContractFunction func = fList.at(index).function(functionName, funcIndex);
             const QString encoded = "0x" + func.callData(params);
+            QVariantMap result;
             QVariantMap userData;
             userData["functionIndex"] = QVariant(funcIndex);
             userData["type"] = "functionCall";
-            emit callEncoded(encoded, func.isConstant(), index, userData);
+            result["encoded"] = encoded;
+            result["callIndex"] = index;
+            result["constant"] = func.isConstant();
+            result["userData"] = userData;
+
+            return result;
         } catch ( QString err ) {
             emit callError(err);
+            return QVariantMap();
         }
     }
 

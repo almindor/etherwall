@@ -86,17 +86,6 @@ Item {
         onPresenceChanged: sendButton.refresh()
     }
 
-    Connections {
-        target: contractModel
-
-        onCallEncoded: {
-            var result = sendButton.refresh()
-            if ( !result.error ) {
-                ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-            }
-        }
-    }
-
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
@@ -149,6 +138,10 @@ Item {
                 maximumLength: 42
 
                 onTextChanged: {
+                    if ( !transactionContent.enabled ) {
+                        return
+                    }
+
                     var result = sendButton.refresh()
                     if ( !result.error ) {
                         contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, text, valueField.text)
@@ -248,7 +241,7 @@ Item {
 
                 maximumLength: 50
                 onTextChanged: {
-                    if ( sendButton ) {
+                    if ( sendButton && transactionContent.enabled ) {
                         txValue = text
                         if ( tokenCombo.currentIndex > 0 ) {
                             txValue = "0" // enforce 0 ETH on token sends

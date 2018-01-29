@@ -20,6 +20,24 @@ Item {
         functionField.refresh()
     }
 
+    function encodeCall(contractIndex, funcName, args) {
+        var result = contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
+
+        if (!result['encoded']) {
+            return; // error
+        }
+
+        encodedText.text = result['encoded']
+        errorText.text = ''
+        errorText.visible = false
+        encodedText.visible = true
+        functionIsConstant = result['constant']
+        functionCallIndex = result['callIndex']
+        functionUserData = result['userData']
+
+        contractReady(encodedText.text, functionIsConstant, functionCallIndex, functionUserData, false)
+    }
+
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
@@ -64,7 +82,7 @@ Item {
 
                     argsView.model = contractModel.getArguments(contractIndex, functionField.currentText)
                     argsView.params = []
-                    contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
+                    encodeCall(contractIndex, functionField.currentText, argsView.params);
                     contentOwner.refresh()
                 }
 
@@ -132,7 +150,7 @@ Item {
                     onCurrentIndexChanged: {
                         if ( !visible || currentIndex < 0 || contractIndex < 0 ) return;
                         argsView.params[index] = currentText
-                        contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
+                        encodeCall(contractIndex, functionField.currentText, argsView.params);
                     }
                 }
 
@@ -150,7 +168,7 @@ Item {
                     onTextChanged: {
                         if ( !visible || contractIndex < 0 ) return;
                         argsView.params[index] = text
-                        contractModel.encodeCall(contractIndex, functionField.currentText, argsView.params);
+                        encodeCall(contractIndex, functionField.currentText, argsView.params);
                     }
 
                     validator: RegExpValidator {
@@ -171,18 +189,6 @@ Item {
                 functionCallIndex = -1
                 functionUserData = null
                 contractError()
-            }
-
-            onCallEncoded: {
-                encodedText.text = encoded
-                errorText.text = ''
-                errorText.visible = false
-                encodedText.visible = true
-                functionIsConstant = isConstant
-                functionCallIndex = callIndex
-                functionUserData = userData
-
-                contractReady(encoded, isConstant, callIndex, userData, false)
             }
         }
 
@@ -224,8 +230,7 @@ Item {
                 return result;
             }
 
-
-            onClicked: {
+            function tryCall() {
                 var result = check()
                 if ( result.error !== null ) {
                     errorDialog.text = result.error
@@ -235,6 +240,8 @@ Item {
 
                 contractReady(encodedText.text, functionIsConstant, functionCallIndex, functionUserData, true)
             }
+
+            onClicked: tryCall()
         }
     }
 }

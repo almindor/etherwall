@@ -31,11 +31,27 @@
 #include <QSettings>
 
 namespace Etherwall {
+    const int ALWAYS_FAILING_TX_ERROR = -32000;
+
+    // we want to ensure that -32000 (always failing tx) will be handled nicely. Helps with ERC20s that throw if balance is insufficient
+    bool handleGasEstimateError(int code, const QString& error, NodeRequestTypes requestType, QJsonValue& result) {
+        Q_UNUSED(code); // filtered at source
+        Q_UNUSED(error); // too unpredictable
+
+        if ( requestType == EstimateGas ) { // if it's estimate gas
+            result = QJsonValue("0x15F90"); // 90k gas default
+            return true;
+        }
+
+        return false; // otherwise leave as error
+    }
 
     TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
         QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
+        ipc.registerIpcErrorHandler(ALWAYS_FAILING_TX_ERROR, &handleGasEstimateError);
+
         connect(&ipc, &NodeIPC::connectToServerDone, this, &TransactionModel::connectToServerDone);
         connect(&ipc, &NodeIPC::getAccountsDone, this, &TransactionModel::getAccountsDone);
         connect(&ipc, &NodeIPC::getBlockNumberDone, this, &TransactionModel::getBlockNumberDone);
@@ -46,7 +62,6 @@ namespace Etherwall {
         connect(&ipc, &NodeIPC::newTransaction, this, &TransactionModel::onNewTransaction);
         connect(&ipc, &NodeIPC::newBlock, this, &TransactionModel::newBlock);
         connect(&ipc, &NodeIPC::syncingChanged, this, &TransactionModel::syncingChanged);
-
 
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
         checkVersion(); // TODO: move this off at some point

@@ -27,7 +27,7 @@ Dialog {
     title: qsTr("Confirm operation", "generic dialog")
     width: dpi * 7
     standardButtons: StandardButton.Yes | StandardButton.No
-    modality: Qt.WindowModal
+    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
     property string text : ""
     signal passwordSubmitted(string password)
     signal passwordRejected

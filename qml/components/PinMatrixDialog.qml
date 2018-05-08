@@ -29,7 +29,7 @@ Window { // keep as window, since keys are needed
     property string pin : ""
     property bool accepted : false
 
-    modality: Qt.WindowModal
+    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
     visible: false
     minimumWidth: 3 * dpi
     minimumHeight: 3 * dpi

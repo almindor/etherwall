@@ -74,7 +74,7 @@ namespace Wire {
     const QString Device::getDevicePath()
     {
         QString path;
-        hid_device_info* devices = hid_enumerate(0x534c, 0x0001);
+        hid_device_info* devices = hid_enumerate(0x1209, 0x53c1);
         if ( devices != NULL ) {
             hid_device_info* device = devices;
             do {
@@ -199,6 +199,36 @@ namespace Wire {
         return n;
     }
 
+    static void dump_hex(const void* data, size_t size) {
+    	char ascii[17];
+    	size_t i, j;
+    	ascii[16] = '\0';
+
+    	for (i = 0; i < size; ++i) {
+    		printf("%02X ", ((unsigned char*)data)[i]);
+    		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+    			ascii[i % 16] = ((unsigned char*)data)[i];
+    		} else {
+    			ascii[i % 16] = '.';
+    		}
+    		if ((i+1) % 8 == 0 || i+1 == size) {
+    			printf(" ");
+    			if ((i+1) % 16 == 0) {
+    				printf("|  %s \n", ascii);
+    			} else if (i+1 == size) {
+    				ascii[(i+1) % 16] = '\0';
+    				if ((i+1) % 16 <= 8) {
+    					printf(" ");
+    				}
+    				for (j = (i+1) % 16; j < 16; ++j) {
+    					printf("   ");
+    				}
+    				printf("|  %s \n", ascii);
+    			}
+    		}
+    	}
+    }
+
     void Device::buffer_report()
     {
         if (!hid) {
@@ -214,6 +244,10 @@ namespace Wire {
             r = hid_read_timeout(hid, report.data(), report.size(), 50);
         } while (r == 0);
 
+        printf("READ %u -----\n", report.size());
+        dump_hex(report.data(), report.size());
+        printf("----------\n");
+
         if (r < 0) {
             throw wire_error("HID device read failed");
         }
@@ -227,6 +261,8 @@ namespace Wire {
                  back_inserter(read_buffer));
         }
     }
+
+
 
     size_t Device::write_report(char_type const *data, size_t len)
     {
@@ -257,6 +293,10 @@ namespace Wire {
         if ((size_t)r < report_size) {
             throw wire_error{"HID device write was insufficient"};
         }
+        
+        printf("WRITE %u -----\n", report.size());
+        dump_hex(report.data(), report.size());
+        printf("----------\n");
 
         return n;
     }

@@ -58,7 +58,7 @@ namespace Trezor {
 
         try {
             fDevice.init();
-        } catch ( Trezor::Wire::Device::wire_error err ) {
+        } catch ( Trezor::Wire::Device::wire_error& err ) {
             return bail("Error opening TREZOR device: " + QString(err.what()));
         }
 

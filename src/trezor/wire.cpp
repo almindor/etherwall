@@ -234,7 +234,7 @@ namespace Wire {
     void Device::write(char_type const *data, size_t len)
     {
         if (!hid && !usb_dev) {
-            throw wire_error("Write called with null hid handle");
+            throw wire_error("Write called with null handle");
         }
 
         for (;;) {
@@ -297,7 +297,7 @@ namespace Wire {
     void Device::buffer_report()
     {
         if (!hid && !usb_dev) {
-            throw wire_error("Buffer report called with null hid handle");
+            throw wire_error("Buffer report called with null handle");
         }
 
         using namespace std;

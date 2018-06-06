@@ -260,9 +260,7 @@ namespace Trezor {
             case MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
         }
 
-        if (false) {
-           bail("Unknown msg response: " + QString::number(msg_in.id));
-        }
+        bail("Unknown msg response: " + QString::number(msg_in.id));
     }
 
     void TrezorDevice::handleFailure(const Wire::Message &msg_in)

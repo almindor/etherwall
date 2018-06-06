@@ -25,6 +25,8 @@
 
 #include "wire.h"
 
+#define DEBUG_TRANSFER     0
+
 #define TREZOR1_VID        0x534c
 #define TREZOR1_PID        0x0001
 #define TREZOR2_VID        0x1209
@@ -49,17 +51,12 @@ namespace Wire {
 
     Device::~Device() {
         close();
-        hid_exit();
         
         if (usb) {
            libusb_exit(usb);
            usb = NULL;
-        }
-        
-        if (usb_dev) {
-           libusb_release_interface(usb_dev, 0);
-           libusb_close(usb_dev);
-           usb_dev = NULL;
+        } else {
+           hid_exit();
         }
     }
 
@@ -70,9 +67,7 @@ namespace Wire {
         libusb_device_handle* t2 =
            libusb_open_device_with_vid_pid (usb, TREZOR2_VID, TREZOR2_PID);
        
-        if (NULL != t2) {
-           printf("trezor2 found\n");
-           
+        if (NULL != t2) {           
            if (0 == libusb_claim_interface(t2, 0)) {
               (void)libusb_reset_device(t2);
               
@@ -82,9 +77,7 @@ namespace Wire {
               if (usb_max_size <= 0) {
                  throw wire_error("failed to get usb packet size.");
               }
-            
-              printf("trezor2 opened: %d\n", usb_max_size);
-            
+                        
               usb_dev = t2;
               trezor_ver = Trezor_V2;
               hid_version = 1;
@@ -146,6 +139,12 @@ namespace Wire {
             hid_close(hid);
         }
         hid = NULL;
+        
+        if (usb_dev) {
+           libusb_release_interface(usb_dev, 0);
+           libusb_close(usb_dev);
+           usb_dev = NULL;
+        }
     }
 
     bool Device::isPresent()
@@ -263,6 +262,7 @@ namespace Wire {
         return n;
     }
 
+#if DEBUG_TRANSFER
     static void dump_hex(const void* data, size_t size) {
     	char ascii[17];
     	size_t i, j;
@@ -292,6 +292,7 @@ namespace Wire {
     		}
     	}
     }
+#endif
 
     void Device::buffer_report()
     {
@@ -331,10 +332,11 @@ namespace Wire {
                     data.begin() + data.size(),
                     back_inserter(read_buffer));
            }
-           
+#if DEBUG_TRANSFER
            printf("READ %u -----\n", data.size());
            dump_hex(data.data(), data.size());
            printf("----------\n");
+#endif
         } else {
            report_type report;
            
@@ -355,6 +357,12 @@ namespace Wire {
                     report.begin() + 1 + n,
                     back_inserter(read_buffer));
            }
+           
+#if DEBUG_TRANSFER
+           printf("READ %u -----\n", report.size());
+           dump_hex(report.data(), report.size());
+           printf("----------\n");
+#endif
         }
     }
 
@@ -383,26 +391,24 @@ namespace Wire {
         int r = 0, xferd = 0;
 
         if (usb_dev) {
-           printf("will write!\n");
            r = libusb_bulk_transfer(usb_dev, 0x1, report.data(), report.size()-1, &xferd, 0);
-           printf("did write!\n");
         } else {
            r = 0;
            xferd = hid_write(hid, report.data(), report_size);
         }
-        
-        printf("r=%d, xferd=%d\n", r, xferd);
-        
+                
         if (xferd < 0 || r != 0) {
             throw wire_error{"HID device write failed"};
         }
         if ((size_t)xferd < report_size) {
             throw wire_error{"HID device write was insufficient"};
         }
-        
+
+#if DEBUG_TRANSFER
         printf("WRITE %u -----\n", report.size());
         dump_hex(report.data(), report.size());
         printf("----------\n");
+#endif
 
         return n;
     }

@@ -106,6 +106,7 @@ namespace Trezor {
         void handleMatrixRequest(const Wire::Message& msg_in);
         void handleButtonRequest(const Wire::Message& msg_in);
         void handlePassphrase(const Wire::Message& msg_in);
+        void handlePassphraseStateRequest(const Wire::Message& msg_in);
         void handleFeatures(const Wire::Message& msg_in);
         void handleAddress(const Wire::Message& msg_in);
         void handleTxRequest(const Wire::Message& msg_in);

@@ -103,7 +103,7 @@ namespace Trezor {
             request.add_address_n(segment);
         }
 
-        sendMessage(request, MessageType_EthereumGetAddress, hdPath.toString());
+        sendMessage(request, MessageType_EthereumGetAddress, hdPath.toString());        
     }
 
     const QString TrezorDevice::getDeviceID() const
@@ -214,6 +214,8 @@ namespace Trezor {
         const Wire::Message wireMsg = serializeMessage(msg, type, index);
 
         if ( type == MessageType_ButtonAck ||
+             type == MessageType_PassphraseAck ||
+             type == MessageType_PassphraseStateAck ||
              type == MessageType_EthereumTxAck ||
              type == MessageType_Cancel ) { // these msgs need to always go right after, no matter what we have queued already
             fQueue.prepend(wireMsg); // no need to check for lock here
@@ -252,6 +254,7 @@ namespace Trezor {
             case MessageType_PinMatrixRequest: handleMatrixRequest(msg_in); return;
             case MessageType_ButtonRequest: handleButtonRequest(msg_in); return;
             case MessageType_PassphraseRequest: handlePassphrase(msg_in); return;
+            case MessageType_PassphraseStateRequest: handlePassphraseStateRequest(msg_in); return;
             case MessageType_Features: handleFeatures(msg_in); return;
             case MessageType_EthereumAddress: handleAddress(msg_in); return;
             case MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
@@ -310,7 +313,7 @@ namespace Trezor {
         emit buttonRequest(response.code());
         // we have to ack right away, worker will wait for actual reply
         ButtonAck request;
-        sendMessage(request, MessageType_ButtonAck);
+        sendMessage(request, MessageType_ButtonAck, fWorker.getIndex());
     }
 
     void TrezorDevice::handlePassphrase(const Wire::Message &msg_in)
@@ -321,14 +324,29 @@ namespace Trezor {
         }
 
         PassphraseRequest response;
+        
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing passphrase response");
             return;
         }
-
-        emit passphraseRequest();
-        fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
-
+        
+        if (response.on_device()) {                      
+           PassphraseAck request;
+           sendMessage(request, MessageType_PassphraseAck, fWorker.getIndex());
+        } else {
+           emit passphraseRequest();
+           
+           fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
+        }
+    }
+    
+    void TrezorDevice::handlePassphraseStateRequest(const Wire::Message &msg_in) {
+       if ( msg_in.id != MessageType_PassphraseStateRequest ) {
+          bail("Unexpected passphrase state response: " + QString::number(msg_in.id));
+       }
+              
+       PassphraseStateAck ack;
+       sendMessage(ack, MessageType_PassphraseStateAck, fWorker.getIndex());
     }
 
     void TrezorDevice::handleFeatures(const Wire::Message &msg_in)

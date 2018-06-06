@@ -27,6 +27,7 @@
 #endif
 
 #include <hidapi/hidapi.h>
+#include <libusb-1.0/libusb.h>
 #include <QDebug>
 #include <QVariant>
 #include <QString>
@@ -73,6 +74,14 @@ namespace Wire {
         hid_device *hid;
         buffer_type read_buffer;
         int hid_version;
+        
+        libusb_context* usb;
+        libusb_device_handle* usb_dev;
+        int usb_max_size;
+        
+        enum {
+           Trezor_V1, Trezor_V2
+        } trezor_ver;
     };
 
     class Message

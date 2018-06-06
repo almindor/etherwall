@@ -214,6 +214,7 @@ namespace Trezor {
         const Wire::Message wireMsg = serializeMessage(msg, type, index);
 
         if ( type == MessageType_ButtonAck ||
+             type == MessageType_PassphraseAck ||
              type == MessageType_EthereumTxAck ||
              type == MessageType_Cancel ) { // these msgs need to always go right after, no matter what we have queued already
             fQueue.prepend(wireMsg); // no need to check for lock here
@@ -257,7 +258,9 @@ namespace Trezor {
             case MessageType_EthereumTxRequest: handleTxRequest(msg_in); return;
         }
 
-        bail("Unknown msg response: " + QString::number(msg_in.id));
+        if (false) {
+           bail("Unknown msg response: " + QString::number(msg_in.id));
+        }
     }
 
     void TrezorDevice::handleFailure(const Wire::Message &msg_in)
@@ -321,14 +324,22 @@ namespace Trezor {
         }
 
         PassphraseRequest response;
+        
         if ( !parseMessage(msg_in, response) ) {
             bail("error parsing passphrase response");
             return;
         }
-
-        emit passphraseRequest();
-        fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
-
+        
+        if (response.on_device()) {
+           printf("on device!\n");
+           PassphraseAck request;
+           sendMessage(request, MessageType_PassphraseAck);
+        } else {
+           printf("not not device.\n");
+           emit passphraseRequest();
+           
+           fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
+        }
     }
 
     void TrezorDevice::handleFeatures(const Wire::Message &msg_in)

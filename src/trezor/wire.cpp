@@ -25,6 +25,13 @@
 
 #include "wire.h"
 
+#define DEBUG_TRANSFER     0
+
+#define TREZOR1_VID        0x534c
+#define TREZOR1_PID        0x0001
+#define TREZOR2_VID        0x1209
+#define TREZOR2_PID        0x53c1
+
 namespace Trezor {
 
 namespace Wire {
@@ -35,16 +42,48 @@ namespace Wire {
         hid_init();
 
         hid = NULL;
+        
+        usb = NULL;
+        (void)libusb_init(&usb);
+        
+        trezor_ver = Trezor_V1;
     }
 
     Device::~Device() {
         close();
-        hid_exit();
+        
+        if (usb) {
+           libusb_exit(usb);
+           usb = NULL;
+        } else {
+           hid_exit();
+        }
     }
 
     void Device::init()
     {
         close();
+
+        libusb_device_handle* t2 =
+           libusb_open_device_with_vid_pid (usb, TREZOR2_VID, TREZOR2_PID);
+       
+        if (NULL != t2) {           
+           if (0 == libusb_claim_interface(t2, 0)) {
+              (void)libusb_reset_device(t2);
+              
+              usb_max_size = libusb_get_max_packet_size(
+                 libusb_get_device(t2), 0x81);
+            
+              if (usb_max_size <= 0) {
+                 throw wire_error("failed to get usb packet size.");
+              }
+                        
+              usb_dev = t2;
+              trezor_ver = Trezor_V2;
+              hid_version = 1;
+              return;
+           }
+        }
 
         hid = NULL;
         const QString path = getDevicePath();
@@ -68,13 +107,13 @@ namespace Wire {
 
     bool Device::isInitialized() const
     {
-        return hid_version > 0;
+        return hid_version > 0 || Trezor_V2 == trezor_ver;
     }
 
     const QString Device::getDevicePath()
-    {
+    {  
         QString path;
-        hid_device_info* devices = hid_enumerate(0x534c, 0x0001);
+        hid_device_info* devices = hid_enumerate(TREZOR1_VID, TREZOR1_PID);
         if ( devices != NULL ) {
             hid_device_info* device = devices;
             do {
@@ -100,10 +139,34 @@ namespace Wire {
             hid_close(hid);
         }
         hid = NULL;
+        
+        if (usb_dev) {
+           libusb_release_interface(usb_dev, 0);
+           libusb_close(usb_dev);
+           usb_dev = NULL;
+        }
     }
 
     bool Device::isPresent()
     {
+       libusb_device** usb_devices = NULL;
+       size_t nDev = libusb_get_device_list(usb, &usb_devices);
+       
+       if (NULL != usb_devices && nDev > 0) {
+          for (size_t i=0; i<nDev; i++) {
+             libusb_device* dev = usb_devices[i];
+             libusb_device_descriptor desc;
+             
+             if (0 == libusb_get_device_descriptor(dev, &desc)) {
+                if (TREZOR2_VID == desc.idVendor && TREZOR2_PID == desc.idProduct) {
+                   return 1;
+                }
+             }
+          }
+          
+          libusb_free_device_list(usb_devices, 1);
+       }
+       
         // if we're connected, use try_hid_version to check if connection still works
         if ( hid != NULL ) {
             bool connected = try_hid_version() > 0;
@@ -150,8 +213,8 @@ namespace Wire {
 
     void Device::read_buffered(char_type *data, size_t len)
     {
-        if (!hid) {
-            throw wire_error("Read called with null hid handle");
+        if (!hid && !usb_dev) {
+            throw wire_error("Read called with null handle");
         }
 
         for (;;) {
@@ -170,8 +233,8 @@ namespace Wire {
 
     void Device::write(char_type const *data, size_t len)
     {
-        if (!hid) {
-            throw wire_error("Write called with null hid handle");
+        if (!hid && !usb_dev) {
+            throw wire_error("Write called with null handle");
         }
 
         for (;;) {
@@ -194,37 +257,112 @@ namespace Wire {
         auto r2 = read_buffer.begin() + n;
 
         copy(r1, r2, data); // copy to data
-        read_buffer.erase(r1, r2); // shift from buffer
+        read_buffer.erase(r1, r2); // shift from buffers
 
         return n;
     }
 
+#if DEBUG_TRANSFER
+    static void dump_hex(const void* data, size_t size) {
+    	char ascii[17];
+    	size_t i, j;
+    	ascii[16] = '\0';
+
+    	for (i = 0; i < size; ++i) {
+    		printf("%02X ", ((unsigned char*)data)[i]);
+    		if (((unsigned char*)data)[i] >= ' ' && ((unsigned char*)data)[i] <= '~') {
+    			ascii[i % 16] = ((unsigned char*)data)[i];
+    		} else {
+    			ascii[i % 16] = '.';
+    		}
+    		if ((i+1) % 8 == 0 || i+1 == size) {
+    			printf(" ");
+    			if ((i+1) % 16 == 0) {
+    				printf("|  %s \n", ascii);
+    			} else if (i+1 == size) {
+    				ascii[(i+1) % 16] = '\0';
+    				if ((i+1) % 16 <= 8) {
+    					printf(" ");
+    				}
+    				for (j = (i+1) % 16; j < 16; ++j) {
+    					printf("   ");
+    				}
+    				printf("|  %s \n", ascii);
+    			}
+    		}
+    	}
+    }
+#endif
+
     void Device::buffer_report()
     {
-        if (!hid) {
-            throw wire_error("Buffer report called with null hid handle");
+        if (!hid && !usb_dev) {
+            throw wire_error("Buffer report called with null handle");
         }
 
         using namespace std;
-
-        report_type report;
+        
         int r;
 
-        do {
-            r = hid_read_timeout(hid, report.data(), report.size(), 50);
-        } while (r == 0);
+        if (usb_dev) {
+           std::vector<char_type> data;
+           
+           data.resize(usb_max_size);
+           
+           do {
+              int recvd = 0;
+              
+              r = libusb_bulk_transfer(usb_dev, 0x81, data.data(), data.size(), &recvd, 50);
+                            
+              if (0 == r) {
+                 r = recvd;
+              } else if (LIBUSB_ERROR_TIMEOUT == r) {
+                 r = 0;
+              } else {
+                 r = -1;
+              }
+           } while (r == 0);
+           
+           if (r < 0) {
+               throw wire_error("USB device read failed");
+           }
+           
+           if (r > 0) {
+               copy(data.begin() + 1 ,
+                    data.begin() + data.size(),
+                    back_inserter(read_buffer));
+           }
+#if DEBUG_TRANSFER
+           printf("READ %u -----\n", data.size());
+           dump_hex(data.data(), data.size());
+           printf("----------\n");
+#endif
+        } else {
+           report_type report;
+           
+           do {
+              r = hid_read_timeout(hid, report.data(), report.size(), 50);
+           } while (r == 0);
 
-        if (r < 0) {
-            throw wire_error("HID device read failed");
-        }
-        if (r > 0) {
-            // copy to the buffer, skip the report number
-            char_type rn = report[0];
-            size_t n = min(static_cast<size_t>(rn),
-                              static_cast<size_t>(r - 1));
-            copy(report.begin() + 1,
-                 report.begin() + 1 + n,
-                 back_inserter(read_buffer));
+           if (r < 0) {
+               throw wire_error("HID device read failed");
+           }
+        
+           if (r > 0) {
+               // copy to the buffer, skip the report number
+               char_type rn = report[0];
+               size_t n = min(static_cast<size_t>(rn),
+                                 static_cast<size_t>(r - 1));
+               copy(report.begin() + 1,
+                    report.begin() + 1 + n,
+                    back_inserter(read_buffer));
+           }
+           
+#if DEBUG_TRANSFER
+           printf("READ %u -----\n", report.size());
+           dump_hex(report.data(), report.size());
+           printf("----------\n");
+#endif
         }
     }
 
@@ -250,13 +388,27 @@ namespace Wire {
                 break;
         }
 
-        int r = hid_write(hid, report.data(), report_size);
-        if (r < 0) {
+        int r = 0, xferd = 0;
+
+        if (usb_dev) {
+           r = libusb_bulk_transfer(usb_dev, 0x1, report.data(), report.size()-1, &xferd, 0);
+        } else {
+           r = 0;
+           xferd = hid_write(hid, report.data(), report_size);
+        }
+                
+        if (xferd < 0 || r != 0) {
             throw wire_error{"HID device write failed"};
         }
-        if ((size_t)r < report_size) {
+        if ((size_t)xferd < report_size) {
             throw wire_error{"HID device write was insufficient"};
         }
+
+#if DEBUG_TRANSFER
+        printf("WRITE %u -----\n", report.size());
+        dump_hex(report.data(), report.size());
+        printf("----------\n");
+#endif
 
         return n;
     }

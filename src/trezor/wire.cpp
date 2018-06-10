@@ -42,6 +42,7 @@ namespace Wire {
         hid_init();
 
         hid = NULL;
+        usb_dev = NULL;
         
         usb = NULL;
         (void)libusb_init(&usb);
@@ -140,7 +141,7 @@ namespace Wire {
         }
         hid = NULL;
         
-        if (usb_dev) {
+        if ( usb_dev != NULL ) {
            libusb_release_interface(usb_dev, 0);
            libusb_close(usb_dev);
            usb_dev = NULL;

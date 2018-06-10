@@ -4,6 +4,10 @@ Ethereum QT5 Wallet
 
 Etherwall is a free software wallet/front-end for Ethereum.
 
+#### Gitter
+
+[![Join the chat at https://gitter.im/almindor/etherwall](https://badges.gitter.im/almindor/etherwall.svg)](https://gitter.im/almindor/etherwall?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Donations
 
 #### Flattr

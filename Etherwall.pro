@@ -1,7 +1,7 @@
 TEMPLATE = app
 
 QT += qml quick widgets network websockets
-CONFIG += c++11
+# CONFIG += c++11
 DEFINES += QT_DEPRECATED_WARNINGS
 
 INCLUDEPATH += src src/ew-node/src

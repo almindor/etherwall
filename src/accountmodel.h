@@ -131,7 +131,6 @@ namespace Etherwall {
         const QString getSelectedAccount() const;
         void storeAccountList() const;
         void loadAccountList();
-        const QString getHDPathBase() const;
         void setAccountAlias(const QString& hash, const QString& alias);
         int exportableAddresses() const;
         const QString getCurrentToken() const;

@@ -7,12 +7,12 @@ DEPENDPATH += src src/ew-node/src
 
 linux {
     CONFIG += link_pkgconfig
-    PKGCONFIG += hidapi-libusb protobuf libudev
+    PKGCONFIG += hidapi-libusb libusb-1.0 protobuf libudev
 }
 
 win32 {
     INCLUDEPATH += C:\MinGW\msys\1.0\local\include
-    LIBS += C:\MinGW\msys\1.0\local\lib\libprotobuf.a C:\MinGW\msys\1.0\local\lib\libhidapi.a -lhid -lsetupapi -lws2_32
+    LIBS += C:\MinGW\msys\1.0\local\lib\libprotobuf.a C:\MinGW\msys\1.0\local\lib\libhidapi.a C:\MinGW\msys\1.0\local\lib\libusb.a -lusb -lhid -lsetupapi -lws2_32
     RC_ICONS = icon.ico
 }
 
@@ -58,7 +58,8 @@ SOURCES += src/main.cpp \
     src/ew-node/src/nodeipc.cpp \
     src/ew-node/src/nodews.cpp \
     src/gethlogapp.cpp \
-    src/etherlogapp.cpp
+    src/etherlogapp.cpp \
+    src/ew-node/src/networkchainmanager.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -109,5 +110,6 @@ HEADERS += \
     src/ew-node/src/ethereum/tx.h \
     src/ew-node/src/ethereum/keccak.h \
     src/gethlogapp.h \
-    src/etherlogapp.h
+    src/etherlogapp.h \
+    src/ew-node/src/networkchainmanager.h
 

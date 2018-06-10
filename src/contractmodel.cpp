@@ -88,7 +88,7 @@ namespace Etherwall {
 
         QSettings settings;
         const QString lowerAddr = info.value(AddressRole).toString().toLower();
-        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
+        settings.beginGroup("contracts" + fIpc.chainManager().networkPostfix());
         if ( settings.contains(info.value(AddressRole).toString()) ) { // we didn't lowercase before
             settings.remove(info.value(AddressRole).toString());
         }
@@ -160,7 +160,7 @@ namespace Etherwall {
         }
 
         QSettings settings;
-        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
+        settings.beginGroup("contracts" + fIpc.chainManager().networkPostfix());
         settings.remove(fList.at(index).address()); // we didn't lowercase before
         settings.remove(fList.at(index).address().toLower());
         settings.endGroup();
@@ -390,7 +390,7 @@ namespace Etherwall {
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["address"] = address;
-        if ( fIpc.getTestnet() ) {
+        if ( fIpc.chainManager().testnet() ) {
             objectJson["testnet"] = true;
         }
         const QByteArray data = QJsonDocument(objectJson).toJson();
@@ -448,7 +448,7 @@ namespace Etherwall {
 
     void ContractModel::reload() {
         QSettings settings;
-        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
+        settings.beginGroup("contracts" + fIpc.chainManager().networkPostfix());
         const QStringList list = settings.allKeys();
 
         beginResetModel();
@@ -595,7 +595,7 @@ namespace Etherwall {
         const ContractInfo info = fList.at(index);
         QSettings settings;
         const QString lowerAddr = info.address().toLower();
-        settings.beginGroup("contracts" + fIpc.getNetworkPostfix());
+        settings.beginGroup("contracts" + fIpc.chainManager().networkPostfix());
         settings.setValue(lowerAddr, info.toJsonString());
         settings.endGroup();
 

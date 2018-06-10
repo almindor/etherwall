@@ -161,7 +161,7 @@ namespace Etherwall {
 
         beginResetModel();
 
-        const QString chain = fIpc.getNetworkPostfix();
+        const QString chain = fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts" + chain);
         settings.remove(key);
         settings.endGroup();
@@ -210,7 +210,7 @@ namespace Etherwall {
 
         const QSettings settings;
         QDir keystore(settings.value("geth/datadir").toString());
-        if ( fIpc.getTestnet() ) {
+        if ( fIpc.chainManager().testnet() ) {
             keystore.cd("rinkeby");
         }
         keystore.cd("keystore");
@@ -240,7 +240,7 @@ namespace Etherwall {
     {
         beginResetModel();
         QSettings settings;
-        const QString defaultKey = "default/" + fIpc.getNetworkPostfix(); // settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
+        const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix(); // settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
         settings.beginGroup("accounts");
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();
@@ -251,7 +251,7 @@ namespace Etherwall {
 
     void AccountModel::trezorImport(quint32 offset, quint8 count)
     {
-        const QString hdPathBase = getHDPathBase();
+        const QString hdPathBase = fIpc.chainManager().hdPathBase();
         quint32 total = offset + count;
 
         for ( quint32 i = offset; i < total; i++ ) {
@@ -386,7 +386,7 @@ namespace Etherwall {
         try {
             int exported = 0;
             QByteArray backupData = Helpers::createBackup(keystore, exported);
-            if ( !fIpc.getTestnet() ) { // only do counts check on non-testnet
+            if ( !fIpc.chainManager().testnet() ) { // only do counts check on non-testnet
                 int expected = exportableAddresses();
                 if ( exported != expected ) {
                     throw QString("Export account count mismatch, expected " + QString::number(expected) + " exported " + QString::number(exported));
@@ -464,7 +464,7 @@ namespace Etherwall {
         int i1, i2;
         if ( !containsAccount(address, "unused", i1, i2) ) {
             beginInsertRows(QModelIndex(), fAccountList.size(), fAccountList.size());
-            fAccountList.append(AccountInfo(address, QString(), fTrezor.getDeviceID(), EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+            fAccountList.append(AccountInfo(address, QString(), fTrezor.getDeviceID(), EMPTY_BALANCE, 0, hdPath, fIpc.chainManager().chainID()));
             fAccountList.last().setCurrentTokenAddress(fCurrentTokenAddress);
             endInsertRows();
             fIpc.refreshAccount(address, fAccountList.size() - 1); // refresh ETH
@@ -490,7 +490,7 @@ namespace Etherwall {
     void AccountModel::newAccountDone(const QString& hash, int index) {
         if ( !hash.isEmpty() ) {
             beginInsertRows(QModelIndex(), index, index);
-            fAccountList.append(AccountInfo(hash, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
+            fAccountList.append(AccountInfo(hash, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.chainManager().chainID()));
             fAccountList.last().setCurrentTokenAddress(fCurrentTokenAddress);
             endInsertRows();
             EtherLog::logMsg("New account created");
@@ -524,7 +524,7 @@ namespace Etherwall {
         foreach ( const QString& addr, list ) {
             int i1, i2;
             if ( !containsAccount(addr, "unused", i1, i2) ) {
-                fAccountList.append(AccountInfo(addr, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.network()));
+                fAccountList.append(AccountInfo(addr, QString(), DEFAULT_DEVICE, EMPTY_BALANCE, 0, QString(), fIpc.chainManager().chainID()));
             }
         }
         // drop non-hw accounts removed from geth somehow
@@ -621,7 +621,7 @@ namespace Etherwall {
     int AccountModel::getDefaultIndex() const
     {
         const QSettings settings;
-        const QString defaultKey = "accounts/default/" + fIpc.getNetworkPostfix();
+        const QString defaultKey = "accounts/default/" + fIpc.chainManager().networkPostfix();
         const QString address = settings.value(defaultKey).toString();
 
         if ( address.isEmpty() ) {
@@ -640,7 +640,7 @@ namespace Etherwall {
     bool AccountModel::hasDefaultIndex() const
     {
         const QSettings settings;
-        const QString defaultKey = "accounts/default/" + fIpc.getNetworkPostfix();
+        const QString defaultKey = "accounts/default/" + fIpc.chainManager().networkPostfix();
         const QString address = settings.value(defaultKey).toString();
         if ( address.isEmpty() ) {
             return false;
@@ -668,7 +668,7 @@ namespace Etherwall {
     {
         QSettings settings;
 
-        const QString chain = fIpc.getNetworkPostfix();
+        const QString chain = fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts" + chain);
         int index = 0;
         foreach ( const AccountInfo& addr, fAccountList ) {
@@ -688,7 +688,7 @@ namespace Etherwall {
     {
         QSettings settings;
 
-        const QString chain = fIpc.getNetworkPostfix();
+        const QString chain = fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts" + chain);
         const QStringList keys = settings.allKeys();
         QList<QJsonObject> parsedList;
@@ -709,20 +709,9 @@ namespace Etherwall {
             const QString alias = json.value("alias").toString();
             const QString deviceID = json.value("deviceID").toString();
             const QString hdPath = json.value("HDPath").toString();
-            fAccountList.append(AccountInfo(hash, alias, deviceID, EMPTY_BALANCE, 0, hdPath, fIpc.network()));
+            fAccountList.append(AccountInfo(hash, alias, deviceID, EMPTY_BALANCE, 0, hdPath, fIpc.chainManager().chainID()));
             setAccountAlias(hash, alias);
         }
-    }
-
-    const QString AccountModel::getHDPathBase() const
-    {
-        if ( fIpc.getTestnet() ) {
-            // test net: m/44'/1'/0'/0/<index>
-            return "m/44'/1'/0'/0";
-        }
-
-        // main net: m/44'/60'/0'/0/<index>
-        return "m/44'/60'/0'/0";
     }
 
     void AccountModel::setAccountAlias(const QString &hash, const QString &alias)

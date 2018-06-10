@@ -72,7 +72,7 @@ namespace Etherwall {
         const QJsonArray topicArray = doc.array();
         const FilterInfo info(name, address, contract, topicArray, active);
         QSettings settings;
-        settings.beginGroup("filters" + fIpc.getNetworkPostfix());
+        settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
         settings.setValue(info.getHandle(), info.toJsonString());
         settings.endGroup();
 
@@ -104,7 +104,7 @@ namespace Etherwall {
         const FilterInfo info = fList.at(index);
 
         QSettings settings;
-        settings.beginGroup("filters" + fIpc.getNetworkPostfix());
+        settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
         settings.setValue(info.getHandle(), info.toJsonString());
         settings.endGroup();
 
@@ -119,7 +119,7 @@ namespace Etherwall {
         const FilterInfo info = fList.at(index);
         registerFilters();
         QSettings settings;
-        settings.beginGroup("filters" + fIpc.getNetworkPostfix());
+        settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
         settings.remove(info.getHandle());
         settings.endGroup();
 
@@ -197,7 +197,7 @@ namespace Etherwall {
 
     void FilterModel::reload() {
         QSettings settings;
-        settings.beginGroup("filters" + fIpc.getNetworkPostfix());
+        settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
 
         const QStringList list = settings.allKeys();
 

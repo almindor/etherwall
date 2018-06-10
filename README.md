@@ -7,7 +7,7 @@ Etherwall is a free software wallet/front-end for Ethereum.
 ## Donations
 
 #### Flattr
-[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Almindor&url=https://github.com/almindor/etherwall&title=Etherwall&language=&tags=github&category=software)
+[![Flattr this git repo](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=Almindor&url=https://github.com/almindor/etherwall&title=Etherwall&language=&tags=github&category=software) [![Join the chat at https://gitter.im/almindor/etherwall](https://badges.gitter.im/almindor/etherwall.svg)](https://gitter.im/almindor/etherwall?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 #### Bitcoin
 `1NcJoao879C1pSKvFqnUKD6wKtFpCMppP6`

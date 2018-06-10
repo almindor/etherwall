@@ -366,7 +366,7 @@ namespace Etherwall {
         }
         settings.endGroup();
 
-        qSort(fTransactionList.begin(), fTransactionList.end(), transCompare);
+        std::sort(fTransactionList.begin(), fTransactionList.end(), transCompare);
 
         lookupAccountsAliases();
     }

@@ -1,6 +1,8 @@
 TEMPLATE = app
 
 QT += qml quick widgets network websockets
+CONFIG += c++11
+DEFINES += QT_DEPRECATED_WARNINGS
 
 INCLUDEPATH += src src/ew-node/src
 DEPENDPATH += src src/ew-node/src
@@ -59,7 +61,8 @@ SOURCES += src/main.cpp \
     src/ew-node/src/nodews.cpp \
     src/gethlogapp.cpp \
     src/etherlogapp.cpp \
-    src/ew-node/src/networkchainmanager.cpp
+    src/ew-node/src/networkchainmanager.cpp \
+    src/nodemanager.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -111,5 +114,6 @@ HEADERS += \
     src/ew-node/src/ethereum/keccak.h \
     src/gethlogapp.h \
     src/etherlogapp.h \
-    src/ew-node/src/networkchainmanager.h
+    src/ew-node/src/networkchainmanager.h \
+    src/nodemanager.h
 

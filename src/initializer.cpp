@@ -46,7 +46,7 @@ namespace Etherwall {
 
     void Initializer::httpRequestDone(QNetworkReply *reply)
     {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
         const bool success = resObj.value("success").toBool(false);
 
         if ( !success ) {

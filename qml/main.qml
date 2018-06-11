@@ -101,6 +101,15 @@ ApplicationWindow {
         }
     }
 
+    Connections {
+        target: nodeManager
+        onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
+        onError: {
+            errorDialog.text = error
+            errorDialog.open(error)
+        }
+    }
+
     // Trezor main connections
     Connections {
         target: trezor

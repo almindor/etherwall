@@ -16,7 +16,7 @@
 #include <winuser.h>
 #include <QAbstractNativeEventFilter>
 #endif
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
 #include <libudev.h>
 #include <fcntl.h>
 #endif
@@ -57,7 +57,7 @@ namespace Etherwall {
 #ifdef Q_OS_WIN32
         WindowsUSBFilter fFilter;
 #endif
-#ifdef Q_OS_LINUX
+#ifdef Q_OS_UNIX
         struct udev* fUdev;
         struct udev_monitor* fUdevMonitor;
 #endif

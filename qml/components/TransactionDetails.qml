@@ -24,13 +24,17 @@ import QtQuick.Dialogs 1.2
 import QtQuick.Layouts 1.0
 
 Dialog {
-    property var transaction : new Object({ hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "", input: "" });
+    property var transaction : empty_tx()
     standardButtons: StandardButton.Close
     modality: Qt.WindowModal
     visible: false
     title: transaction.hash
     width: 7 * dpi
     height: 5.5 * dpi
+
+    function empty_tx() {
+        return { hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "", input: "" };
+    }
 
     function display( trans ) {
         transaction = trans;

@@ -486,7 +486,7 @@ namespace Etherwall {
     }
 
     void TransactionModel::checkVersionDone(QNetworkReply *reply) {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
         const bool success = resObj.value("success").toBool();
 
         if ( !success ) {
@@ -496,8 +496,8 @@ namespace Etherwall {
         bool manual = reply->request().rawHeader("x-internal-manual") == "t";
         const QJsonValue rv = resObj.value("result");
         fLatestVersion = rv.toString("0.0.0");
-        int latestIntVer = Helpers::parseAppVersion(fLatestVersion);
-        int intVer = Helpers::parseAppVersion(QCoreApplication::applicationVersion());
+        int latestIntVer = Helpers::parseVersion(fLatestVersion);
+        int intVer = Helpers::parseVersion(QCoreApplication::applicationVersion());
 
         if ( intVer < latestIntVer ) {
             emit latestVersionChanged(fLatestVersion, manual);
@@ -525,7 +525,7 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply);
+        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
         const bool success = resObj.value("success").toBool();
 
         if ( !success ) {

@@ -41,6 +41,7 @@
 #include "currencymodel.h"
 #include "filtermodel.h"
 #include "tokenmodel.h"
+#include "nodemanager.h"
 #include "helpers.h"
 #include "nodews.h"
 #include "trezor/trezor.h"
@@ -79,7 +80,8 @@ int main(int argc, char *argv[])
     }
 
     ClipboardAdapter clipboard;
-    EtherLogApp log;
+    EtherLogApp log; // important to be first (apart from clipboard)
+    NodeManager nodeManager;
     GethLogApp gethLog;
 
     // get SSL cert for https://data.etherwall.com
@@ -101,6 +103,7 @@ int main(int argc, char *argv[])
 
     // main connections
     QObject::connect(&initializer, &Initializer::initDone, &ipc, &NodeWS::start);
+    QObject::connect(&ipc, &NodeWS::clientVersionChanged, &nodeManager, &NodeManager::onClientVersionChanged);
     QObject::connect(&accountModel, &AccountModel::accountsReady, &deviceManager, &DeviceManager::startProbe);
     QObject::connect(&contractModel, &ContractModel::tokenBalanceDone, &accountModel, &AccountModel::onTokenBalanceDone);
     QObject::connect(&transactionModel, &TransactionModel::confirmedTransaction, &contractModel, &ContractModel::onConfirmedTransaction);
@@ -117,6 +120,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("settings", &settings);
     engine.rootContext()->setContextProperty("initializer", &initializer);
+    engine.rootContext()->setContextProperty("nodeManager", &nodeManager);
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("trezor", &trezor);
     engine.rootContext()->setContextProperty("accountModel", &accountModel);

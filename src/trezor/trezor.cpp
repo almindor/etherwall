@@ -330,12 +330,11 @@ namespace Trezor {
             return;
         }
         
-        if (response.on_device()) {                      
+        emit passphraseRequest(response.on_device());
+        if (response.on_device()) {
            PassphraseAck request;
            sendMessage(request, MessageType_PassphraseAck, fWorker.getIndex());
         } else {
-           emit passphraseRequest();
-           
            fQueue.lock(MessageType_PassphraseAck, fWorker.getIndex()); // we need to wait for this call before making others, saving the index
         }
     }

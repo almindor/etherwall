@@ -75,7 +75,7 @@ namespace Trezor {
         void failure(const QString& error) const;
         void matrixRequest(int type) const;
         void buttonRequest(int code) const;
-        void passphraseRequest() const;
+        void passphraseRequest(bool onDevice) const;
         void addressRetrieved(const QString& address, const QString& hdPath) const;
         void busyChanged(bool busy) const;
         void transactionReady(const Ethereum::Tx& tx) const;

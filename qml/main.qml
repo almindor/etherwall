@@ -119,7 +119,7 @@ ApplicationWindow {
                 badge.show(badge.button_msg(code))
             }
         }
-        onPassphraseRequest: trezorPasswordDialog.openFocused()
+        onPassphraseRequest: onDevice ? badge.show(qsTr("Input your password on the TREZOR device")) : trezorPasswordDialog.openFocused()
         onFailure: {
             errorDialog.text = "TREZOR: " + error
             errorDialog.open()

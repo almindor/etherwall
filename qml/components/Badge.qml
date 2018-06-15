@@ -42,6 +42,9 @@ Rectangle {
             9:  qsTr("Firmware check", "button request type"),
             10: qsTr("Address", "button request type"),
             11: qsTr("Public Key", "button request type"),
+            12: qsTr("Mnemonic Word Count", "button request type"),
+            13: qsTr("Mnemonic Input", "button request type"),
+            14: qsTr("Passphrase Type", "button request type"),
         }
 
         return qsTr("Confirm operation on TREZOR: ") + code_map[code]

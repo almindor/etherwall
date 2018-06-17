@@ -94,7 +94,7 @@ namespace Wire {
 
         hid = hid_open_path(path.toStdString().c_str());
         if (!hid) {
-#ifdef Q_OS_UNIX
+#ifdef Q_OS_LINUX
             throw wire_error("HID device open failed, <a href=\"https://doc.satoshilabs.com/trezor-user/settingupchromeonlinux.html\">check your udev permissions</a>");
 #else
             throw wire_error("HID device open failed");

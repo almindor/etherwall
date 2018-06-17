@@ -18,7 +18,7 @@
 #endif
 // linux does not do downloads
 
-#ifdef Q_OS_UNIX
+#ifdef Q_OS_LINUX
 #define DOWNLOAD_BASE_PATH "https://gethstore.blob.core.windows.net/builds/geth-"
 #define DOWNLOAD_OS_STR QStringLiteral("linux-amd64")
 #define DOWNLOAD_OS_POSTFIX QStringLiteral(".tar.gz")

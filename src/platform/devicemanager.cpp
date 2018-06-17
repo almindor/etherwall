@@ -192,7 +192,7 @@ namespace Etherwall {
     }
 #endif
 
-#ifdef Q_OS_UNIX
+#ifdef Q_OS_LINUX
     DeviceManager::DeviceManager(QApplication& app) : QThread(0)
     {
         Q_UNUSED(app);

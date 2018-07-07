@@ -10,6 +10,7 @@ DEPENDPATH += src src/ew-node/src
 linux {
     CONFIG += link_pkgconfig
     PKGCONFIG += hidapi-libusb libusb-1.0 protobuf libudev
+    LIBS += -lgmp
 }
 
 win32 {
@@ -62,7 +63,11 @@ SOURCES += src/main.cpp \
     src/gethlogapp.cpp \
     src/etherlogapp.cpp \
     src/ew-node/src/networkchainmanager.cpp \
-    src/nodemanager.cpp
+    src/nodemanager.cpp \
+    src/filedownloader.cpp \
+    src/signaturersa.cpp \
+    src/verifyrsa.cpp \
+    src/upgrader.cpp
 
 RESOURCES += qml/qml.qrc
 
@@ -115,5 +120,9 @@ HEADERS += \
     src/gethlogapp.h \
     src/etherlogapp.h \
     src/ew-node/src/networkchainmanager.h \
-    src/nodemanager.h
+    src/nodemanager.h \
+    src/filedownloader.h \
+    src/signaturersa.h \
+    src/verifyrsa.h \
+    src/upgrader.h
 

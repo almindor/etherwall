@@ -43,6 +43,7 @@ namespace Etherwall {
         Q_PROPERTY(QString gasPrice READ getGasPrice NOTIFY gasPriceChanged FINAL)
         Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
         Q_PROPERTY(QString latestVersion READ getLatestVersion NOTIFY latestVersionChanged FINAL)
+        Q_PROPERTY(bool canUpgrade READ getCanUpgrade NOTIFY latestVersionChanged FINAL)
     public:
         TransactionModel(NodeIPC& ipc, const AccountModel& accountModel);
         quint64 getBlockNumber() const;
@@ -53,6 +54,7 @@ namespace Etherwall {
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         int containsTransaction(const QString& hash);
+        bool getCanUpgrade() const;
 
         Q_INVOKABLE void sendTransaction(const QString& password, const QString& from, const QString& to,
                              const QString& value, quint64 nonce, const QString& gas = QString(),
@@ -72,7 +74,7 @@ namespace Etherwall {
         Q_INVOKABLE const QJsonObject getJson(int index, bool decimal) const;
         Q_INVOKABLE const QString getMaxValue(int row, const QString& gas, const QString& gasPrice) const;
         Q_INVOKABLE void lookupAccountsAliases();
-        Q_INVOKABLE void checkVersion(bool manual = false);
+        Q_INVOKABLE void checkVersion();
         double getHistoryProgress() const;
         quint64 getFirstBlock() const;
         quint64 getLastBlock() const;
@@ -98,8 +100,7 @@ namespace Etherwall {
         void gasPriceChanged(const QString& price) const;
         void gasEstimateChanged(const QString& price) const;
         void historyChanged() const;
-        void latestVersionChanged(const QString& version, bool manualVersionCheck) const;
-        void latestVersionSame(const QString& version, bool manualVersionCheck) const;
+        void latestVersionChanged(const QString& version) const;
         void receivedTransaction(const QString& toAddress) const;
         void confirmedTransaction(const QString& fromAddress, const QString& toAddress, const QString& hash) const;
     private:

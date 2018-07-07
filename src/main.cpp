@@ -41,6 +41,7 @@
 #include "currencymodel.h"
 #include "filtermodel.h"
 #include "tokenmodel.h"
+#include "filedownloader.h"
 #include "nodemanager.h"
 #include "helpers.h"
 #include "nodews.h"
@@ -51,7 +52,7 @@
 using namespace Etherwall;
 
 // ew-node version check
-#if EW_NODE_VERSION != 1000000
+#if EW_NODE_VERSION != 1000001
 #error "ew-node version mismatch, update git submodules"
 #endif
 
@@ -86,7 +87,9 @@ int main(int argc, char *argv[])
 
     ClipboardAdapter clipboard;
     EtherLogApp log; // important to be first (apart from clipboard)
-    NodeManager nodeManager;
+
+    FileDownloader fileDownloader;
+    NodeManager nodeManager(fileDownloader);
     GethLogApp gethLog;
 
     // get SSL cert for https://data.etherwall.com
@@ -125,6 +128,7 @@ int main(int argc, char *argv[])
 
     engine.rootContext()->setContextProperty("settings", &settings);
     engine.rootContext()->setContextProperty("initializer", &initializer);
+    engine.rootContext()->setContextProperty("fileDownloader", &fileDownloader);
     engine.rootContext()->setContextProperty("nodeManager", &nodeManager);
     engine.rootContext()->setContextProperty("ipc", &ipc);
     engine.rootContext()->setContextProperty("trezor", &trezor);

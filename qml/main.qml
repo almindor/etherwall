@@ -82,6 +82,16 @@ ApplicationWindow {
         onPasswordRejected: trezor.cancel()
     }
 
+    UpgradeDialog {
+        id: upgradeDialog
+    }
+
+    MessageDialog {
+        id: versionDialog
+        modality: Qt.ApplicationModal
+        text: qsTr("Restart required to apply update");
+    }
+
     Connections {
         target: initializer
 
@@ -103,11 +113,18 @@ ApplicationWindow {
 
     Connections {
         target: nodeManager
-        onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
+        onNewNodeVersionAvailable: upgradeDialog.display(true)
+        onNewNodeVersionReady: versionDialog.open()
         onError: {
+            log.log(error, 3) // 3 - error
             errorDialog.text = error
             errorDialog.open(error)
         }
+    }
+
+    Connections {
+        target: fileDownloader
+        onDownloadGroupComplete: badge.show(qsTr("Download complete"))
     }
 
     // Trezor main connections
@@ -134,33 +151,7 @@ ApplicationWindow {
     Connections {
         target: transactionModel
 
-        onLatestVersionChanged: {
-            if ( !manualVersionCheck ) {
-                var now = new Date()
-                var bumpTime = settings.value("program/versionbump", now.valueOf())
-                if ( bumpTime > now.valueOf() ) {
-                    return; // don't bump more than once a day!
-                }
-                settings.setValue("program/versionbump", new Date().setDate(now.getDate() + 1).valueOf())
-            }
-
-            manualVersionCheck = false
-            versionDialog.title = qsTr("Update available")
-            versionDialog.text = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
-            versionDialog.open()
-        }
-        onLatestVersionSame: {
-            if ( !manualVersionCheck ) {
-                return
-            }
-
-            manualVersionCheck = false
-            versionDialog.title = qsTr("Etherwall up to date")
-            versionDialog.text = qsTr("Etherwall is up to date")
-            versionDialog.detailedText = "Current version: " + Qt.application.version + "\nLatest stable version: " + transactionModel.latestVersion
-            versionDialog.open()
-        }
-
+        onLatestVersionChanged: upgradeDialog.display(true)
         onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
         onConfirmedTransaction: {
             if ( toAddress.length ) {
@@ -239,7 +230,7 @@ ApplicationWindow {
 
             MenuItem {
                 text: qsTr("Check for updates", "in main menu")
-                onTriggered: transactionModel.checkVersion(true)
+                onTriggered: upgradeDialog.display()
             }
 
             MenuItem {
@@ -288,13 +279,6 @@ ApplicationWindow {
         title: qsTr("Warning")
 
         onAccepted: initializer.proceed()
-    }
-
-    MessageDialog {
-        id: versionDialog
-        icon: StandardIcon.Information
-        width: 5 * dpi
-        title: qsTr("New version available")
     }
 
     function showBadge(val) {
@@ -439,14 +423,23 @@ ApplicationWindow {
             anchors.right: parent.right
 
             ToolButton {
+                enabled: fileDownloader.downloadCount > 0 || nodeManager.canUpgrade || transactionModel.canUpgrade
+                iconSource: "/images/download"
+                anchors.verticalCenter: parent.verticalCenter
+                width: 32
+                height: 32
+                z: 50
+                tooltip: fileDownloader.downloadCount > 0 ? (qsTr("Downloading ", "+ count files") + fileDownloader.downloadCount + qsTr(" files", "downloading this many files")) : qsTr("Upgrade available")
+                onClicked: upgradeDialog.display()
+            }
+
+            ToolButton {
                 iconSource: "/images/trezor"
                 height: 32
                 width: 32
                 enabled: trezor.initialized
                 tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
-                onClicked: {
-                    trezorDialog.open()
-                }
+                onClicked: trezorDialog.open()
             }
 
             ToolButton {
@@ -485,9 +478,7 @@ ApplicationWindow {
                 width: 32
                 enabled: !ipc.starting
                 tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
-                onClicked: {
-                    badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
-                }
+                onClicked: badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
             }
         }
     }

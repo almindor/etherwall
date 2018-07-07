@@ -38,6 +38,8 @@
         <file>components/AccountDetails.qml</file>
         <file>components/TrezorImportDialog.qml</file>
         <file>components/FunctionResultsContent.qml</file>
+        <file>components/UpgradeDialog.qml</file>
+        <file>components/Divider.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>
@@ -61,5 +63,6 @@
         <file alias="gbp">images/gbp.png</file>
         <file alias="usd">images/usd.png</file>
         <file alias="trezor">images/trezor.png</file>
+        <file alias="download">images/download.png</file>
     </qresource>
 </RCC>

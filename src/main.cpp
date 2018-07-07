@@ -50,6 +50,11 @@
 
 using namespace Etherwall;
 
+// ew-node version check
+#if EW_NODE_VERSION != 1000000
+#error "ew-node version mismatch, update git submodules"
+#endif
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);

@@ -103,7 +103,7 @@ ApplicationWindow {
 
     Connections {
         target: nodeManager
-        onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
+        // onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
         onError: {
             errorDialog.text = error
             errorDialog.open(error)

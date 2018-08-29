@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QDateTime>
 
+#define DOWNLOAD_BASE_PATH "https://gethstore.blob.core.windows.net/builds/geth-"
+
 #ifdef Q_OS_WIN32
 #define DOWNLOAD_OS_STR QStringLiteral("windows-386")
 #define DOWNLOAD_OS_POSTFIX QStringLiteral(".zip")
@@ -19,7 +21,6 @@
 // linux does not do downloads
 
 #ifdef Q_OS_LINUX
-#define DOWNLOAD_BASE_PATH "https://gethstore.blob.core.windows.net/builds/geth-"
 #define DOWNLOAD_OS_STR QStringLiteral("linux-amd64")
 #define DOWNLOAD_OS_POSTFIX QStringLiteral(".tar.gz")
 #endif

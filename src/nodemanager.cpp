@@ -7,7 +7,7 @@
 #include <QFile>
 #include <QDateTime>
 
-#define DOWNLOAD_BASE_PATH "https://gethstore.blob.core.windows.net/builds/geth-"
+#define DOWNLOAD_BASE_PATH QStringLiteral("https://gethstore.blob.core.windows.net/builds/geth-")
 
 #ifdef Q_OS_WIN32
 #define DOWNLOAD_OS_STR QStringLiteral("windows-386")
@@ -18,14 +18,11 @@
 #define DOWNLOAD_OS_STR QStringLiteral("darwin-amd64")
 #define DOWNLOAD_OS_POSTFIX QStringLiteral(".tar.gz")
 #endif
-// linux does not do downloads
 
 #ifdef Q_OS_LINUX
 #define DOWNLOAD_OS_STR QStringLiteral("linux-amd64")
 #define DOWNLOAD_OS_POSTFIX QStringLiteral(".tar.gz")
 #endif
-
-// linux does not do downloads
 
 namespace Etherwall {
 
@@ -57,7 +54,7 @@ namespace Etherwall {
             throw QString("Invalid lastrun in settings");
         }
 
-        if ( QDateTime::currentSecsSinceEpoch() - lastrun > 3600 * 24 ) {
+        if ( (QDateTime::currentMSecsSinceEpoch() / 1000) - lastrun > 3600 * 24 ) {
             QNetworkRequest release(QUrl("https://api.github.com/repos/ethereum/go-ethereum/releases/latest"));
             fNetManager.get(release);
         } else {
@@ -158,7 +155,14 @@ namespace Etherwall {
 
             const QStringRef version = fLatestTag.midRef(1);
             const QStringRef commit = sha.leftRef(8);
-            fDownloadLink = DOWNLOAD_BASE_PATH + DOWNLOAD_OS_STR + "-" + version + "-" + commit + DOWNLOAD_OS_POSTFIX;
+
+            // TODO: reduce once macos X build machine updates Qt5
+            // fDownloadLink = (DOWNLOAD_BASE_PATH + DOWNLOAD_OS_STR + "-" + version + "-" + commit + DOWNLOAD_OS_POSTFIX);
+            fDownloadLink = (DOWNLOAD_BASE_PATH + DOWNLOAD_OS_STR + "-");
+            fDownloadLink += version;
+            fDownloadLink += "-";
+            fDownloadLink += commit;
+            fDownloadLink += DOWNLOAD_OS_POSTFIX;
 
             saveResults();
             return;
@@ -186,7 +190,7 @@ namespace Etherwall {
         settings.setValue("latest_tag", fLatestTag);
         settings.setValue("latest_version", fLatestVersion);
         settings.setValue("download_link", fDownloadLink);
-        settings.setValue("lastrun", QDateTime::currentSecsSinceEpoch());
+        settings.setValue("lastrun", QDateTime::currentMSecsSinceEpoch() / 1000);
 
         checkVersions();
     }

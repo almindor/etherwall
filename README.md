@@ -47,6 +47,8 @@ Qt5 modules:
 * qt5-quickcontrols
 * qt5-websockets
 
+On Ubuntu you also need `qml-module-qtquick-extras`
+
 [google protobuf](https://github.com/google/protobuf)
 
 [hidapi](https://github.com/signal11/hidapi)

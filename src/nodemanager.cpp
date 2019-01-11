@@ -96,10 +96,10 @@ namespace Etherwall {
         if ( reg.captureCount() == 1 ) try { // it's geth
             return reg.cap(1);
         } catch ( ... ) {
-            return 0;
+            return QString();
         }
 
-        return 0;
+        return QString();
     }
 
     void NodeManager::handleRelease(const QJsonDocument& reply)
@@ -218,8 +218,20 @@ namespace Etherwall {
             return; // not ready
         }
 
+        int minVersion = 0;
+        QString minVersionStr;
+        // Constantinopol checks
+        switch (fNodeType) {
+            case Geth: minVersion = 108020; minVersionStr = "1.8.20"; break;
+            case Parity: minVersion = 201011; minVersionStr = "2.1.11"; break;
+        }
+
         if ( fCurrentVersion < fLatestVersion ) {
             emit newNodeVersionAvailable(fNodeName, fCurrentTag, fLatestTag);
+        }
+
+        if ( fCurrentVersion < minVersion ) {
+            emit error(fNodeName + " version " + minVersionStr + " required. Please upgrade.");
         }
     }
 }

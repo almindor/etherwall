@@ -222,7 +222,7 @@ namespace Etherwall {
         QString minVersionStr;
         // Constantinopol checks
         switch (fNodeType) {
-            case Geth: minVersion = 108020; minVersionStr = "1.8.20"; break;
+            case Geth: minVersion = 108021; minVersionStr = "1.8.21"; break;
             case Parity: minVersion = 201011; minVersionStr = "2.1.11"; break;
         }
 

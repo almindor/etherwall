@@ -259,7 +259,7 @@ Tab {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/address/" + accountModel.selectedAccount
+                        var url = "https://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/address/" + accountModel.selectedAccount
                         Qt.openUrlExternally(url)
                     }
                 }

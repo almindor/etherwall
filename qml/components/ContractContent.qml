@@ -98,7 +98,7 @@ Item {
                 MenuItem {
                     text: qsTr("Find on blockchain explorer")
                     onTriggered: {
-                        var url = "http://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/address/" + contractModel.getAddress(contractView.currentRow)
+                        var url = "https://" + (ipc.testnet ? "rinkeby." : "") + "etherscan.io/address/" + contractModel.getAddress(contractView.currentRow)
                         Qt.openUrlExternally(url)
                     }
                 }

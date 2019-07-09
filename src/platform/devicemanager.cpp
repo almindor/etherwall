@@ -30,13 +30,13 @@ namespace Etherwall {
                 continue;
             }
 
-            if (refCon == NULL) {
+            if (refCon == nullptr) {
                 continue;
             }
 
             DeviceManager* manager = (DeviceManager*) refCon;
             emit manager->deviceInserted();
-            refCon = NULL; // finish loop but don't emit again
+            refCon = nullptr; // finish loop but don't emit again
         }
     }
 
@@ -53,13 +53,13 @@ namespace Etherwall {
                 continue;
             }
 
-            if (refCon == NULL) {
+            if (refCon == nullptr) {
                 continue;
             }
 
             DeviceManager* manager = (DeviceManager*) refCon;
             emit manager->deviceRemoved();
-            refCon = NULL; // finish loop but don't emit again
+            refCon = nullptr; // finish loop but don't emit again
         }
     }
 
@@ -80,7 +80,7 @@ namespace Etherwall {
         SInt32                  usbProduct = 0x0001;
 
         //Create a master port for communication with the I/O Kit
-        kr = IOMasterPort(MACH_PORT_NULL, &masterPort);
+        kr = IOMasterPort(MACH_PORT_nullptr, &masterPort);
         if (kr || !masterPort)
         {
             qDebug() << "ERR: Couldn’t create a master I/O Kit port: " << kr << "\n";
@@ -126,13 +126,13 @@ namespace Etherwall {
         kr = IOServiceAddMatchingNotification(fNotifyPort,
                         kIOFirstMatchNotification, matchingDict,
                         RawDeviceAdded, this, &fRawAddedIter);
-        RawDeviceAdded(NULL, fRawAddedIter);
+        RawDeviceAdded(nullptr, fRawAddedIter);
 
         //Notification of termination:
         kr = IOServiceAddMatchingNotification(fNotifyPort,
                         kIOTerminatedNotification, matchingDict,
                         RawDeviceRemoved, this, &fRawRemovedIter);
-        RawDeviceRemoved(NULL, fRawRemovedIter);
+        RawDeviceRemoved(nullptr, fRawRemovedIter);
 
         mach_port_deallocate(mach_task_self(), masterPort);
         masterPort = 0;
@@ -193,9 +193,9 @@ namespace Etherwall {
 #endif
 
 #ifdef Q_OS_LINUX
-    DeviceManager::DeviceManager(QApplication& app) : QThread(0)
+    DeviceManager::DeviceManager(QApplication& app) : QThread(nullptr)
     {
-        Q_UNUSED(app);
+        Q_UNUSED(app)
         fUdev = udev_new();
         fUdevMonitor = udev_monitor_new_from_netlink(fUdev, "udev");
     }
@@ -205,21 +205,21 @@ namespace Etherwall {
         terminate();
         wait(5000);
 
-        if ( fUdev != NULL ) {
-            if ( fUdevMonitor != NULL ) {
+        if ( fUdev != nullptr ) {
+            if ( fUdevMonitor != nullptr ) {
                 udev_monitor_unref(fUdevMonitor);
-                fUdevMonitor = NULL;
+                fUdevMonitor = nullptr;
             }
 
             udev_unref(fUdev);
-            fUdev = NULL;
+            fUdev = nullptr;
         }
     }
 
     void DeviceManager::run()
     {
         /* Set up a monitor to monitor hidraw devices */
-        udev_monitor_filter_add_match_subsystem_devtype(fUdevMonitor, "hidraw", NULL);
+        udev_monitor_filter_add_match_subsystem_devtype(fUdevMonitor, "hidraw", nullptr);
         udev_monitor_enable_receiving(fUdevMonitor);
         // make FD blocking
         int fd = udev_monitor_get_fd(fUdevMonitor);

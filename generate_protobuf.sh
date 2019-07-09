@@ -6,6 +6,6 @@ SRCDIR=${SRCDIR:-"$CURDIR/src/trezor/trezor-common/protob"}
 mkdir -p "$DESTDIR"
 cd "$SRCDIR"
 
-for i in messages types config storage ; do
+for i in messages messages-common messages-management messages-ethereum ; do
     protoc --cpp_out="$DESTDIR" -I/usr/include -I. $i.proto
 done

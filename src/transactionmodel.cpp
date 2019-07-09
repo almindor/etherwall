@@ -35,8 +35,8 @@ namespace Etherwall {
 
     // we want to ensure that -32000 (always failing tx) will be handled nicely. Helps with ERC20s that throw if balance is insufficient
     bool handleGasEstimateError(int code, const QString& error, NodeRequestTypes requestType, QJsonValue& result) {
-        Q_UNUSED(code); // filtered at source
-        Q_UNUSED(error); // too unpredictable
+        Q_UNUSED(code) // filtered at source
+        Q_UNUSED(error) // too unpredictable
 
         if ( requestType == EstimateGas ) { // if it's estimate gas
             result = QJsonValue("0x15F90"); // 90k gas default
@@ -47,7 +47,8 @@ namespace Etherwall {
     }
 
     TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(0), fIpc(ipc), fAccountModel(accountModel), fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
+        QAbstractListModel(nullptr), fIpc(ipc), fAccountModel(accountModel),
+        fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
         ipc.registerIpcErrorHandler(ALWAYS_FAILING_TX_ERROR, &handleGasEstimateError);
@@ -407,7 +408,7 @@ namespace Etherwall {
 
     double TransactionModel::getValue(int index) const {
         if ( index >= 0 && index < fTransactionList.length() ) {
-            return fTransactionList.at(index).value(ValueRole).toFloat();
+            return fTransactionList.at(index).value(ValueRole).toDouble();
         }
 
         return 0;

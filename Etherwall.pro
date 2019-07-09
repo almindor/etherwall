@@ -43,9 +43,9 @@ SOURCES += src/main.cpp \
     src/filtermodel.cpp \
     src/trezor/trezor.cpp \
     src/trezor/proto/messages.pb.cc \
-    src/trezor/proto/config.pb.cc \
-    src/trezor/proto/storage.pb.cc \
-    src/trezor/proto/types.pb.cc \
+    src/trezor/proto/messages-common.pb.cc \
+    src/trezor/proto/messages-management.pb.cc \
+    src/trezor/proto/messages-ethereum.pb.cc \
     src/trezor/wire.cpp \
     src/trezor/hdpath.cpp \
     src/platform/devicemanager.cpp \
@@ -94,9 +94,9 @@ HEADERS += \
     src/filtermodel.h \
     src/trezor/trezor.h \
     src/trezor/proto/messages.pb.h \
-    src/trezor/proto/config.pb.h \
-    src/trezor/proto/storage.pb.h \
-    src/trezor/proto/types.pb.h \
+    src/trezor/proto/messages-common.pb.h \
+    src/trezor/proto/messages-management.pb.h \
+    src/trezor/proto/messages-ethereum.pb.h \
     src/trezor/wire.h \
     src/trezor/hdpath.h \
     src/platform/devicemanager.h \

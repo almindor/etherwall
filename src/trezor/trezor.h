@@ -8,9 +8,17 @@
 #include <QTimer>
 #include <QVariant>
 #include "proto/messages.pb.h"
+#include "proto/messages-common.pb.h"
+#include "proto/messages-management.pb.h"
+#include "proto/messages-ethereum.pb.h"
 #include "wire.h"
 #include "hdpath.h"
 #include "ethereum/tx.h"
+
+using namespace hw::trezor::messages;
+using namespace hw::trezor::messages::common;
+using namespace hw::trezor::messages::management;
+using namespace hw::trezor::messages::ethereum;
 
 namespace Trezor {
 
@@ -64,7 +72,7 @@ namespace Trezor {
         Q_INVOKABLE void submitPin(const QString& pin);
         Q_INVOKABLE void submitPassphrase(const QString& pw);
         // all values in ether
-        Q_INVOKABLE void signTransaction(int chaindID, const QString& hdPath, const QString& from, const QString& to,
+        Q_INVOKABLE void signTransaction(quint32 chaindID, const QString& hdPath, const QString& from, const QString& to,
                                          const QString& valStr, quint64 nonce,
                                          const QString& gas = QString(), const QString& gasPrice = QString(),
                                          const QString& data = QString());

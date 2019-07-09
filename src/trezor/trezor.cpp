@@ -6,7 +6,7 @@
 
 namespace Trezor {
 
-    TrezorDevice::TrezorDevice() : QObject(0),
+    TrezorDevice::TrezorDevice() : QObject(nullptr),
         fDevice(), fWorker(fDevice), fQueue(), fDeviceID(), fDevicePresent(false)
     {
         connect(&fWorker, &TrezorWorker::finished, this, &TrezorDevice::workerDone);
@@ -125,7 +125,7 @@ namespace Trezor {
         sendMessage(request, MessageType_PassphraseAck);
     }
 
-    void TrezorDevice::signTransaction(int chaindID, const QString& hdPath, const QString& from, const QString &to, const QString &valStr,
+    void TrezorDevice::signTransaction(quint32 chaindID, const QString& hdPath, const QString& from, const QString &to, const QString &valStr,
                                        quint64 nonce, const QString &gas, const QString &gasPrice, const QString &data)
     {
         fPendingTx.init(from, to, valStr, nonce, gas, gasPrice, data);
@@ -140,7 +140,7 @@ namespace Trezor {
         }
 
         request.set_chain_id(chaindID);
-        request.set_to(fPendingTx.toBytes());
+        request.set_to(fPendingTx.toStr().toStdString());
         if ( fPendingTx.hasValue() ) {
             request.set_value(fPendingTx.valueBytes());
         }
@@ -384,7 +384,7 @@ namespace Trezor {
             return;
         }
 
-        const QString addressHex = Etherwall::Helpers::hexPrefix(QByteArray::fromStdString(response.address()).toHex());
+        const QString addressHex = Etherwall::Helpers::hexPrefix(QByteArray::fromStdString(response.address()));
         const QString hdPath = fWorker.getIndex().toString();
         emit addressRetrieved(addressHex, hdPath);
     }

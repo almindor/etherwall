@@ -39,7 +39,7 @@ namespace Etherwall {
 
     // contract model
 
-    ContractModel::ContractModel(NodeIPC& ipc, AccountModel& accountModel) : QAbstractListModel(0),
+    ContractModel::ContractModel(NodeIPC& ipc, AccountModel& accountModel) : QAbstractListModel(nullptr),
         fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel), fTokenBalanceTabs()
     {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
@@ -636,7 +636,7 @@ namespace Etherwall {
 
     void ContractModel::onConfirmedTransaction(const QString &fromAddress, const QString& toAddress, const QString& hash)
     {
-        Q_UNUSED(hash);
+        Q_UNUSED(hash)
 
         try {
             int contractIndex;
@@ -693,8 +693,8 @@ namespace Etherwall {
             prepared.remove(0, 2); // remove 0x
         }
 
-        int dynamicOffset = arg.decodeInt(prepared.left(64), false).toUlong() * 2;
-        const QString raw = prepared.mid(dynamicOffset); // dynamic types cut off themselves
+        quint64 dynamicOffset = arg.decodeInt(prepared.left(64), false).toUlong() * 2;
+        const QString raw = prepared.mid(static_cast<int>(dynamicOffset)); // dynamic types cut off themselves
         const QVariant decoded = arg.decode(raw);
 
         emit callNameDone(decoded.toString());

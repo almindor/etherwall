@@ -167,7 +167,7 @@ namespace Etherwall {
 
         beginRemoveRows(QModelIndex(), index, index);
         if ( fList.at(index).isERC20() ) { // remove watch for token
-            fIpc.uninstallFilter(fList.at(index).address());
+            registerTokensFilter();
         }
         fList.removeAt(index);
         endRemoveRows();

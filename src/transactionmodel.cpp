@@ -384,7 +384,7 @@ namespace Etherwall {
 
     const QString TransactionModel::getHash(int index) const {
         if ( index >= 0 && index < fTransactionList.length() ) {
-            return fTransactionList.at(index).value(THashRole).toString();
+            return Helpers::hexPrefix(fTransactionList.at(index).value(THashRole).toString());
         }
 
         return QString();

@@ -80,7 +80,7 @@ namespace Etherwall {
         SInt32                  usbProduct = 0x0001;
 
         //Create a master port for communication with the I/O Kit
-        kr = IOMasterPort(MACH_PORT_nullptr, &masterPort);
+        kr = IOMasterPort(MACH_PORT_NULL, &masterPort);
         if (kr || !masterPort)
         {
             qDebug() << "ERR: Couldn’t create a master I/O Kit port: " << kr << "\n";

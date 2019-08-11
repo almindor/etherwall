@@ -41,10 +41,10 @@ namespace Wire {
         hid_version = 0;
         hid_init();
 
-        hid = NULL;
-        usb_dev = NULL;
+        hid = nullptr;
+        usb_dev = nullptr;
         
-        usb = NULL;
+        usb = nullptr;
         (void)libusb_init(&usb);
         
         trezor_ver = Trezor_V1;
@@ -55,7 +55,7 @@ namespace Wire {
         
         if (usb) {
            libusb_exit(usb);
-           usb = NULL;
+           usb = nullptr;
         } else {
            hid_exit();
         }
@@ -68,7 +68,7 @@ namespace Wire {
         libusb_device_handle* t2 =
            libusb_open_device_with_vid_pid (usb, TREZOR2_VID, TREZOR2_PID);
        
-        if (NULL != t2) {           
+        if (nullptr != t2) {
            if (0 == libusb_claim_interface(t2, 0)) {
               (void)libusb_reset_device(t2);
               
@@ -86,7 +86,7 @@ namespace Wire {
            }
         }
 
-        hid = NULL;
+        hid = nullptr;
         const QString path = getDevicePath();
         if ( path.isEmpty() ) {
             return;
@@ -115,7 +115,7 @@ namespace Wire {
     {  
         QString path;
         hid_device_info* devices = hid_enumerate(TREZOR1_VID, TREZOR1_PID);
-        if ( devices != NULL ) {
+        if ( devices != nullptr ) {
             hid_device_info* device = devices;
             do {
                 // big headache on macos x, the interface is -1 here for some reason so using full path parsing
@@ -127,7 +127,7 @@ namespace Wire {
                      path = QString::fromUtf8(device->path);
                      break;
                 }
-            } while ( (device = device->next) != NULL );
+            } while ( (device = device->next) != nullptr );
             hid_free_enumeration(devices);
         }
 
@@ -136,12 +136,12 @@ namespace Wire {
 
     void Device::close()
     {
-        if ( hid != NULL ) {
+        if ( hid != nullptr ) {
             hid_close(hid);
         }
-        hid = NULL;
+        hid = nullptr;
         
-        if ( usb_dev != NULL ) {
+        if ( usb_dev != nullptr ) {
            libusb_release_interface(usb_dev, 0);
            libusb_close(usb_dev);
            usb_dev = NULL;
@@ -150,10 +150,10 @@ namespace Wire {
 
     bool Device::isPresent()
     {
-       libusb_device** usb_devices = NULL;
+       libusb_device** usb_devices = nullptr;
        size_t nDev = libusb_get_device_list(usb, &usb_devices);
        
-       if (NULL != usb_devices && nDev > 0) {
+       if (nullptr != usb_devices && nDev > 0) {
           for (size_t i=0; i<nDev; i++) {
              libusb_device* dev = usb_devices[i];
              libusb_device_descriptor desc;
@@ -169,7 +169,7 @@ namespace Wire {
        }
        
         // if we're connected, use try_hid_version to check if connection still works
-        if ( hid != NULL ) {
+        if ( hid != nullptr ) {
             bool connected = try_hid_version() > 0;
             if ( !connected ) {
                 close(); // make sure hid frees resources and we consider ourselves off
@@ -178,7 +178,7 @@ namespace Wire {
         }
 
         // otherwise enumerate
-        return getDevicePath() != NULL;
+        return getDevicePath() != nullptr;
     }
 
     // try writing packet that will be discarded to figure out hid version

@@ -78,7 +78,7 @@ namespace Trezor {
 
     void TrezorDevice::onDirectoryChanged(const QString &path)
     {
-        Q_UNUSED(path);
+        Q_UNUSED(path)
         initialize();
     }
 
@@ -109,6 +109,11 @@ namespace Trezor {
     const QString TrezorDevice::getDeviceID() const
     {
         return fDeviceID;
+    }
+
+    const QString TrezorDevice::getVersion() const
+    {
+        return fVersion;
     }
 
     void TrezorDevice::submitPin(const QString &pin)
@@ -362,6 +367,17 @@ namespace Trezor {
         }
 
         fDeviceID = QString::fromStdString(response.device_id());
+        quint32 mV = response.major_version();
+        quint32 nV = response.minor_version();
+        quint32 pV = response.patch_version();
+
+        fVersion = QString::number(mV) + "." + QString::number(nV) + "." + QString::number(pV);
+        // pre-1.8 check
+        if (mV < 1 || (mV == 1 && nV < 8)) {
+            qDebug() << "Device outdated, current version: " << fVersion << " need at least 1.8.0";
+            emit deviceOutdated("1.8.0", fVersion);
+        }
+
         emit initialized(fDeviceID);
         emit initializedChanged(true);
     }

@@ -119,6 +119,13 @@ ApplicationWindow {
                 badge.show(badge.button_msg(code))
             }
         }
+        onDeviceOutdated: {
+            errorDialog.text = qsTr("TREZOR firmware outdated")
+            errorDialog.text += "\n" + qsTr("Required version", "of firmware") + " " + minVersion
+            errorDialog.text += "\n" + qsTr("Current version", "of firmware") + " " + curVersion
+            errorDialog.text += "\n" + qsTr("Update firmware at", "url follows") + " https://wallet.trezor.io"
+            errorDialog.open()
+        }
         onPassphraseRequest: onDevice ? badge.show(qsTr("Input your password on the TREZOR device")) : trezorPasswordDialog.openFocused()
         onFailure: {
             errorDialog.text = "TREZOR: " + error
@@ -336,7 +343,7 @@ ApplicationWindow {
 
     MessageDialog {
         id: trezorDialog
-        title: "TREZOR"
+        title: "TREZOR v" + trezor.version
         text: "TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID
         icon: StandardIcon.Information
         standardButtons: StandardButton.Ok

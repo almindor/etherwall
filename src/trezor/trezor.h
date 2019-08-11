@@ -56,6 +56,7 @@ namespace Trezor {
     {
         Q_OBJECT
         Q_PROPERTY(QString deviceID READ getDeviceID NOTIFY initialized)
+        Q_PROPERTY(QString version READ getVersion NOTIFY initialized)
         Q_PROPERTY(bool present READ isPresent NOTIFY presenceChanged)
         Q_PROPERTY(bool initialized READ isInitialized NOTIFY initializedChanged)
         Q_PROPERTY(bool busy READ getBusy NOTIFY busyChanged)
@@ -67,6 +68,7 @@ namespace Trezor {
         bool isInitialized();
         void getAddress(const HDPath& hdPath);
         const QString getDeviceID() const;
+        const QString getVersion() const;
         void initialize();
         Q_INVOKABLE void cancel();
         Q_INVOKABLE void submitPin(const QString& pin);
@@ -87,6 +89,7 @@ namespace Trezor {
         void addressRetrieved(const QString& address, const QString& hdPath) const;
         void busyChanged(bool busy) const;
         void transactionReady(const Ethereum::Tx& tx) const;
+        void deviceOutdated(const QString& minVersion, const QString& curVersion) const;
         void error(const QString& error) const;
     public slots:
         void onDeviceInserted();
@@ -100,6 +103,7 @@ namespace Trezor {
         TrezorWorker fWorker;
         MessageQueue fQueue;
         QString fDeviceID;
+        QString fVersion;
         bool fDevicePresent;
         Ethereum::Tx fPendingTx;
 

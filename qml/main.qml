@@ -18,10 +18,10 @@
  * Main app window
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Dialogs 1.2
-import QtQuick.Window 2.0
+import QtQuick.Window 2.12
 import "components"
 
 ApplicationWindow {
@@ -324,7 +324,7 @@ ApplicationWindow {
         onRejected: closeTimer.start()
     }
 
-    TabView {
+    TabBar {
         id: tabView
         anchors.fill: parent
 
@@ -349,7 +349,7 @@ ApplicationWindow {
         standardButtons: StandardButton.Ok
     }
 
-    statusBar: StatusBar {
+    footer: ToolBar {
         height: 38
         enabled: !ipc.busy
 
@@ -360,8 +360,9 @@ ApplicationWindow {
                 height: 32
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
-                iconSource: "/images/block"
-                tooltip: qsTr("Block number: ") + transactionModel.blockNumber
+                icon.name: "/images/block"
+//                ToolTip.visible: down
+//                ToolTip.text: qsTr("Block number: ") + transactionModel.blockNumber
                 onClicked: {
                     blockField.visible = !blockField.visible
 
@@ -385,8 +386,8 @@ ApplicationWindow {
                 height: 32
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
-                iconSource: "/images/gas"
-                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
+                icon.source: "/images/gas"
+//                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
                 onClicked: {
                     gasField.visible = !gasField.visible
 
@@ -446,11 +447,11 @@ ApplicationWindow {
             anchors.right: parent.right
 
             ToolButton {
-                iconSource: "/images/trezor"
+                icon.source: "/images/trezor"
                 height: 32
                 width: 32
                 enabled: trezor.initialized
-                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
+//                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
                 onClicked: {
                     trezorDialog.open()
                 }
@@ -487,11 +488,11 @@ ApplicationWindow {
                     return qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")
                 }
 
-                iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                icon.source: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
                 height: 32
                 width: 32
                 enabled: !ipc.starting
-                tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
+//                tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
                 onClicked: {
                     badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
                 }

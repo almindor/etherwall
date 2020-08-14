@@ -48,7 +48,7 @@ namespace Etherwall {
 
     TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
         QAbstractListModel(nullptr), fIpc(ipc), fAccountModel(accountModel),
-        fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("unknown"), fGasEstimate("unknown"), fNetManager(this),
+        fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("0"), fGasEstimate("0"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
         ipc.registerIpcErrorHandler(ALWAYS_FAILING_TX_ERROR, &handleGasEstimateError);

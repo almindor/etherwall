@@ -18,17 +18,16 @@
  * Accounts tab
  */
 
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.2
-import QtQuick.Layouts 1.0
+import QtQuick.Controls 1.4 as C
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import AccountProxyModel 0.1
-import QtQuick.Dialogs 1.2
 
-Tab {
+Loader {
     id: accountsTab
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    title: qsTr("Accounts")
     property bool show_hashes: false
 
     Column {
@@ -182,13 +181,13 @@ Tab {
             id: accountDetails
         }
 
-        TableView {
+        C.TableView {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - newAccountButton.height - parent.spacing
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "default"
                 title: "☑"
                 width: 0.3 * dpi
@@ -196,7 +195,7 @@ Tab {
                 horizontalAlignment: Text.AlignHCenter
             }
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "deviceType"
                 title: " ⊡"
                 width: 0.3 * dpi
@@ -204,13 +203,13 @@ Tab {
                 horizontalAlignment: Text.AlignLeft
             }
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: show_hashes ? "hash" : "alias"
                 title: qsTr("Account")
                 width: parent.width * 0.6
             }
 
-            TableViewColumn {
+            C.TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "balance"
                 title: qsTr("Balance ") + "(" + (accountModel.currentToken === "ETH" ? currencyModel.currencyName : accountModel.currentToken) + ")"

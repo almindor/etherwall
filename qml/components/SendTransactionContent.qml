@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+// import QtQuick.Controls.Styles 1.4
 
 Item {
     id: transactionContent
@@ -56,17 +56,18 @@ Item {
         property string deployedAbi
         property string txTo
         target: ipc
-        onError: {
+
+        function onError() {
             sendButton.enabled = true
         }
 
-        onEstimateGasDone: {
+        function onEstimateGasDone(price) {
             if ( !gasField.manual ) {
                 gasField.text = price
             }
         }
 
-        onSendTransactionDone: {
+        function onSendTransactionDone(hash) {
             if ( ipcConnection.deployedName.length ) {
                 contractModel.addPendingContract(ipcConnection.deployedName, ipcConnection.deployedAbi, hash)
                 badge.show(qsTr("New pending contract deployment: ") + ipcConnection.deployedName)
@@ -83,7 +84,9 @@ Item {
 
     Connections {
         target: trezor
-        onPresenceChanged: sendButton.refresh()
+        function onPresenceChanged() {
+            sendButton.refresh()
+        }
     }
 
     BusyIndicator {
@@ -213,8 +216,9 @@ Item {
                 id: gasButton
                 height: 32
                 width: 32
-                iconSource: "/images/gas"
-                tooltip: qsTr("Apply current gas price")
+                icon.source: "/images/gas"
+                icon.color: "transparent"
+                // tooltip: qsTr("Apply current gas price")
                 onClicked: {
                     gasPriceField.text = Qt.binding(function() { return transactionModel.gasPrice })
                     var result = sendButton.refresh()
@@ -282,11 +286,12 @@ Item {
 
             ToolButton {
                 id: sendAllButton
-                iconSource: "/images/all"
+                icon.source: "/images/all"
+                icon.color: "transparent"
                 width: 32
                 height: 32
 
-                tooltip: qsTr("Send all", "send all ether from account")
+                // tooltip: qsTr("Send all", "send all ether from account")
                 onClicked: {
                     if ( tokenCombo.currentIndex > 0 ) {
                         valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
@@ -335,15 +340,15 @@ Item {
                 width: mainColumn.width - 1 * dpi
                 onLinkActivated: Qt.openUrlExternally(link)
 
-                ColorAnimation on textColor {
-                    id: errorAnimation
-                    from: "black"
-                    to: "red"
-                    duration: 250
-                    running: false
-                    loops: 5
-                    onStopped: warningField.textColor = "black"
-                }
+//                ColorAnimation on textColor {
+//                    id: errorAnimation
+//                    from: "black"
+//                    to: "red"
+//                    duration: 250
+//                    running: false
+//                    loops: 5
+//                    onStopped: warningField.textColor = "black"
+//                }
             }
         }
 
@@ -381,15 +386,15 @@ Item {
                 source: "/images/warning"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: sendButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: sendButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check(accountIndex) {
                 var result = {
@@ -476,7 +481,7 @@ Item {
                 var result = check(accountIndex)
 
                 if ( result.error !== null ) {
-                    tooltip = result.error
+                    // tooltip = result.error
                     sendIcon.source = "/images/error"
                     status = -2
                     warningField.text = result.error
@@ -484,16 +489,16 @@ Item {
                 }
 
                 if ( result.warning !== null ) {
-                    toField.textColor = "brown"
+                    toField.color = "brown"
                     warningField.text = result.warning
-                    tooltip = result.warning
+                    // tooltip = result.warning
                     sendIcon.source = "/images/warning"
                     status = -1
                 } else {
                     status = 0
                     warningField.text = ""
                     setHelperText(valueTotalField.text, getGasTotal())
-                    toField.textColor = "black"
+                    toField.color = "black"
                     sendIcon.source = "/images/ok"
                 }
 

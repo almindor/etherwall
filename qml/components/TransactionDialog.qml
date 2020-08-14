@@ -18,7 +18,7 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Dialogs 1.2
 
 Dialog {
@@ -55,7 +55,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && sendDialog.visible ) {
                     sdBadge.show(sdBadge.button_msg(code))
                 }

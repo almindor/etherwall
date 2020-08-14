@@ -18,16 +18,40 @@
  * Info tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 
-Tab {
+Loader {
     id: infoTab
-    title: qsTr("Logs")
-    anchors.fill: parent
 
-    TabView {
-        LogTab {}
-        GethTab {}
+    Item {
+        anchors.fill: parent
+
+        TabBar {
+            id: appView
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            Button {
+                text: qsTr("Logs")
+            }
+
+            Button {
+                text: qsTr("Geth")
+            }
+        }
+
+        StackLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: infoTab.bottom
+            anchors.bottom: parent.bottom
+
+            currentIndex: appView.currentIndex
+
+            LogTab {}
+            GethTab {}
+        }
     }
 }

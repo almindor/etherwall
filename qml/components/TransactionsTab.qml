@@ -18,13 +18,13 @@
  * Transactions tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 1.4 as C
+import QtQuick.Controls 2.12
 
-Tab {
+Loader {
     id: transactionsTab
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    title: qsTr("Transactions")
 
     Column {
         anchors.fill: parent
@@ -49,35 +49,35 @@ Tab {
             onClicked: sendDialog.display()
         }
 
-        TableView {
+        C.TableView {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - sendButton.height
 
-            TableViewColumn {
+            C.TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "blocknumber"
                 title: qsTr("Block#")
                 width: parent.width * 0.1
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "senderalias"
                 title: qsTr("Sender")
                 width: parent.width * 0.28
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "receiveralias"
                 title: qsTr("Receiver")
                 width: parent.width * 0.28
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 horizontalAlignment: Text.AlignRight
                 role: "value"
                 title: qsTr("Value (Ether)")
                 width:  parent.width * 0.2
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "depth"
                 title: qsTr("Depth")
                 width:  parent.width * 0.1

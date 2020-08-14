@@ -20,6 +20,7 @@
 
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import QtQuick.Dialogs 1.2
 import QtQuick.Window 2.12
 import "components"
@@ -316,6 +317,7 @@ ApplicationWindow {
     BusyIndicator {
         anchors.centerIn: parent
         z: 10
+        visible: false  // TODO
         running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy || trezor.busy
     }
 
@@ -324,21 +326,46 @@ ApplicationWindow {
         onRejected: closeTimer.start()
     }
 
-    TabBar {
-        id: tabView
+    Item {
         anchors.fill: parent
 
-        AccountsTab {}
+        TabBar {
+            id: tabView
+            anchors.left: parent.left
+            anchors.right: parent.right
 
-        TransactionsTab {}
+            TabButton {
+                text: qsTr("Accounts")
+            }
+            TabButton {
+                text: qsTr("Transactions")
+            }
+//            TabButton {
+//                text: qsTr("Contracts")
+//            }
+//            TabButton {
+//                text: qsTr("Currencies")
+//            }
+            TabButton {
+                text: qsTr("Application")
+            }
+        }
 
-        ContractsTab {}
+        StackLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: tabView.bottom
+            anchors.bottom: parent.bottom
 
-        CurrencyTab {}
+            currentIndex: tabView.currentIndex
 
-        SettingsTab {}
-
-        InfoTab {}
+            AccountsTab {}
+            TransactionsTab {}
+//            ContractsTab {}
+//            CurrencyTab {}
+//            SettingsTab {}
+            InfoTab {}
+        }
     }
 
     MessageDialog {
@@ -360,7 +387,8 @@ ApplicationWindow {
                 height: 32
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
-                icon.name: "/images/block"
+                icon.source: "/images/block"
+                icon.color: "transparent"
 //                ToolTip.visible: down
 //                ToolTip.text: qsTr("Block number: ") + transactionModel.blockNumber
                 onClicked: {
@@ -387,6 +415,7 @@ ApplicationWindow {
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 icon.source: "/images/gas"
+                icon.color: "transparent"
 //                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
                 onClicked: {
                     gasField.visible = !gasField.visible
@@ -448,6 +477,7 @@ ApplicationWindow {
 
             ToolButton {
                 icon.source: "/images/trezor"
+                icon.color: "transparent"
                 height: 32
                 width: 32
                 enabled: trezor.initialized
@@ -489,6 +519,7 @@ ApplicationWindow {
                 }
 
                 icon.source: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                icon.color: "transparent"
                 height: 32
                 width: 32
                 enabled: !ipc.starting

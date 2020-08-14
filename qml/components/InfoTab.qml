@@ -29,15 +29,16 @@ Loader {
         anchors.fill: parent
 
         TabBar {
-            id: appView
+            id: infoTabBar
             anchors.left: parent.left
             anchors.right: parent.right
+            position: TabBar.Footer
 
-            Button {
-                text: qsTr("Logs")
+            TabButton {
+                text: qsTr("Application")
             }
 
-            Button {
+            TabButton {
                 text: qsTr("Geth")
             }
         }
@@ -45,10 +46,10 @@ Loader {
         StackLayout {
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.top: infoTab.bottom
+            anchors.top: infoTabBar.bottom
             anchors.bottom: parent.bottom
 
-            currentIndex: appView.currentIndex
+            currentIndex: infoTabBar.currentIndex
 
             LogTab {}
             GethTab {}

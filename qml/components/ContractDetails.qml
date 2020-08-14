@@ -105,7 +105,7 @@ Dialog {
                 Connections {
                     target: contractModel
 
-                    onAbiResult: {
+                    function onAbiResult(abi) {
                         abiField.text = abi
                         saveButton.refresh(true)
                     }
@@ -131,7 +131,9 @@ Dialog {
             Connections {
                 target: contractModel
 
-                onCallNameDone: nameField.text = name
+                function onCallNameDone(name) {
+                    nameField.text = name
+                }
             }
         }
 

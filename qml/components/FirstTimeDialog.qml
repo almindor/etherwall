@@ -18,14 +18,14 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
+import QtQuick 2.12
 import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick.Controls 2.12
 
 Dialog {
     title: qsTr("First time setup wizard")
     standardButtons: StandardButton.Save | StandardButton.Close
-    modality: Qt.ApplicationModal
+    // modality: Qt.ApplicationModal
     visible: false
     width: 7 * dpi
     height: 5 * dpi

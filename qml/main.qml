@@ -86,7 +86,7 @@ ApplicationWindow {
     Connections {
         target: initializer
 
-        onWarning: {
+        function onWarning(version, endpoint, warning) {
             if (warning && warning.length) {
                 warningDialog.text = warning
                 warningDialog.open()
@@ -96,7 +96,7 @@ ApplicationWindow {
 
     Connections {
         target: ipc
-        onError: {
+        function onError() {
             errorDialog.text = ipc.error
             errorDialog.open()
         }
@@ -105,7 +105,7 @@ ApplicationWindow {
     Connections {
         target: nodeManager
         // onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
-        onError: {
+        function onError(error) {
             errorDialog.text = error
             errorDialog.open(error)
         }
@@ -114,25 +114,31 @@ ApplicationWindow {
     // Trezor main connections
     Connections {
         target: trezor
-        onMatrixRequest: pinMatrixDialog.display()
-        onButtonRequest: {
-            if ( code != 8 ) { // tx signing handled in signing windows
+        function onMatrixRequest(type) { pinMatrixDialog.display() }
+        function onButtonRequest(code) {
+            if ( code !== 8 ) { // tx signing handled in signing windows
                 badge.show(badge.button_msg(code))
             }
         }
-        onDeviceOutdated: {
+        function onDeviceOutdated(minVersion, curVersion) {
             errorDialog.text = qsTr("TREZOR firmware outdated")
             errorDialog.text += "\n" + qsTr("Required version", "of firmware") + " " + minVersion
             errorDialog.text += "\n" + qsTr("Current version", "of firmware") + " " + curVersion
             errorDialog.text += "\n" + qsTr("Update firmware at", "url follows") + " https://wallet.trezor.io"
             errorDialog.open()
         }
-        onPassphraseRequest: onDevice ? badge.show(qsTr("Input your password on the TREZOR device")) : trezorPasswordDialog.openFocused()
-        onFailure: {
+        function onPassphraseRequest(onDevice) {
+            if (onDevice) {
+                badge.show(qsTr("Input your password on the TREZOR device"))
+            } else {
+                trezorPasswordDialog.openFocused()
+            }
+        }
+        function onFailure(error) {
             errorDialog.text = "TREZOR: " + error
             errorDialog.open()
         }
-        onError: {
+        function onError(error) {
             log.log(error, 3)
             errorDialog.text = "TREZOR critical error: " + error
             errorDialog.open()
@@ -142,7 +148,7 @@ ApplicationWindow {
     Connections {
         target: transactionModel
 
-        onLatestVersionChanged: {
+        function onLatestVersionChanged(version, manualVersionCheck) {
             if ( !manualVersionCheck ) {
                 var now = new Date()
                 var bumpTime = settings.value("program/versionbump", now.valueOf())
@@ -157,7 +163,7 @@ ApplicationWindow {
             versionDialog.text = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
             versionDialog.open()
         }
-        onLatestVersionSame: {
+        function onLatestVersionSame(version, manualVersionCheck) {
             if ( !manualVersionCheck ) {
                 return
             }
@@ -169,8 +175,8 @@ ApplicationWindow {
             versionDialog.open()
         }
 
-        onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
-        onConfirmedTransaction: {
+        function onReceivedTransaction(toAddress) { badge.show(qsTr("Received a new transaction to: ") + toAddress) }
+        function onConfirmedTransaction(fromAddress, toAddress, hash) {
             if ( toAddress.length ) {
                 badge.show(qsTr("Confirmed transaction to: ") + toAddress)
             } else { // contract creation
@@ -182,29 +188,33 @@ ApplicationWindow {
     Connections {
         target: eventModel
 
-        onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        function onReceivedEvent(contract, signature) {
+            badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        }
     }
 
     Connections {
         target: contractModel
 
-        onReceivedTokens: badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)
+        function onReceivedTokens(value, token, sender) {
+            badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)
+        }
     }
 
     Connections {
         target: accountModel
 
-        onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
-        onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
-        onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
-        onPromptForTrezorImport: trezorImportDialog.display(qsTr("Detected TREZOR device with unimported accounts. Import addresses from TREZOR?"), "https://www.etherwall.com/faq/#importaccount")
-        onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
+        function onWalletExportedEvent() { badge.show(qsTr("Wallet successfully exported")) }
+        function onWalletImportedEvent() { badge.show(qsTr("Wallet succesfully imported")) }
+        function onWalletErrorEvent() { badge.show(qsTr("Error on wallet import/export: " + error)) }
+        function onPromptForTrezorImport() { trezorImportDialog.display(qsTr("Detected TREZOR device with unimported accounts. Import addresses from TREZOR?"), "https://www.etherwall.com/faq/#importaccount") }
+        function onAccountsRemoved() { badge.show(qsTr("TREZOR accounts removed")) }
     }
 
     Connections {
         target: ipc
 
-        onGetTransactionReceiptDone: {
+        function onGetTransactionReceiptDone(receipt) {
             var cname = contractModel.contractDeployed(receipt)
             if ( cname.length ) {
                 badge.show(qsTr("Contract ") + cname + qsTr(" succesfully deployed: " + receipt.contractAddress))
@@ -340,14 +350,17 @@ ApplicationWindow {
             TabButton {
                 text: qsTr("Transactions")
             }
-//            TabButton {
-//                text: qsTr("Contracts")
-//            }
-//            TabButton {
-//                text: qsTr("Currencies")
-//            }
             TabButton {
-                text: qsTr("Application")
+                text: qsTr("Contracts")
+            }
+            TabButton {
+                text: qsTr("Currencies")
+            }
+            TabButton {
+                text: qsTr("Settings")
+            }
+            TabButton {
+                text: qsTr("Logs")
             }
         }
 
@@ -361,9 +374,9 @@ ApplicationWindow {
 
             AccountsTab {}
             TransactionsTab {}
-//            ContractsTab {}
-//            CurrencyTab {}
-//            SettingsTab {}
+            ContractsTab {}
+            CurrencyTab {}
+            SettingsTab {}
             InfoTab {}
         }
     }

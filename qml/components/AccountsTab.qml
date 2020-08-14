@@ -265,7 +265,7 @@ Loader {
 
                 MenuItem {
                     text: qsTr("Remove", "account")
-                    visible: accountModel.selectedAccountHDPath
+                    enabled: accountModel.selectedAccountHDPath
                     onTriggered: {
                         accountRemoveDialog.text = qsTr("Remove", "account") + " " + accountModel.selectedAccount + '?'
                         accountRemoveDialog.open()
@@ -273,13 +273,13 @@ Loader {
                 }
 
                 MenuItem {
-                    visible: !accountModel.selectedAccountHDPath
+                    enabled: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to directory")
                     onTriggered: fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                 }
 
                 MenuItem {
-                    visible: !accountModel.selectedAccountHDPath
+                    enabled: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to QR Code")
                     onTriggered: qrExportDialog.display(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
                 }

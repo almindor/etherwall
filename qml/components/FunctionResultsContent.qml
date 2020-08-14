@@ -33,7 +33,7 @@ Item {
     Connections {
         target: ipc
 
-        onCallDone: {
+        function onCallDone(result, index, userData) {
             if ( userData["type"] === "functionCall" ) {
                 responseField.model = contractModel.parseResponse(index, result, userData)
             }

@@ -180,7 +180,7 @@ Item {
 
         Connections {
             target: contractModel
-            onCallError: {
+            function onCallError(err) {
                 errorText.text = err
                 errorText.visible = true
                 encodedText.visible = false

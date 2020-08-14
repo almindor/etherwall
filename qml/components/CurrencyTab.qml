@@ -18,13 +18,12 @@
  * Currency tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Layouts 1.0
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 
-Tab {
+Loader {
     id: logTab
-    title: qsTr("Currencies")
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {

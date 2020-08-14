@@ -1,303 +1,328 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 import QtQuick.Dialogs 1.2
 import QtQuick.Extras 1.4
 
-TabView {
+Loader {
     property bool hideTrezor: false
     property bool thinClient: ipc.thinClient
 
-    Tab {
-        title: qsTr("Basic")
+    TabBar {
+        id: settingsBar
+        anchors.left: parent.left
+        anchors.right: parent.right
 
-        Row {
-            spacing: 0.5 * dpi
-            anchors.margins: 0.2 * dpi
-            anchors {
-                top: parent.top
-                bottom: parent.bottom
-                left: parent.left
-            }
+        TabButton {
+            text: qsTr("Basic")
+        }
+        TabButton {
+            text: qsTr("Geth")
+        }
+        TabButton {
+            text: qsTr("Advanced")
+        }
+        TabButton {
+            enabled: !hideTrezor
+            text: qsTr("TREZOR")
+        }
+    }
 
-            MessageDialog {
-                id: confirmThinClientDialog
-                icon: StandardIcon.Warning
-                title: qsTr("Warning")
-                text: qsTr("Changing node type requires a restart of Etherwall.")
-            }
+    StackLayout {
+        id: gethItem
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: settingsBar.bottom
+        anchors.bottom: parent.bottom
 
-            ToggleButton {
-                id: clientModeButton
-                width: 1 * dpi
-                text: qsTr("Thin client")
-                checked: thinClient
+        currentIndex: settingsBar.currentIndex
 
-                onClicked: {
-                    thinClient = clientModeButton.checked
-                    settings.setValue("geth/thinclient", clientModeButton.checked)
+        Item {
+            Row {
+                spacing: 0.5 * dpi
+                anchors.margins: 0.2 * dpi
+                anchors {
+                    top: parent.top
+                    bottom: parent.bottom
+                    left: parent.left
+                }
 
-                    if ( clientModeButton.checked ) {
-                        settings.setValue("geth/testnet", false)
+                MessageDialog {
+                    id: confirmThinClientDialog
+                    icon: StandardIcon.Warning
+                    title: qsTr("Warning")
+                    text: qsTr("Changing node type requires a restart of Etherwall.")
+                }
+
+                ToggleButton {
+                    id: clientModeButton
+                    width: 1 * dpi
+                    text: qsTr("Thin client")
+                    checked: thinClient
+
+                    onClicked: {
+                        thinClient = clientModeButton.checked
+                        settings.setValue("geth/thinclient", clientModeButton.checked)
+
+                        if ( clientModeButton.checked ) {
+                            settings.setValue("geth/testnet", false)
+                        }
+
+                        if ( settings.contains("program/v2firstrun") ) {
+                            confirmThinClientDialog.open()
+                        }
                     }
+                }
 
-                    if ( settings.contains("program/v2firstrun") ) {
-                        confirmThinClientDialog.open()
+                Column {
+                    spacing: 0.1 * dpi
+                    width: 5 * dpi
+                    height: 3 * dpi
+
+
+                    Row {
+                        width: parent.width
+
+                        Label {
+                            text: qsTr("Helper currency: ")
+                        }
+
+                        ComboBox {
+                            id: defaultFiatCombo
+                            width: 1 * dpi
+                            model: currencyModel
+                            textRole: "name"
+                            currentIndex: currencyModel.helperIndex
+
+                            onActivated: currencyModel.setHelperIndex(index)
+                        }
                     }
                 }
             }
+        }
 
+        Item {
             Column {
+                anchors.margins: 0.2 * dpi
+                anchors.fill: parent
                 spacing: 0.1 * dpi
-                width: 5 * dpi
-                height: 3 * dpi
-
 
                 Row {
+                    id: rowGethDatadir
                     width: parent.width
 
                     Label {
-                        text: qsTr("Helper currency: ")
+                        id: gethDDLabel
+                        text: "Geth Data Directory: "
                     }
 
-                    ComboBox {
-                        id: defaultFiatCombo
-                        width: 1 * dpi
-                        model: currencyModel
-                        textRole: "name"
-                        currentIndex: currencyModel.helperIndex
-
-                        onActivated: currencyModel.setHelperIndex(index)
+                    TextField {
+                        id: gethDDField
+                        width: gethItem.width - gethDDButton.width - gethDDLabel.width - 0.2 * dpi
+                        text: settings.value("geth/datadir", "")
+                        onTextChanged: {
+                            settings.setValue("geth/datadir", gethDDField.text)
+                        }
                     }
-                }
-            }
-        }
-    }
 
-    Tab {
-        title: qsTr("Geth")
+                    Button {
+                        id: gethDDButton
+                        text: qsTr("Choose")
 
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
+                        onClicked: {
+                            ddFileDialog.open()
+                        }
+                    }
 
-            Row {
-                id: rowGethDatadir
-                width: parent.width
+                    FileDialog {
+                        id: ddFileDialog
+                        title: qsTr("Geth data directory")
+                        selectFolder: true
+                        selectExisting: true
+                        selectMultiple: false
 
-                Label {
-                    id: gethDDLabel
-                    text: "Geth Data Directory: "
-                }
-
-                TextField {
-                    id: gethDDField
-                    width: parent.width - gethDDButton.width - gethDDLabel.width
-                    text: settings.value("geth/datadir", "")
-                    onTextChanged: {
-                        settings.setValue("geth/datadir", gethDDField.text)
+                        onAccepted: {
+                            gethDDField.text = helpers.localURLToString(ddFileDialog.fileUrl)
+                        }
                     }
                 }
 
-                Button {
-                    id: gethDDButton
-                    text: qsTr("Choose")
+                Row {
+                    id: rowGethPath
+                    width: parent.width
 
-                    onClicked: {
-                        ddFileDialog.open()
+                    Label {
+                        id: gethPathLabel
+                        text: "Geth path: "
+                    }
+
+                    TextField {
+                        id: gethPathField
+                        width: gethItem.width - gethPathLabel.width - gethPathButton.width - 0.2 * dpi
+                        text: settings.value("geth/path", "")
+                        onTextChanged: {
+                            settings.setValue("geth/path", gethPathField.text)
+                        }
+                    }
+
+                    Button {
+                        id: gethPathButton
+                        text: qsTr("Choose")
+
+                        onClicked: {
+                            gethFileDialog.open()
+                        }
+                    }
+
+                    FileDialog {
+                        id: gethFileDialog
+                        title: qsTr("Geth executable")
+                        selectFolder: false
+                        selectExisting: true
+                        selectMultiple: false
+
+                        onAccepted: {
+                            gethPathField.text = helpers.localURLToString(gethFileDialog.fileUrl)
+                        }
                     }
                 }
 
-                FileDialog {
-                    id: ddFileDialog
-                    title: qsTr("Geth data directory")
-                    selectFolder: true
-                    selectExisting: true
-                    selectMultiple: false
+                Row {
+                    id: rowGethArgs
+                    width: parent.width
 
-                    onAccepted: {
-                        gethDDField.text = helpers.localURLToString(ddFileDialog.fileUrl)
+                    Label {
+                        id: gethArgsLabel
+                        text: "Additional Geth args: "
                     }
-                }
-            }
 
-            Row {
-                id: rowGethPath
-                width: parent.width
-
-                Label {
-                    id: gethPathLabel
-                    text: "Geth path: "
-                }
-
-                TextField {
-                    id: gethPathField
-                    width: parent.width - gethPathLabel.width - gethPathButton.width
-                    text: settings.value("geth/path", "")
-                    onTextChanged: {
-                        settings.setValue("geth/path", gethPathField.text)
-                    }
-                }
-
-                Button {
-                    id: gethPathButton
-                    text: qsTr("Choose")
-
-                    onClicked: {
-                        gethFileDialog.open()
-                    }
-                }
-
-                FileDialog {
-                    id: gethFileDialog
-                    title: qsTr("Geth executable")
-                    selectFolder: false
-                    selectExisting: true
-                    selectMultiple: false
-
-                    onAccepted: {
-                        gethPathField.text = helpers.localURLToString(gethFileDialog.fileUrl)
-                    }
-                }
-            }
-
-            Row {
-                id: rowGethArgs
-                width: parent.width
-
-                Label {
-                    id: gethArgsLabel
-                    text: "Additional Geth args: "
-                }
-
-                TextField {
-                    id: gethArgsField
-                    width: parent.width - gethArgsLabel.width
-                    text: settings.value("geth/args", "--syncmode=fast --cache 512")
-                    onTextChanged: {
-                        settings.setValue("geth/args", gethArgsField.text)
+                    TextField {
+                        id: gethArgsField
+                        width: gethItem.width - gethArgsLabel.width - 0.2 * dpi
+                        text: settings.value("geth/args", "--syncmode=fast --cache 512")
+                        onTextChanged: {
+                            settings.setValue("geth/args", gethArgsField.text)
+                        }
                     }
                 }
             }
         }
-    }
 
-    Tab {
-        title: qsTr("Advanced")
-
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
-
-            Label {
-                visible: ipc.thinClient
-                text: qsTr("Advanced settings only available in full node mode")
-            }
-
-            MessageDialog {
-                id: confirmDialogTestnet
-                icon: StandardIcon.Warning
-                title: qsTr("Warning")
-                text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
-            }
-
-            Row {
-                enabled: !thinClient
-                width: parent.width
+        Item {
+            Column {
+                anchors.margins: 0.2 * dpi
+                anchors.fill: parent
+                spacing: 0.1 * dpi
 
                 Label {
-                    text: qsTr("Update interval (s): ")
+                    visible: ipc.thinClient
+                    text: qsTr("Advanced settings only available in full node mode")
                 }
-
-                SpinBox {
-                    id: intervalSpinBox
-                    width: 1 * dpi
-                    minimumValue: 5
-                    maximumValue: 60
-
-                    value: settings.value("ipc/interval", 10)
-                    onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
-                }
-            }
-
-            Row {
-                id: rowLogBlocks
-                enabled: !thinClient
-                width: parent.width
-
-                Label {
-                    id: logBlocksLabel
-                    text: qsTr("Event history in blocks: ")
-                }
-
-                SpinBox {
-                    id: logBlocksField
-                    width: 1 * dpi
-                    minimumValue: 0
-                    maximumValue: 100000
-                    value: settings.value("geth/logsize", 7200)
-                    onValueChanged: {
-                        settings.setValue("geth/logsize", logBlocksField.value)
-                        filterModel.loadLogs()
-                    }
-                }
-            }
-
-            CheckBox {
-                id: gethTestnetCheck
-                enabled: !thinClient
-                checked: settings.valueBool("geth/testnet", false)
-                text: qsTr("Testnet (rinkeby)")
-                onClicked: {
-                    settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                    if ( settings.contains("program/v2firstrun") ) {
-                        confirmDialogTestnet.open()
-                    }
-                }
-            }
-        }
-    }
-
-
-    Tab {
-        enabled: !hideTrezor
-        title: "TREZOR"
-
-        Column {
-            anchors.margins: 0.2 * dpi
-            anchors.fill: parent
-            spacing: 0.1 * dpi
-
-            Button {
-                enabled: trezor.initialized
-                text: qsTr("Import accounts")
-                onClicked: trezorImportDialog.display(qsTr("Import addresses from TREZOR?"))
-            }
-
-            Row {
-                spacing: 0.05 * dpi
 
                 MessageDialog {
-                    id: accountRemoveDialog
-                    title: qsTr("Confirm removal of all TREZOR accounts")
-                    text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
-                    standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
-                    onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
-                    onYes: accountModel.removeAccounts()
+                    id: confirmDialogTestnet
+                    icon: StandardIcon.Warning
+                    title: qsTr("Warning")
+                    text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
                 }
 
-                Label {
-                    text: qsTr("Clear TREZOR accounts")
+                Row {
+                    enabled: !thinClient
+                    width: parent.width
+
+                    Label {
+                        text: qsTr("Update interval (s): ")
+                    }
+
+                    SpinBox {
+                        id: intervalSpinBox
+                        width: 1 * dpi
+                        validator: IntValidator {
+                            bottom: 5
+                            top: 60
+                        }
+
+                        value: settings.value("ipc/interval", 10)
+                        onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
+                    }
                 }
+
+                Row {
+                    id: rowLogBlocks
+                    enabled: !thinClient
+                    width: parent.width
+
+                    Label {
+                        id: logBlocksLabel
+                        text: qsTr("Event history in blocks: ")
+                    }
+
+                    SpinBox {
+                        id: logBlocksField
+                        width: 1 * dpi
+                        validator: IntValidator {
+                            bottom: 0
+                            top: 100000
+                        }
+                        value: settings.value("geth/logsize", 7200)
+                        onValueChanged: {
+                            settings.setValue("geth/logsize", logBlocksField.value)
+                            filterModel.loadLogs()
+                        }
+                    }
+                }
+
+                CheckBox {
+                    id: gethTestnetCheck
+                    enabled: !thinClient
+                    checked: settings.valueBool("geth/testnet", false)
+                    text: qsTr("Testnet (rinkeby)")
+                    onClicked: {
+                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                        if ( settings.contains("program/v2firstrun") ) {
+                            confirmDialogTestnet.open()
+                        }
+                    }
+                }
+            }
+        }
+
+
+        Item {
+            Column {
+                anchors.margins: 0.2 * dpi
+                anchors.fill: parent
+                spacing: 0.1 * dpi
 
                 Button {
-                    text: qsTr("Clear")
-                    onClicked: accountRemoveDialog.open()
+                    enabled: trezor.initialized
+                    text: qsTr("Import accounts")
+                    onClicked: trezorImportDialog.display(qsTr("Import addresses from TREZOR?"))
+                }
+
+                Row {
+                    spacing: 0.05 * dpi
+
+                    MessageDialog {
+                        id: accountRemoveDialog
+                        title: qsTr("Confirm removal of all TREZOR accounts")
+                        text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
+                        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
+                        onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+                        onYes: accountModel.removeAccounts()
+                    }
+
+                    Label {
+                        text: qsTr("Clear TREZOR accounts")
+                    }
+
+                    Button {
+                        text: qsTr("Clear")
+                        onClicked: accountRemoveDialog.open()
+                    }
                 }
             }
         }
     }
-
 
 }

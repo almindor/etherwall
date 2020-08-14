@@ -39,6 +39,7 @@ Loader {
             ComboBox {
                 id: logLevelCombo
                 currentIndex: log.logLevel
+                textRole: "text"
 
                 onActivated: log.logLevel = index
 

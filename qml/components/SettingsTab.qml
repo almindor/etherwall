@@ -21,9 +21,8 @@
 import QtQuick 2.0
 import QtQuick.Controls 1.1
 
-Tab {
+Loader {
     id: settingsTab
-    title: qsTr("Settings")
 
     SettingsContent {
         id: settingsContent

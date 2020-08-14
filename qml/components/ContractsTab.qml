@@ -18,28 +18,42 @@
  * Contracts tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.12
 
-Tab {
-    id: constractsTab
+Loader {
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    title: qsTr("Contracts")
 
-    TabView {
+    Item {
+        anchors.fill: parent
 
-        Tab {
-            title: qsTr("Contracts")
+        TabBar {
+            id: conTab
+            anchors.left: parent.left
+            anchors.right: parent.right
+
+            TabButton {
+                text: qsTr("Contracts")
+            }
+            TabButton {
+                text: qsTr("Watches")
+            }
+            TabButton {
+                text: qsTr("Events")
+            }
+        }
+
+        StackLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: conTab.bottom
+            anchors.bottom: parent.bottom
+
+            currentIndex: conTab.currentIndex
+
             ContractContent {}
-        }
-
-        Tab {
-            title: qsTr("Watches")
             FiltersContent {}
-        }
-
-        Tab {
-            title: qsTr("Events")
             EventContent {}
         }
     }

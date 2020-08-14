@@ -2,8 +2,6 @@ import QtQuick 2.0
 import QtQuick.Controls 1.2
 
 Item {
-    anchors.fill: parent
-
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi

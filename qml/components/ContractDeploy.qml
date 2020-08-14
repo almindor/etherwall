@@ -55,7 +55,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && contractDeploy.visible ) {
                     cdBadge.show(cdBadge.button_msg(code))
                 }

@@ -55,7 +55,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && contractCalls.visible ) {
                     ccBadge.show(ccBadge.button_msg(code))
                 }
@@ -65,7 +65,7 @@ Dialog {
         Connections {
             target: ipc
 
-            onCallDone: {
+            function onCallDone(result, index, userData) {
                 if ( userData["type"] === "functionCall" ) {
                     tabs.currentIndex = 2
                 }

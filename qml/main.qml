@@ -272,7 +272,7 @@ ApplicationWindow {
         width: 5 * dpi
         title: qsTr("About Etherwall")
         standardButtons: StandardButton.Ok | StandardButton.Help
-        text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2018 by Aleš Katona.'
+        text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
         detailedText: qsTr("Etherwall version: ", "about details") + Qt.application.version + "\nGeth version: " + ipc.clientVersion + "\n" + (ipc.testnet ? "Running on testnet (rinkeby)" : "")
         onHelp: Qt.openUrlExternally("https://www.etherwall.com")
     }

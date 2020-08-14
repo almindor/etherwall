@@ -44,8 +44,8 @@ namespace Etherwall {
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-        QVariant recalculate(const QVariant& ether) const;
         int getCount() const;
+        Q_INVOKABLE QVariant recalculate(const QVariant& ether) const;
         Q_INVOKABLE QString getCurrencyName(int index = -1) const;
         Q_INVOKABLE void loadCurrencies();
         Q_INVOKABLE void setCurrencyIndex(int index);

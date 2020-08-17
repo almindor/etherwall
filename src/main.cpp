@@ -51,7 +51,7 @@
 using namespace Etherwall;
 
 // ew-node version check
-#if EW_NODE_VERSION != 1000003
+#if EW_NODE_VERSION != 1000004
 #error "ew-node version mismatch, update git submodules"
 #endif
 

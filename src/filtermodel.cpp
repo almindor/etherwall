@@ -196,6 +196,7 @@ namespace Etherwall {
     }
 
     void FilterModel::reload() {
+        beginResetModel();
         QSettings settings;
         settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
 
@@ -218,6 +219,7 @@ namespace Etherwall {
 
         registerFilters();
         loadLogs();
+        endResetModel();
     }
 
 }

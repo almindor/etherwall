@@ -28,7 +28,7 @@ Dialog {
     standardButtons: Dialog.Close
     visible: false
     width: 7 * dpi
-    height: 7 * dpi
+    height: 8 * dpi
     focus: true
     anchors.centerIn: parent
 
@@ -166,7 +166,9 @@ Dialog {
 
                     Connections {
                         target: filterDetails
-                        onRefresh: boolField.currentIndex = 0
+                        function onRefresh() {
+                            boolField.currentIndex = 0
+                        }
                     }
 
                     onCurrentIndexChanged: {
@@ -184,7 +186,9 @@ Dialog {
 
                     Connections {
                         target: filterDetails
-                        onRefresh: valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                        function onRefresh() {
+                            valField.text = "" // ensure we wipe old values on window re-open and func reselec
+                        }
                     }
 
                     onTextChanged: {
@@ -281,7 +285,7 @@ Dialog {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
-                    tooltip = result.error
+                    // tooltip = result.error
                     saveIcon.source = "/images/warning"
                     return result
                 }

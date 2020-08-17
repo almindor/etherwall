@@ -43,6 +43,7 @@ Item {
                 title: qsTr("Active")
                 width: 0.18 * parent.width
             }
+
             model: filterModel
 
             Menu {

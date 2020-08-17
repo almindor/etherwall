@@ -19,16 +19,18 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Dialogs 1.2
+import QtQuick.Controls 2.12
 
 Dialog {
     id: sendDialog
     title: qsTr("Send Ether")
-    standardButtons: StandardButton.Cancel
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Cancel
+    // modality: Qt.WindowModal
     visible: false
     width: 7 * dpi
-    height: 5.1 * dpi
+    height: 7 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display() {
         stc.toAddress = ""

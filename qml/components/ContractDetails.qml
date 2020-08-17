@@ -18,19 +18,20 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.Styles 1.4
 
 Dialog {
     id: contractDetails
     title: qsTr("Contract Details")
-    standardButtons: StandardButton.Close
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Close
+    // modality: Qt.WindowModal
     visible: false
     width: 7 * dpi
-    height: 5 * dpi
+    height: 6 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display( index ) {
         if ( index < 0 ) {
@@ -149,14 +150,14 @@ Dialog {
                 readOnly: true
                 property bool ready: false
 
-                style: TextFieldStyle {
-                    textColor: "black"
-                    background: Rectangle {
-                        radius: 2
-                        border.color: errorField.ready ? "green" : "red"
-                        border.width: 1
-                    }
-                }
+//                style: TextFieldStyle {
+//                    textColor: "black"
+//                    background: Rectangle {
+//                        radius: 2
+//                        border.color: errorField.ready ? "green" : "red"
+//                        border.width: 1
+//                    }
+//                }
             }
 
         }
@@ -177,15 +178,15 @@ Dialog {
                 source: "/images/warning"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: saveButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: saveButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check(full) {
                 var result = {
@@ -242,7 +243,7 @@ Dialog {
                 var result = check(full)
                 if ( result.error !== null ) {
                     errorField.text = result.error
-                    tooltip = result.error
+                    ToolTip.text = result.error
                     saveIcon.source = "/images/warning"
                     errorField.ready = false
                     return result

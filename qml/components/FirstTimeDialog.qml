@@ -19,16 +19,17 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Dialogs 1.2
 import QtQuick.Controls 2.12
 
 Dialog {
     title: qsTr("First time setup wizard")
-    standardButtons: StandardButton.Save | StandardButton.Close
+    standardButtons: Dialog.Save | Dialog.Close
     // modality: Qt.ApplicationModal
     visible: false
     width: 7 * dpi
     height: 5 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     onAccepted: {
         settings.setValue("program/v2firstrun", new Date())

@@ -1,5 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls 1.4 as C
 
 Item {
     Column {
@@ -21,23 +22,23 @@ Item {
             onClicked: details.display()
         }
 
-        TableView {
+        C.TableView {
             id: filterView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - addButton.height
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
                 width: 0.3 * parent.width
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "contract"
                 title: qsTr("Contract")
                 width: 0.5 * parent.width
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "active"
                 title: qsTr("Active")
                 width: 0.18 * parent.width

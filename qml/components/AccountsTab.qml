@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.3 as D
 import QtQuick.Controls 1.4 as C
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
@@ -149,20 +149,24 @@ Loader {
             }
         }
 
-        MessageDialog {
+        Dialog {
             id: accountRemoveDialog
+            property string text : ""
             title: qsTr("Confirm removal of account")
-            icon: StandardIcon.Question
-            standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
-            onYes: accountModel.removeAccount(accountModel.selectedAccount)
-            onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+            Text {
+                text: accountRemoveDialog.text
+            }
+
+            standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+            onAccepted: accountModel.removeAccount(accountModel.selectedAccount)
+            onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
         }
 
         QRExportDialog {
             id: qrExportDialog
         }
 
-        FileDialog {
+        D.FileDialog {
             id: fileExportDialog
             selectFolder: true
             selectExisting: true

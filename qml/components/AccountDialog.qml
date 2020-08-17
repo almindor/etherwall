@@ -18,17 +18,18 @@
  * Account dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 import QtQuick.Controls.Styles 1.4
 
 Dialog {
-    modality: Qt.WindowModal
+    // modality: Qt.WindowModal
     property string password
     signal validPassword(string password)
     signal invalidPassword()
-    standardButtons: StandardButton.Save | StandardButton.Cancel
+    standardButtons: Dialog.Save | Dialog.Cancel
+    focus: true
+    anchors.centerIn: parent
 
     function checkMatch(pw1, pw2) {
         if ( accountPW0.text === accountPW1.text && accountPW0.text.length > 0 ) {

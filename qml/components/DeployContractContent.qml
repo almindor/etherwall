@@ -1,8 +1,9 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls.Styles 1.4
 
 Item {
+    id: mainColumn
     anchors.fill: parent
 
     signal done
@@ -16,7 +17,6 @@ Item {
     }
 
     Column {
-        id: mainColumn
         anchors.fill: parent
         anchors.margins: 0.1 * dpi
         spacing: 0.2 * dpi
@@ -29,7 +29,7 @@ Item {
 
             TextField {
                 id: nameField
-                width: mainColumn.width - 1 * dpi
+                width: mainColumn.width - 1.2 * dpi
 
                 maximumLength: 255
 
@@ -45,7 +45,7 @@ Item {
 
             TextArea {
                 id: abiField
-                width: mainColumn.width - 1 * dpi
+                width: mainColumn.width - 1.2 * dpi
                 wrapMode: TextEdit.WrapAnywhere
                 height: 1.0 * dpi
 
@@ -69,7 +69,7 @@ Item {
             TextArea {
                 id: bcField
                 wrapMode: TextEdit.WrapAnywhere
-                width: mainColumn.width - 1 * dpi
+                width: mainColumn.width - 1.2 * dpi
                 height: 1.0 * dpi
 
                 onTextChanged: deployButton.refresh()
@@ -87,18 +87,18 @@ Item {
 
             TextField {
                 id: errorText
-                width: mainColumn.width - 1 * dpi
+                width: mainColumn.width - 1.2 * dpi
                 readOnly: true
                 property bool ready: false
 
-                style: TextFieldStyle {
-                    textColor: "black"
-                    background: Rectangle {
-                        radius: 2
-                        border.color: errorText.ready ? "green" : "red"
-                        border.width: 1
-                    }
-                }
+//                style: TextFieldStyle {
+//                    textColor: "black"
+//                    background: Rectangle {
+//                        radius: 2
+//                        border.color: errorText.ready ? "green" : "red"
+//                        border.width: 1
+//                    }
+//                }
             }
 
         }
@@ -119,15 +119,15 @@ Item {
                 source: errorText.ready ? "/images/ok" : "/images/warning"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: deployButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: deployButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check() {
                 var result = {

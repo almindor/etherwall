@@ -1,5 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Controls 1.4 as C
 
 Item {
     Column {
@@ -56,23 +57,23 @@ Item {
             }
         }
 
-        TableView {
+        C.TableView {
             id: contractView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - controlsRow.height
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
                 width: 0.33 * parent.width
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "token"
                 title: qsTr("Token (ERC20)")
                 width: 0.2 * parent.width
             }
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "address"
                 title: qsTr("Address")
                 width: 0.45 * parent.width

@@ -18,19 +18,20 @@
  * AccountDetails window
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
-import QtQuick.Layouts 1.0
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.4
 
 Dialog {
-    modality: Qt.WindowModal
+    // modality: Qt.WindowModal
     visible: false
-    standardButtons: StandardButton.Save | StandardButton.Cancel
+    focus: true
+    standardButtons: Dialog.Save | Dialog.Cancel
     title: accountModel.selectedAccount
     width: 8 * dpi
-    height: 4 * dpi
+    height: 6 * dpi
     property int accountIndex : -1
+    anchors.centerIn: parent
 
     function display(index) {
         accountIndex = index

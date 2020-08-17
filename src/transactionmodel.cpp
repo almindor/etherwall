@@ -510,7 +510,7 @@ namespace Etherwall {
     void TransactionModel::loadHistory() {
         QSettings settings;
         if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() ) {
-            return; // don't try with empty request or on test net/ETC
+            return; // don't try with empty request or on testnet
         }
 
         // get historical transactions from etherdata

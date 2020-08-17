@@ -18,28 +18,41 @@
  * PinMatrixDialog dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Window 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 
-Window { // keep as window, since keys are needed
+Dialog { // keep as window, since keys are needed
     id: pinMatrixDialog
     title: qsTr("Enter your TREZOR pin")
+    anchors.centerIn: parent
+    focus: true
+    width: 4 * dpi
+    height: 6 * dpi
 
     property string pin : ""
     property bool accepted : false
 
-    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
-    visible: false
-    minimumWidth: 3 * dpi
-    minimumHeight: 3 * dpi
-    maximumWidth: 8 * dpi
-    maximumHeight: 8 * dpi
-    width: 4 * dpi
-    height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
+    // modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
+
+//    Component.onCompleted: {
+//        setX(Screen.width / 2.0 - width / 2.0)
+//        setY(Screen.height / 2.0 - height / 2.0)
+//    }
+
+    Keys.onPressed: {
+        if ( event.key >= Qt.Key_1 && event.key <= Qt.Key_9 ) {
+            pin += event.text
+            pinEdit.text += '*';
+        } else if ( event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete ) {
+            var l = pin.length - 1
+            pin = pin.substring(0, l)
+            pinEdit.text = pinEdit.text.substring(0, l)
+        } else if ( event.key === Qt.Key_Return || event.key === Qt.Key_Enter ) {
+            accepted = true
+            trezor.submitPin(pin)
+            pin = ""
+            pinMatrixDialog.close()
+        }
     }
 
     onVisibleChanged: {
@@ -53,7 +66,7 @@ Window { // keep as window, since keys are needed
     function display() {
         pin = ""
         pinEdit.text = ""
-        show()
+        open()
     }
 
     ListModel {
@@ -101,22 +114,6 @@ Window { // keep as window, since keys are needed
     }
 
     Column {
-        Keys.onPressed: {
-            if ( event.key >= Qt.Key_1 && event.key <= Qt.Key_9 ) {
-                pin += event.text
-                pinEdit.text += '*';
-            } else if ( event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete ) {
-                var l = pin.length - 1
-                pin = pin.substring(0, l)
-                pinEdit.text = pinEdit.text.substring(0, l)
-            } else if ( event.key === Qt.Key_Return || event.key === Qt.Key_Enter ) {
-                accepted = true
-                trezor.submitPin(pin)
-                pin = ""
-                pinMatrixDialog.close()
-            }
-        }
-
         anchors {
             left: parent.left
             right: parent.right
@@ -160,7 +157,7 @@ Window { // keep as window, since keys are needed
                 left: parent.left
                 right: parent.right
             }
-            height: pinMatrixDialog.height - pinEdit.height - submitButton.height
+            height: 4 * dpi
 
             cellWidth: width / 3.0
             cellHeight: height / 3.0

@@ -57,7 +57,7 @@ namespace Etherwall {
         }
 
         fVersion = resObj.value("version").toString("0.0.0");
-        fEndpoint = resObj.value("endpoint").toString();
+        fEndpoint = "wss://rinkeby.infura.io/ws/v3/d7ac35eadda04e9c9dfd48e8c7f92de3"; // resObj.value("endpoint").toString(); // TODO
         fWarning = resObj.value("warning").toString();
 
         if ( fWarning.isEmpty() ) {

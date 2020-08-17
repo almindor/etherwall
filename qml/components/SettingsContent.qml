@@ -1,7 +1,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
+import QtQuick.Dialogs 1.3 as D
 import QtQuick.Layouts 1.12
-import QtQuick.Dialogs 1.2
 import QtQuick.Extras 1.4
 
 Loader {
@@ -47,11 +47,12 @@ Loader {
                     left: parent.left
                 }
 
-                MessageDialog {
+                Dialog {
                     id: confirmThinClientDialog
-                    icon: StandardIcon.Warning
                     title: qsTr("Warning")
-                    text: qsTr("Changing node type requires a restart of Etherwall.")
+                    Text {
+                        text: qsTr("Changing node type requires a restart of Etherwall.")
+                    }
                 }
 
                 ToggleButton {
@@ -134,7 +135,7 @@ Loader {
                         }
                     }
 
-                    FileDialog {
+                    D.FileDialog {
                         id: ddFileDialog
                         title: qsTr("Geth data directory")
                         selectFolder: true
@@ -174,7 +175,7 @@ Loader {
                         }
                     }
 
-                    FileDialog {
+                    D.FileDialog {
                         id: gethFileDialog
                         title: qsTr("Geth executable")
                         selectFolder: false
@@ -219,11 +220,12 @@ Loader {
                     text: qsTr("Advanced settings only available in full node mode")
                 }
 
-                MessageDialog {
+                Dialog {
                     id: confirmDialogTestnet
-                    icon: StandardIcon.Warning
                     title: qsTr("Warning")
-                    text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
+                    Text {
+                        text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
+                    }
                 }
 
                 Row {
@@ -303,13 +305,16 @@ Loader {
                 Row {
                     spacing: 0.05 * dpi
 
-                    MessageDialog {
+                    Dialog {
                         id: accountRemoveDialog
                         title: qsTr("Confirm removal of all TREZOR accounts")
-                        text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
-                        standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
-                        onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
-                        onYes: accountModel.removeAccounts()
+                        standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+                        Text {
+                            text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
+                        }
+
+                        onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+                        onAccepted: accountModel.removeAccounts()
                     }
 
                     Label {

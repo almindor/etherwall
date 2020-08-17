@@ -21,7 +21,7 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.12
 import QtQuick.Layouts 1.12
-import QtQuick.Dialogs 1.2
+import QtQuick.Dialogs 1.3 as D
 import QtQuick.Window 2.12
 import "components"
 
@@ -135,11 +135,9 @@ ApplicationWindow {
             }
         }
         function onFailure(error) {
-            errorDialog.text = "TREZOR: " + error
-            errorDialog.open()
+            badge.show("TREZOR: " + error)
         }
         function onError(error) {
-            log.log(error, 3)
             errorDialog.text = "TREZOR critical error: " + error
             errorDialog.open()
         }
@@ -222,7 +220,7 @@ ApplicationWindow {
         }
     }
 
-    FileDialog {
+    D.FileDialog {
         id: exportFileDialog
         title: qsTr("Export wallet backup")
         selectFolder: false
@@ -234,7 +232,7 @@ ApplicationWindow {
         onAccepted: accountModel.exportWallet(exportFileDialog.fileUrl)
     }
 
-    FileDialog {
+    D.FileDialog {
         id: importFileDialog
         title: qsTr("Import wallet from backup")
         selectFolder: false
@@ -277,40 +275,95 @@ ApplicationWindow {
         }
     }
 
-    MessageDialog {
+    Dialog {
         id: aboutDialog
-        icon: StandardIcon.Information
-        width: 5 * dpi
+        anchors.centerIn: parent
+
+        // icon: D.StandardIcon.Information
+        width: 7 * dpi
         title: qsTr("About Etherwall")
-        standardButtons: StandardButton.Ok | StandardButton.Help
-        text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
-        detailedText: qsTr("Etherwall version: ", "about details") + Qt.application.version + "\nGeth version: " + ipc.clientVersion + "\n" + (ipc.testnet ? "Running on testnet (rinkeby)" : "")
-        onHelp: Qt.openUrlExternally("https://www.etherwall.com")
+        standardButtons: Dialog.Ok | Dialog.Help
+
+        Column {
+            Text {
+                text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
+            }
+
+            Text {
+                text: qsTr("Etherwall version: ", "about details") + Qt.application.version
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            Text {
+                text: "Geth version: " + ipc.clientVersion
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            Text {
+                text: "Chain: " + (ipc.testnet ? "Rinkeby" : "Homestead")
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+        }
+
+        onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com")
     }
 
     TrezorImportDialog {
         id: trezorImportDialog
     }
 
-    MessageDialog {
+    Dialog {
         id: errorDialog
-        modality: Qt.ApplicationModal
-        icon: StandardIcon.Critical
+        anchors.centerIn: parent
+        property string text : qsTr("Unknown Error")
+
+        standardButtons: Dialog.Ok
+        // modality: Qt.ApplicationModal
+        // icon: D.StandardIcon.Critical
         width: 5 * dpi
+
+
+        Text {
+            text: errorDialog.text
+        }
     }
 
-    MessageDialog {
+    Dialog {
         id: warningDialog
-        icon: StandardIcon.Warning
+        anchors.centerIn: parent
+
+        property string text : ""
+        // icon: D.StandardIcon.Warning
         width: 5 * dpi
         title: qsTr("Warning")
+        Text {
+            text: warningDialog.text
+        }
+        standardButtons: Dialog.Ok
 
         onAccepted: initializer.proceed()
     }
 
-    MessageDialog {
+    Dialog {
         id: versionDialog
-        icon: StandardIcon.Information
+        anchors.centerIn: parent
+
+        property string text : ""
+        property string detailedText : ""
+
+        standardButtons: Dialog.Ok
+
+        Column {
+            Text {
+                text: versionDialog.text
+            }
+
+            Text {
+                text: versionDialog.detailedText
+            }
+        }
+
+        // icon: D.StandardIcon.Information
         width: 5 * dpi
         title: qsTr("New version available")
     }
@@ -379,14 +432,6 @@ ApplicationWindow {
             SettingsTab {}
             InfoTab {}
         }
-    }
-
-    MessageDialog {
-        id: trezorDialog
-        title: "TREZOR v" + trezor.version
-        text: "TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID
-        icon: StandardIcon.Information
-        standardButtons: StandardButton.Ok
     }
 
     footer: ToolBar {
@@ -495,9 +540,7 @@ ApplicationWindow {
                 width: 32
                 enabled: trezor.initialized
 //                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
-                onClicked: {
-                    trezorDialog.open()
-                }
+                onClicked: badge.show("TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID)
             }
 
             ToolButton {

@@ -373,6 +373,7 @@ Item {
             enabled: !ipc.syncing && !ipc.closing && !ipc.starting && !ipc.busy
             width: parent.width
             height: 1.3 * dpi
+            z: 10
             text: status > -2 ? qsTr("Send") : qsTr("Input errors")
             property int status : -2
 
@@ -508,7 +509,7 @@ Item {
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
-                    errorAnimation.start()
+                    // errorAnimation.start()
                     return
                 }
 

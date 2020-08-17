@@ -18,19 +18,20 @@
  * TransactionDetails window
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Dialogs 1.2
-import QtQuick.Layouts 1.0
+import QtQuick 2.12
+import QtQuick.Controls 2.12
+import QtQuick.Layouts 1.4
 
 Dialog {
     property var transaction : empty_tx()
-    standardButtons: StandardButton.Close
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Close
+    anchors.centerIn: parent
+    // modality: Qt.WindowModal
     visible: false
     title: transaction.hash
     width: 7 * dpi
-    height: 5.5 * dpi
+    height: 8 * dpi
+    focus: true
 
     function empty_tx() {
         return { hash: "", from: "", to: "", value: "", gas: "", gasPrice: "", blockNumber: "", blockHash: "", transactionIndex: "", nonce: "", input: "" };

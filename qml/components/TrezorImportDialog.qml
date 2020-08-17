@@ -18,26 +18,29 @@
  * Trezor import dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.12
 
 Dialog {
-    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
+    // modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
     id: theDialog
+    width: 6 * dpi
     title: qsTr("Import accounts from TREZOR")
-    standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
-    onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#importaccount")
+    standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+    focus: true
+    anchors.centerIn: parent
+
+    onAccepted: accountModel.trezorImport(offsetSpin.value, countSpin.value)
+
+    onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#importaccount")
 
     function display(_msg) {
         mainLabel.text = _msg
         open()
     }
 
-    onYes: accountModel.trezorImport(offsetSpin.value, countSpin.value)
-
     Column {
-        width: 5 * dpi
+        anchors.fill: parent
         spacing: 0.2 * dpi
 
         Label {
@@ -56,8 +59,11 @@ Dialog {
 
             SpinBox {
                 id: offsetSpin
-                minimumValue: 0
-                maximumValue: 4294967295 - countSpin.value
+                validator: IntValidator {
+                    bottom: 0
+                    top: 4294967295 - countSpin.value
+                }
+
                 value: 0
             }
 
@@ -67,8 +73,10 @@ Dialog {
 
             SpinBox {
                 id: countSpin
-                minimumValue: 1
-                maximumValue: 255
+                validator: IntValidator {
+                    bottom: 1
+                    top: 255
+                }
                 value: 5
             }
         }

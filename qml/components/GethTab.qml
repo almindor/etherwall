@@ -26,6 +26,7 @@ Loader {
         id: col
         anchors.margins: 0.2 * dpi
         anchors.fill: parent
+        spacing: 0.1 * dpi
 
         Row {
             id: gethLogControlRow
@@ -39,20 +40,25 @@ Loader {
             }
         }
 
-        ScrollView {
+        GroupBox {
             anchors.left: parent.left
             anchors.right: parent.right
+            anchors.margins: 0.1 * dpi
             height: parent.height - gethLogControlRow.height
 
-            ListView {
+            ScrollView {
                 anchors.fill: parent
-                model: geth
 
-                delegate: Text {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    text: msg
-                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                ListView {
+                    anchors.fill: parent
+                    model: geth
+
+                    delegate: Text {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: msg
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    }
                 }
             }
         }

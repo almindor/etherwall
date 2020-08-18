@@ -285,7 +285,8 @@ Dialog {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
-                    // tooltip = result.error
+                    ToolTip.text = result.error
+                    ToolTip.visible = hovered
                     saveIcon.source = "/images/warning"
                     return result
                 }

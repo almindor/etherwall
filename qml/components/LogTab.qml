@@ -28,11 +28,22 @@ Loader {
         id: col
         anchors.margins: 0.2 * dpi
         anchors.fill: parent
+        spacing: 0.1 * dpi
 
         Row {
             id: logControlRow
+            spacing: 0.1 * dpi
+
+            Button {
+                id: logClipButton
+                text: "Save to clipboard"
+                onClicked: {
+                    log.saveToClipboard()
+                }
+            }
 
             Label {
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Log level: ")
             }
 
@@ -51,30 +62,27 @@ Loader {
                     ListElement { text: "Error"; value: 3 }
                 }
             }
-
-            Button {
-                id: logClipButton
-                text: "Save to clipboard"
-                onClicked: {
-                    log.saveToClipboard()
-                }
-            }
         }
 
-        ScrollView {
+        GroupBox {
             anchors.left: parent.left
             anchors.right: parent.right
+            anchors.margins: 0.1 * dpi
             height: parent.height - logControlRow.height
 
-            ListView {
+            ScrollView {
                 anchors.fill: parent
-                model: log
 
-                delegate: Text {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    text: date + "\t" + severity + "\t" + msg
-                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                ListView {
+                    anchors.fill: parent
+                    model: log
+
+                    delegate: Text {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: date + "\t" + severity + "\t" + msg
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    }
                 }
             }
         }

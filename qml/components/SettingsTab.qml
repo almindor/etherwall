@@ -26,9 +26,10 @@ Loader {
 
     SettingsContent {
         id: settingsContent
+        anchors.topMargin: 0.2 * dpi
+        anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 0.05 * dpi
-        anchors.topMargin: 0.1 * dpi
     }
 }

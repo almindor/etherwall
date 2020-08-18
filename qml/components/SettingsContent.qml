@@ -8,118 +8,91 @@ Loader {
     property bool hideTrezor: false
     property bool thinClient: ipc.thinClient
 
-    TabBar {
-        id: settingsBar
+    Column {
         anchors.left: parent.left
         anchors.right: parent.right
+        spacing: 0.2 * dpi
+        // currentIndex: settingsBar.currentIndex
 
-        TabButton {
-            text: qsTr("Basic")
-        }
-        TabButton {
-            text: qsTr("Geth")
-        }
-        TabButton {
-            text: qsTr("Advanced")
-        }
-        TabButton {
-            enabled: !hideTrezor
-            text: qsTr("TREZOR")
-        }
-    }
+        GroupBox {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.5 * dpi
 
-    StackLayout {
-        id: gethItem
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: settingsBar.bottom
-        anchors.bottom: parent.bottom
+            title: qsTr("Basics")
 
-        currentIndex: settingsBar.currentIndex
-
-        Item {
             Row {
                 spacing: 0.5 * dpi
                 anchors.margins: 0.2 * dpi
-                anchors {
-                    top: parent.top
-                    bottom: parent.bottom
-                    left: parent.left
-                }
 
-                Dialog {
-                    id: confirmThinClientDialog
-                    title: qsTr("Warning")
-                    Text {
-                        text: qsTr("Changing node type requires a restart of Etherwall.")
-                    }
-                }
-
-                ToggleButton {
+                CheckBox {
                     id: clientModeButton
-                    width: 1 * dpi
-                    text: qsTr("Thin client")
-                    checked: thinClient
+                    text: qsTr("Full node mode")
+                    checked: !thinClient
 
                     onClicked: {
-                        thinClient = clientModeButton.checked
-                        settings.setValue("geth/thinclient", clientModeButton.checked)
+                        thinClient = !clientModeButton.checked
+                        settings.setValue("geth/thinclient", !clientModeButton.checked)
 
-                        if ( clientModeButton.checked ) {
+                        if ( !clientModeButton.checked ) {
                             settings.setValue("geth/testnet", false)
                         }
 
                         if ( settings.contains("program/v2firstrun") ) {
-                            confirmThinClientDialog.open()
+                            badge.show(qsTr("Changing node type requires a restart of Etherwall."))
                         }
                     }
                 }
 
-                Column {
-                    spacing: 0.1 * dpi
-                    width: 5 * dpi
-                    height: 3 * dpi
+                Row {
+                    Label {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: qsTr("Helper currency: ")
+                    }
 
+                    ComboBox {
+                        id: defaultFiatCombo
+                        width: 1 * dpi
+                        model: currencyModel
+                        textRole: "name"
+                        currentIndex: currencyModel.helperIndex
 
-                    Row {
-                        width: parent.width
-
-                        Label {
-                            text: qsTr("Helper currency: ")
-                        }
-
-                        ComboBox {
-                            id: defaultFiatCombo
-                            width: 1 * dpi
-                            model: currencyModel
-                            textRole: "name"
-                            currentIndex: currencyModel.helperIndex
-
-                            onActivated: currencyModel.setHelperIndex(index)
-                        }
+                        onActivated: currencyModel.setHelperIndex(index)
                     }
                 }
             }
         }
 
-        Item {
+        GroupBox {
+            id: gethItem
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.5 * dpi
+
+            title: qsTr("Geth")
+
             Column {
                 anchors.margins: 0.2 * dpi
-                anchors.fill: parent
+                anchors.left: parent.left
+                anchors.right: parent.right
                 spacing: 0.1 * dpi
 
-                Row {
+                Item {
                     id: rowGethDatadir
-                    width: parent.width
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: gethDDField.height
 
                     Label {
                         id: gethDDLabel
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Geth Data Directory: "
                     }
 
                     TextField {
                         id: gethDDField
-                        width: gethItem.width - gethDDButton.width - gethDDLabel.width - 0.2 * dpi
+                        anchors.left: gethDDLabel.right
+                        anchors.right: gethDDButton.left
                         text: settings.value("geth/datadir", "")
                         onTextChanged: {
                             settings.setValue("geth/datadir", gethDDField.text)
@@ -128,6 +101,7 @@ Loader {
 
                     Button {
                         id: gethDDButton
+                        anchors.right: parent.right
                         text: qsTr("Choose")
 
                         onClicked: {
@@ -148,18 +122,22 @@ Loader {
                     }
                 }
 
-                Row {
+                Item {
                     id: rowGethPath
-                    width: parent.width
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: gethPathField.height
 
                     Label {
                         id: gethPathLabel
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Geth path: "
                     }
 
                     TextField {
                         id: gethPathField
-                        width: gethItem.width - gethPathLabel.width - gethPathButton.width - 0.2 * dpi
+                        anchors.left: gethPathLabel.right
+                        anchors.right: gethPathButton.left
                         text: settings.value("geth/path", "")
                         onTextChanged: {
                             settings.setValue("geth/path", gethPathField.text)
@@ -168,6 +146,7 @@ Loader {
 
                     Button {
                         id: gethPathButton
+                        anchors.right: parent.right
                         text: qsTr("Choose")
 
                         onClicked: {
@@ -188,18 +167,22 @@ Loader {
                     }
                 }
 
-                Row {
+                Item {
                     id: rowGethArgs
-                    width: parent.width
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: gethArgsField.height
 
                     Label {
                         id: gethArgsLabel
+                        anchors.verticalCenter: parent.verticalCenter
                         text: "Additional Geth args: "
                     }
 
                     TextField {
                         id: gethArgsField
-                        width: gethItem.width - gethArgsLabel.width - 0.2 * dpi
+                        anchors.left: gethArgsLabel.right
+                        anchors.right: parent.right
                         text: settings.value("geth/args", "--syncmode=fast --cache 512")
                         onTextChanged: {
                             settings.setValue("geth/args", gethArgsField.text)
@@ -209,15 +192,22 @@ Loader {
             }
         }
 
-        Item {
+        GroupBox {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.5 * dpi
+
+            title: qsTr("Node")
+
             Column {
                 anchors.margins: 0.2 * dpi
-                anchors.fill: parent
+                anchors.left: parent.left
+                anchors.right: parent.right
                 spacing: 0.1 * dpi
 
                 Label {
                     visible: ipc.thinClient
-                    text: qsTr("Advanced settings only available in full node mode")
+                    text: qsTr("Node settings only available in full node mode")
                 }
 
                 Dialog {
@@ -233,6 +223,7 @@ Loader {
                     width: parent.width
 
                     Label {
+                        anchors.verticalCenter: parent.verticalCenter
                         text: qsTr("Update interval (s): ")
                     }
 
@@ -252,10 +243,10 @@ Loader {
                 Row {
                     id: rowLogBlocks
                     enabled: !thinClient
-                    width: parent.width
 
                     Label {
                         id: logBlocksLabel
+                        anchors.verticalCenter: parent.verticalCenter
                         text: qsTr("Event history in blocks: ")
                     }
 
@@ -290,10 +281,16 @@ Loader {
         }
 
 
-        Item {
-            Column {
+        GroupBox {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.5 * dpi
+            visible: !hideTrezor
+
+            title: qsTr("TREZOR")
+
+            Row {
                 anchors.margins: 0.2 * dpi
-                anchors.fill: parent
                 spacing: 0.1 * dpi
 
                 Button {
@@ -302,29 +299,21 @@ Loader {
                     onClicked: trezorImportDialog.display(qsTr("Import addresses from TREZOR?"))
                 }
 
-                Row {
-                    spacing: 0.05 * dpi
-
-                    Dialog {
-                        id: accountRemoveDialog
-                        title: qsTr("Confirm removal of all TREZOR accounts")
-                        standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
-                        Text {
-                            text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
-                        }
-
-                        onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
-                        onAccepted: accountModel.removeAccounts()
+                Dialog {
+                    id: accountRemoveDialog
+                    title: qsTr("Confirm removal of all TREZOR accounts")
+                    standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+                    Text {
+                        text: qsTr("All your TREZOR accounts will be removed from Etherwall?")
                     }
 
-                    Label {
-                        text: qsTr("Clear TREZOR accounts")
-                    }
+                    onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+                    onAccepted: accountModel.removeAccounts()
+                }
 
-                    Button {
-                        text: qsTr("Clear")
-                        onClicked: accountRemoveDialog.open()
-                    }
+                Button {
+                    text: qsTr("Clear TREZOR accounts")
+                    onClicked: accountRemoveDialog.open()
                 }
             }
         }

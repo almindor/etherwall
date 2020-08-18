@@ -29,7 +29,7 @@ Dialog {
     // modality: Qt.WindowModal
     visible: false
     title: transaction.hash
-    width: 7 * dpi
+    width: 8 * dpi
     height: 8 * dpi
     focus: true
 

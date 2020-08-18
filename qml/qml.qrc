@@ -10,7 +10,7 @@
         <file>components/InputDialog.qml</file>
         <file>components/CurrencyTab.qml</file>
         <file>components/CurrencyRow.qml</file>
-        <file>components/ToolTip.qml</file>
+        <file>components/EWToolTip.qml</file>
         <file>components/GethTab.qml</file>
         <file>components/FirstTimeDialog.qml</file>
         <file>components/SettingsContent.qml</file>

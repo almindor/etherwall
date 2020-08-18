@@ -244,6 +244,7 @@ Dialog {
                 if ( result.error !== null ) {
                     errorField.text = result.error
                     ToolTip.text = result.error
+                    ToolTip.visible = hovered
                     saveIcon.source = "/images/warning"
                     errorField.ready = false
                     return result

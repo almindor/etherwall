@@ -218,7 +218,8 @@ Item {
                 width: 32
                 icon.source: "/images/gas"
                 icon.color: "transparent"
-                // tooltip: qsTr("Apply current gas price")
+                ToolTip.text: qsTr("Apply current gas price")
+                ToolTip.visible: hovered
                 onClicked: {
                     gasPriceField.text = Qt.binding(function() { return transactionModel.gasPrice })
                     var result = sendButton.refresh()
@@ -291,7 +292,8 @@ Item {
                 width: 32
                 height: 32
 
-                // tooltip: qsTr("Send all", "send all ether from account")
+                ToolTip.text: qsTr("Send all", "send all ether from account")
+                ToolTip.visible: hovered
                 onClicked: {
                     if ( tokenCombo.currentIndex > 0 ) {
                         valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
@@ -376,6 +378,7 @@ Item {
             z: 10
             text: status > -2 ? qsTr("Send") : qsTr("Input errors")
             property int status : -2
+            ToolTip.visible: hovered
 
             Image {
                 id: sendIcon
@@ -482,7 +485,7 @@ Item {
                 var result = check(accountIndex)
 
                 if ( result.error !== null ) {
-                    // tooltip = result.error
+                    ToolTip.text = result.error
                     sendIcon.source = "/images/error"
                     status = -2
                     warningField.text = result.error
@@ -492,7 +495,7 @@ Item {
                 if ( result.warning !== null ) {
                     toField.color = "brown"
                     warningField.text = result.warning
-                    // tooltip = result.warning
+                    ToolTip.text = result.warning
                     sendIcon.source = "/images/warning"
                     status = -1
                 } else {

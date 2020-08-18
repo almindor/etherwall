@@ -26,8 +26,8 @@ Dialog {
     standardButtons: Dialog.Save | Dialog.Close
     // modality: Qt.ApplicationModal
     visible: false
-    width: 7 * dpi
-    height: 5 * dpi
+    width: 9 * dpi
+    height: 9 * dpi
     focus: true
     anchors.centerIn: parent
 
@@ -37,19 +37,10 @@ Dialog {
     }
 
     Column {
-        anchors.margins: 0.1 * dpi
-        anchors.fill: parent
+        id: infoCol
+        anchors.left: parent.left
+        anchors.right: parent.right
         spacing: 0.1 * dpi
-
-        Text {
-            id: info0
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 0.1 * dpi
-            font.pixelSize: 0.16 * dpi
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Please review settings before first run.")
-        }
 
         Text {
             id: info1
@@ -69,57 +60,49 @@ Dialog {
             }
         }
 
-        Item {
-            id: info2
-            height: 0.5 * dpi
-            anchors {
-                left: parent.left
-                right: parent.right
-            }
-
-            Text {
-                visible: content.thinClient
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.margins: 0.1 * dpi
-                font.pixelSize: 0.16 * dpi
-                font.bold: true
-                textFormat: Text.RichText
-                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Thin client is recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
-                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
-                }
-            }
-
-            Text {
-                visible: !content.thinClient
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.margins: 0.1 * dpi
-                font.pixelSize: 0.16 * dpi
-                font.bold: true
-                textFormat: Text.RichText
-                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-                onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Ethereum blockchain requires at least 40GB of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
-                MouseArea {
-                    anchors.fill: parent
-                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
-                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
-                }
-            }
-        }
-
-        SettingsContent {
-            id: content
+        Text {
+            visible: content.thinClient
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 3 * dpi
-            hideTrezor: true
+            anchors.margins: 0.1 * dpi
+            font.pixelSize: 0.16 * dpi
+            font.bold: true
+            textFormat: Text.RichText
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            onLinkActivated: Qt.openUrlExternally(link)
+            text: qsTr("Full node mode is not recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+            }
         }
+
+        Text {
+            visible: !content.thinClient
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.1 * dpi
+            font.pixelSize: 0.16 * dpi
+            font.bold: true
+            textFormat: Text.RichText
+            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            onLinkActivated: Qt.openUrlExternally(link)
+            text: qsTr("Ethereum blockchain requires a ludicrous amount of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+            }
+        }
+    }
+
+    SettingsContent {
+        id: content
+        anchors.top: infoCol.bottom
+        anchors.topMargin: 0.2 * dpi
+        anchors.left: parent.left
+        anchors.right: parent.right
+        hideTrezor: true
     }
 }

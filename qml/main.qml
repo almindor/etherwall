@@ -440,6 +440,7 @@ ApplicationWindow {
 
         Row {
             id: leftButtonsRow
+
             ToolButton {
                 id: blockButton
                 height: 32
@@ -447,8 +448,10 @@ ApplicationWindow {
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 icon.source: "/images/block"
                 icon.color: "transparent"
-//                ToolTip.visible: down
-//                ToolTip.text: qsTr("Block number: ") + transactionModel.blockNumber
+                hoverEnabled: true
+                ToolTip.text: qsTr("Block number: ") + transactionModel.blockNumber
+                ToolTip.visible: hovered
+
                 onClicked: {
                     blockField.visible = !blockField.visible
 
@@ -474,7 +477,8 @@ ApplicationWindow {
                 enabled: parent.enabled && (ipc.connectionState > 0)
                 icon.source: "/images/gas"
                 icon.color: "transparent"
-//                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
+                ToolTip.text: qsTr("Gas price: ") + transactionModel.gasPrice
+                ToolTip.visible: hovered
                 onClicked: {
                     gasField.visible = !gasField.visible
 
@@ -535,11 +539,12 @@ ApplicationWindow {
 
             ToolButton {
                 icon.source: "/images/trezor"
-                icon.color: "transparent"
+                // icon.color: trezor.ini ? "gray" : "transparent"
+                enabled: trezor.initialized
                 height: 32
                 width: 32
-                enabled: trezor.initialized
-//                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
+                ToolTip.text: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
+                ToolTip.visible: hovered
                 onClicked: badge.show("TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID)
             }
 
@@ -579,7 +584,8 @@ ApplicationWindow {
                 height: 32
                 width: 32
                 enabled: !ipc.starting
-//                tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
+                ToolTip.text: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
+                ToolTip.visible: hovered
                 onClicked: {
                     badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
                 }

@@ -200,8 +200,8 @@ namespace Trezor {
         Wire::Message msg_wire;
         msg_wire.id = type;
         msg_wire.index = index;
-        msg_wire.data = std::vector<uint8_t>(msg.ByteSize());
-        if ( !msg.SerializeToArray(msg_wire.data.data(), msg.ByteSize()) ) {
+        msg_wire.data = std::vector<uint8_t>(msg.ByteSizeLong());
+        if ( !msg.SerializeToArray(msg_wire.data.data(), msg.ByteSizeLong()) ) {
             bail("Could not serialize getAddress msg");
             return msg_wire;
         }
@@ -389,7 +389,7 @@ namespace Trezor {
             return;
         }
 
-        if ( fWorker.getIndex() < 0 ) {
+        if ( fWorker.getIndex().toInt() < 0 ) {
             bail("Address index lost on reply");
             return;
         }

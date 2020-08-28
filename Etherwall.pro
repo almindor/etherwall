@@ -14,7 +14,8 @@ linux {
 
 win32 {
     INCLUDEPATH += C:\MinGW\msys\1.0\local\include
-    LIBS += C:\MinGW\msys\1.0\local\lib\libprotobuf.a C:\MinGW\msys\1.0\local\lib\libhidapi.a C:\MinGW\msys\1.0\local\lib\libusb-1.0.a -lhid -lsetupapi -lws2_32
+    # PKGCONFIG += hidapi libusb-1.0 protobuf libudev
+    LIBS += -lprotobuf -lusb-1.0 -lhidapi -lsetupapi -lws2_32
     RC_ICONS = icon.ico
 }
 

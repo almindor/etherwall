@@ -39,22 +39,6 @@ Dialog { // keep as window, since keys are needed
 //        setY(Screen.height / 2.0 - height / 2.0)
 //    }
 
-    Keys.onPressed: {
-        if ( event.key >= Qt.Key_1 && event.key <= Qt.Key_9 ) {
-            pin += event.text
-            pinEdit.text += '*';
-        } else if ( event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete ) {
-            var l = pin.length - 1
-            pin = pin.substring(0, l)
-            pinEdit.text = pinEdit.text.substring(0, l)
-        } else if ( event.key === Qt.Key_Return || event.key === Qt.Key_Enter ) {
-            accepted = true
-            trezor.submitPin(pin)
-            pin = ""
-            pinMatrixDialog.close()
-        }
-    }
-
     onVisibleChanged: {
         if ( !visible && !accepted ) {
             trezor.cancel()
@@ -114,6 +98,23 @@ Dialog { // keep as window, since keys are needed
     }
 
     Column {
+        Keys.onPressed: {
+            if ( event.key >= Qt.Key_1 && event.key <= Qt.Key_9 ) {
+                pin += event.text
+                pinEdit.text += '*';
+            } else if ( event.key === Qt.Key_Backspace || event.key === Qt.Key_Delete ) {
+                var l = pin.length - 1
+                pin = pin.substring(0, l)
+                pinEdit.text = pinEdit.text.substring(0, l)
+            } else if ( event.key === Qt.Key_Return || event.key === Qt.Key_Enter ) {
+                accepted = true
+                trezor.submitPin(pin)
+                pin = ""
+                pinMatrixDialog.close()
+            }
+        }
+
+
         anchors {
             left: parent.left
             right: parent.right

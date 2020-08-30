@@ -27,7 +27,7 @@ Dialog {
     standardButtons: Dialog.Cancel
     // modality: Qt.WindowModal
     visible: false
-    width: 7 * dpi
+    width: 8 * dpi
     height: 7 * dpi
     focus: true
     anchors.centerIn: parent

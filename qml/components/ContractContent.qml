@@ -30,27 +30,29 @@ Item {
                 id: addButton
                 text: qsTr("Add Existing Contract")
                 width: parent.width / 2.0
-                height: parent.height / 2.0
+                height: parent.height / 2.0 - 0.025 * dpi
 
                 onClicked: details.display(-1)
             }
 
             Button {
                 id: deployButton
+                anchors.topMargin: 0.05 * dpi
                 text: qsTr("Deploy New Contract")
                 anchors.top: addButton.bottom
                 width: parent.width / 2.0
-                height: parent.height / 2.0
+                height: parent.height / 2.0 - 0.025 * dpi
 
                 onClicked: deploy.display()
             }
 
             Button {
                 id: invokeButton
+                anchors.leftMargin: 0.05 * dpi
                 anchors.left: addButton.right
                 text: qsTr("Invoke ") + contractModel.getName(contractView.currentRow)
                 visible: contractView.currentRow >= 0
-                width: parent.width / 2.0
+                width: parent.width / 2.0 - 0.05 * dpi
                 height: parent.height
 
                 onClicked: calls.display(contractView.currentRow)

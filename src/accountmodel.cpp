@@ -240,7 +240,7 @@ namespace Etherwall {
     {
         beginResetModel();
         QSettings settings;
-        const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix(); // settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
+        const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts");
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();

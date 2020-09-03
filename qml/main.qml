@@ -303,6 +303,11 @@ ApplicationWindow {
                 text: "Chain: " + (ipc.testnet ? "Rinkeby" : "Homestead")
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
             }
+
+            Text {
+                text: "Node Endpoint: " + ipc.endpoint
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
         }
 
         onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com")

@@ -4,6 +4,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QApplication>
+#include <QSettings>
 
 namespace Etherwall {
 
@@ -46,6 +47,7 @@ namespace Etherwall {
 
     void Initializer::httpRequestDone(QNetworkReply *reply)
     {
+        QSettings settings;
         QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
         const bool success = resObj.value("success").toBool(false);
 
@@ -56,8 +58,10 @@ namespace Etherwall {
             return;
         }
 
+        const QString customRemoteURL = settings.value("geth/custom", false).toBool() ? settings.value("geth/remoteURL", "").toString() : "";
+
         fVersion = resObj.value("version").toString("0.0.0");
-        fEndpoint = "wss://rinkeby.infura.io/ws/v3/d7ac35eadda04e9c9dfd48e8c7f92de3"; // resObj.value("endpoint").toString(); // TODO
+        fEndpoint = customRemoteURL.isEmpty() ? resObj.value("endpoint").toString() : customRemoteURL;
         fWarning = resObj.value("warning").toString();
 
         if ( fWarning.isEmpty() ) {

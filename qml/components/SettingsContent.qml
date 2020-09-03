@@ -7,6 +7,7 @@ import QtQuick.Extras 1.4
 Loader {
     property bool hideTrezor: false
     property bool thinClient: ipc.thinClient
+    property bool customNode: settings.valueBool("geth/custom", false)
 
     Column {
         anchors.left: parent.left
@@ -15,39 +16,23 @@ Loader {
         // currentIndex: settingsBar.currentIndex
 
         GroupBox {
+            id: gethItem
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.margins: 0.5 * dpi
 
             title: qsTr("Basics")
 
-            Row {
-                spacing: 0.5 * dpi
+            Column {
                 anchors.margins: 0.2 * dpi
-
-                CheckBox {
-                    id: clientModeButton
-                    text: qsTr("Full node mode")
-                    checked: !thinClient
-
-                    onClicked: {
-                        thinClient = !clientModeButton.checked
-                        settings.setValue("geth/thinclient", !clientModeButton.checked)
-
-                        if ( !clientModeButton.checked ) {
-                            settings.setValue("geth/testnet", false)
-                        }
-
-                        if ( settings.contains("program/v2firstrun") ) {
-                            badge.show(qsTr("Changing node type requires a restart of Etherwall."))
-                        }
-                    }
-                }
+                anchors.left: parent.left
+                anchors.right: parent.right
+                spacing: 0.1 * dpi
 
                 Row {
                     Label {
                         anchors.verticalCenter: parent.verticalCenter
-                        text: qsTr("Helper currency: ")
+                        text: qsTr("Fiat currency: ")
                     }
 
                     ComboBox {
@@ -60,22 +45,6 @@ Loader {
                         onActivated: currencyModel.setHelperIndex(index)
                     }
                 }
-            }
-        }
-
-        GroupBox {
-            id: gethItem
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 0.5 * dpi
-
-            title: qsTr("Geth")
-
-            Column {
-                anchors.margins: 0.2 * dpi
-                anchors.left: parent.left
-                anchors.right: parent.right
-                spacing: 0.1 * dpi
 
                 Item {
                     id: rowGethDatadir
@@ -205,22 +174,35 @@ Loader {
                 anchors.right: parent.right
                 spacing: 0.1 * dpi
 
-                Label {
-                    visible: ipc.thinClient
-                    text: qsTr("Node settings only available in full node mode")
-                }
+                CheckBox {
+                    id: customNodeCheck
+                    text: qsTr("Custom Node")
+                    checked: customNode
 
-                Dialog {
-                    id: confirmDialogTestnet
-                    title: qsTr("Warning")
-                    Text {
-                        text: qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally).")
+                    onClicked: {
+                        customNode = customNodeCheck.checked
+
+                        console.error("geth/custom to: ", customNode)
+                        settings.setValue("geth/custom", customNode)
+
+                        if ( !customNode ) {
+                            settings.setValue("geth/testnet", false)
+                            settings.setValue("geth/thinclient", true)
+                            thinClient = true
+                        } else {
+                            thinClient = settings.contains("geth/remoteURL")
+                        }
+
+                        if ( settings.contains("program/v2firstrun") ) {
+                            badge.show(qsTr("Changing node type requires a restart of Etherwall."))
+                        }
                     }
                 }
 
                 Row {
-                    enabled: !thinClient
+                    enabled: customNode
                     width: parent.width
+                    spacing: 0.1 * dpi
 
                     Label {
                         anchors.verticalCenter: parent.verticalCenter
@@ -238,11 +220,6 @@ Loader {
                         value: settings.value("ipc/interval", 10)
                         onValueChanged: ipc.setInterval(intervalSpinBox.value * 1000)
                     }
-                }
-
-                Row {
-                    id: rowLogBlocks
-                    enabled: !thinClient
 
                     Label {
                         id: logBlocksLabel
@@ -263,17 +240,72 @@ Loader {
                             filterModel.loadLogs()
                         }
                     }
+
+                    CheckBox {
+                        id: gethTestnetCheck
+                        enabled: customNode
+                        checked: ipc.testnet
+                        text: qsTr("Testnet (rinkeby)")
+                        onClicked: {
+                            settings.setValue("geth/testnet", gethTestnetCheck.checked)
+                            if ( settings.contains("program/v2firstrun") ) {
+                                badge.show(qsTr("Changing the chain requires a restart of Etherwall (and geth if running externally)."))
+                            }
+                        }
+                    }
                 }
 
-                CheckBox {
-                    id: gethTestnetCheck
-                    enabled: !thinClient
-                    checked: settings.valueBool("geth/testnet", false)
-                    text: qsTr("Testnet (rinkeby)")
-                    onClicked: {
-                        settings.setValue("geth/testnet", gethTestnetCheck.checked)
-                        if ( settings.contains("program/v2firstrun") ) {
-                            confirmDialogTestnet.open()
+                Item {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    height: remoteNodeOverride.height
+                    enabled: customNode
+
+                    Label {
+                        id: remoteLabel
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: qsTr("Remote Node URL: ")
+                    }
+
+                    ComboBox {
+                        property var wssRegExp: /^wss:\/\/(?:\S+(?::\S*)?@|\d{1,3}(?:\.\d{1,3}){3}|(?:(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)(?:\.(?:[a-z\d\x{00a1}-\x{ffff}]+-?)*[a-z\d\x{00a1}-\x{ffff}]+)*(?:\.[a-z\x{00a1}-\x{ffff}]{2,6}))(?::\d+)?(?:[^\s]*)?$/
+                        id: remoteNodeOverride
+                        anchors.left: remoteLabel.right
+                        anchors.right: parent.right
+                        editable: currentIndex > 0
+                        validator: RegExpValidator {
+                            regExp: remoteNodeOverride.wssRegExp
+                        }
+
+                        model: ["Local Geth", settings.value("geth/remoteURL", "wss://")]
+
+                        currentIndex: settings.valueBool("geth/thinclient", false) ? 1 : 0
+
+                        onActivated: {
+                            if (index == 0) {
+                                thinClient = false
+                                settings.setValue("geth/thinclient", false)
+
+                                if ( settings.contains("program/v2firstrun") ) {
+                                    badge.show(qsTr("Changing remote node url requires a restart of Etherwall."))
+                                }
+                            } else {
+                                focus = true
+                                if (editText.match(wssRegExp)) {
+                                    settings.setValue("geth/thinclient", true)
+                                    settings.setValue("geth/remoteURL", editText)
+                                }
+                            }
+                        }
+
+                        onAccepted: {
+                            model = ["Local Geth", editText]
+                            settings.setValue("geth/thinclient", true)
+                            settings.setValue("geth/remoteURL", editText)
+
+                            if ( settings.contains("program/v2firstrun") ) {
+                                badge.show(qsTr("Changing remote node url requires a restart of Etherwall."))
+                            }
                         }
                     }
                 }

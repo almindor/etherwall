@@ -509,7 +509,7 @@ namespace Etherwall {
 
     void TransactionModel::loadHistory() {
         QSettings settings;
-        if ( fAccountModel.rowCount() == 0 || settings.value("geth/testnet", false).toBool() ) {
+        if ( fAccountModel.rowCount() == 0 || fIpc.chainManager().testnet() ) {
             return; // don't try with empty request or on testnet
         }
 

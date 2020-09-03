@@ -84,9 +84,6 @@ int main(int argc, char *argv[])
         settings.setValue("geth/datadir", dataPath);
     }
 
-    // TODO
-    settings.setValue("geth/thinclient", true);
-
     ClipboardAdapter clipboard;
     EtherLogApp log; // important to be first (apart from clipboard)
     NodeManager nodeManager;

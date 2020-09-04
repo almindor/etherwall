@@ -36,7 +36,7 @@
 
 namespace Etherwall {
 
-    class AccountModel : public QAbstractListModel
+    class AccountModel : public QAbstractTableModel
     {
         Q_OBJECT
         Q_PROPERTY(int selectedAccountRow READ getSelectedAccountRow WRITE setSelectedAccountRow NOTIFY accountSelectionChanged)
@@ -55,6 +55,7 @@ namespace Etherwall {
         QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
         const QJsonArray getAccountsJsonArray() const;

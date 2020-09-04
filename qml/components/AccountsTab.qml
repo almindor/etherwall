@@ -20,15 +20,15 @@
 
 import QtQuick 2.12
 import QtQuick.Dialogs 1.3 as D
-import QtQuick.Controls 1.4 as C
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Universal 2.12
 import QtQuick.Layouts 1.12
 import AccountProxyModel 0.1
 
 Loader {
     id: accountsTab
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    property bool show_hashes: false
+    // property bool show_hashes: false
 
     Column {
         id: col
@@ -40,7 +40,7 @@ Loader {
             id: rowHeader
             anchors.left: parent.left
             anchors.right: parent.right
-            height: newAccountButton.height
+            height: newAccountButton.height + 0.1 * dpi
             Button {
                 id: newAccountButton
                 anchors.verticalCenter: parent.verticalCenter
@@ -52,16 +52,16 @@ Loader {
                 }
             }
 
-            CheckBox {
-                id: showHashButton
-                anchors.left: newAccountButton.right
-                anchors.leftMargin: 0.01 * dpi
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Show Hashes")
-                onClicked: {
-                    show_hashes = !show_hashes
-                }
-            }
+//            CheckBox {
+//                id: showHashButton
+//                anchors.left: newAccountButton.right
+//                anchors.leftMargin: 0.01 * dpi
+//                anchors.verticalCenter: parent.verticalCenter
+//                text: qsTr("Show Hashes")
+//                onClicked: {
+//                    show_hashes = !show_hashes
+//                }
+//            }
 
             Label {
                 id: tokenLabel
@@ -185,39 +185,54 @@ Loader {
             id: accountDetails
         }
 
-        C.TableView {
+        HorizontalHeaderView {
+            syncView: accountView
+            model: ["D", "T", "Alias", "Hash", "Balance"]
+        }
+
+        TableView {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - newAccountButton.height - parent.spacing
+            implicitHeight: parent.height - newAccountButton.height - parent.spacing
+            onWidthChanged: forceLayout()
+            columnWidthProvider: function (column) {
+                switch (column) {
+                    case 0: return 0.2 * dpi
+                    case 1: return 0.2 * dpi
+                    case 2: return width - 7.4 * dpi
+                    case 3: return 4.5 * dpi
+                    case 4: return 2.5 * dpi
+                }
 
-            C.TableViewColumn {
-                role: "default"
-                title: "☑"
-                width: 0.3 * dpi
-                resizable: false
-                horizontalAlignment: Text.AlignHCenter
+                return 0
             }
 
-            C.TableViewColumn {
-                role: "deviceType"
-                title: " ⊡"
-                width: 0.3 * dpi
-                resizable: false
-                horizontalAlignment: Text.AlignLeft
-            }
+            property int currentRow: -1
 
-            C.TableViewColumn {
-                role: show_hashes ? "hash" : "alias"
-                title: qsTr("Account")
-                width: parent.width * 0.6
-            }
+            delegate: Rectangle {
+                implicitWidth: cellText.width + 0.2 * dpi
+                implicitHeight: 0.75 * dpi
+                color: row === accountView.currentRow ? Universal.baseLowColor : Universal.altLowColor
+                border {
+                    color: Universal.chromeBlackLowColor
+                    width: 1
+                }
 
-            C.TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "balance"
-                title: qsTr("Balance ") + "(" + (accountModel.currentToken === "ETH" ? currencyModel.currencyName : accountModel.currentToken) + ")"
-                width: parent.width * 0.31
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: accountView.currentRow = row
+                    onDoubleClicked: if ( accountView.currentRow >= 0 ) {
+                        accountModel.selectedAccountRow = accountView.currentRow
+                        accountDetails.open(accountView.currentRow)
+                    }
+                }
+
+                Text {
+                    id: cellText
+                    anchors.centerIn: parent
+                    text: display
+                }
             }
 
             // TODO: fix selection for active row first
@@ -286,13 +301,6 @@ Loader {
                     enabled: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to QR Code")
                     onTriggered: qrExportDialog.display(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
-                }
-            }
-
-            onDoubleClicked: {
-                if ( accountView.currentRow >= 0 ) {
-                    accountModel.selectedAccountRow = accountView.currentRow
-                    accountDetails.open(accountView.currentRow)
                 }
             }
 

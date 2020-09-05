@@ -19,7 +19,6 @@
  */
 
 import QtQuick 2.12
-// import QtQuick.Dialogs 1.3 as D
 import Qt.labs.platform 1.0
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Universal 2.12
@@ -52,17 +51,6 @@ Loader {
                     accountNewDialog.open()
                 }
             }
-
-//            CheckBox {
-//                id: showHashButton
-//                anchors.left: newAccountButton.right
-//                anchors.leftMargin: 0.01 * dpi
-//                anchors.verticalCenter: parent.verticalCenter
-//                text: qsTr("Show Hashes")
-//                onClicked: {
-//                    show_hashes = !show_hashes
-//                }
-//            }
 
             Label {
                 id: tokenLabel
@@ -169,10 +157,6 @@ Loader {
 
         FolderDialog {
             id: fileExportDialog
-//            selectFolder: true
-//            selectExisting: true
-//            selectMultiple: false
-//            folder: shortcuts.documents
             onAccepted: {
                 if ( accountModel.exportAccount(folder, accountView.currentRow) ) {
                     appWindow.showBadge(qsTr("Account ") + accountModel.selectedAccount + qsTr(" saved to ") + helpers.localURLToString(folder))

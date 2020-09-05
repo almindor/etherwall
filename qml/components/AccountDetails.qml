@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.4
 
 Dialog {
@@ -67,6 +67,16 @@ Dialog {
         TextField {
             id: aliasField
             text: accountModel.selectedAccountAlias
+            Layout.minimumWidth: detailLayout.width * 0.75
+        }
+
+        Label {
+            text: qsTr("Balance: ")
+        }
+
+        TextField {
+            id: balanceField
+            text: accountModel.selectedAccountBalance
             Layout.minimumWidth: detailLayout.width * 0.75
         }
 

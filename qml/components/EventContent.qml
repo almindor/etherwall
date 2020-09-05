@@ -1,6 +1,6 @@
 import QtQuick 2.12
 import QtQuick.Controls 1.4 as C
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
 
 Item {
     Column {

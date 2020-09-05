@@ -21,7 +21,7 @@
 #ifndef ACCOUNTMODEL_H
 #define ACCOUNTMODEL_H
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -43,6 +43,7 @@ namespace Etherwall {
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
         Q_PROPERTY(bool selectedAccountDefault READ getSelectedAccountDefault NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountAlias READ getSelectedAccountAlias NOTIFY accountSelectionChanged)
+        Q_PROPERTY(QString selectedAccountBalance READ getSelectedAccountBalance NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountDeviceID READ getSelectedAccountDeviceID NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountHDPath READ getSelectedAccountHDPath NOTIFY accountSelectionChanged)
         Q_PROPERTY(quint64 selectedAccountSentTrans READ getSelectedAccountSentTrans NOTIFY accountSelectionChanged)
@@ -64,6 +65,7 @@ namespace Etherwall {
         int size() const;
         void refreshAccounts();
         const QString getSelectedAccountAlias() const;
+        const QString getSelectedAccountBalance() const;
         quint64 getSelectedAccountSentTrans() const;
         const QString getSelectedAccountDeviceID() const;
         const QString getSelectedAccountHDPath() const;

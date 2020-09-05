@@ -23,7 +23,7 @@
 #define TRANSACTIONMODEL_H
 
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
@@ -34,7 +34,7 @@
 
 namespace Etherwall {
 
-    class TransactionModel : public QAbstractListModel
+    class TransactionModel : public QAbstractTableModel
     {
         Q_OBJECT
         Q_PROPERTY(quint64 firstBlock READ getFirstBlock NOTIFY blockNumberChanged)
@@ -51,6 +51,7 @@ namespace Etherwall {
         const QString& getGasEstimate() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        Q_INVOKABLE virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         int containsTransaction(const QString& hash);
 

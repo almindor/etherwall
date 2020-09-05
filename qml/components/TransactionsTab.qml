@@ -19,8 +19,8 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Controls 1.4 as C
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Universal 2.12
 
 Loader {
     id: transactionsTab
@@ -49,39 +49,81 @@ Loader {
             onClicked: sendDialog.display()
         }
 
-        C.TableView {
+        HorizontalHeaderView {
+            syncView: transactionView
+            model: ["Block#", "Sender", "Receiver", "Value"]
+        }
+
+        TableView {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - sendButton.height
+            onWidthChanged: forceLayout()
+            columnWidthProvider: function (column) {
+                switch (column) {
+                    case 0: return 1 * dpi
+                    case 1: return 4.5 * dpi
+                    case 2: return 4.5 * dpi
+                    case 3: return width - 10 * dpi
+                }
 
-            C.TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "blocknumber"
-                title: qsTr("Block#")
-                width: parent.width * 0.1
+                return 0
             }
-            C.TableViewColumn {
-                role: "senderalias"
-                title: qsTr("Sender")
-                width: parent.width * 0.28
+
+            property int currentRow: -1
+
+            delegate: Rectangle {
+                implicitWidth: cellText.width + 0.2 * dpi
+                implicitHeight: 0.5 * dpi
+                color: row === transactionView.currentRow ? Universal.baseLowColor : Universal.altLowColor
+                border {
+                    color: Universal.chromeBlackLowColor
+                    width: 1
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: transactionView.currentRow = row
+                    onDoubleClicked: if ( transactionView.currentRow >= 0 ) {
+                        details.display(transactionModel.getJson(transactionView.currentRow, true))
+                    }
+                }
+
+                Text {
+                    id: cellText
+                    anchors.centerIn: parent
+                    text: display
+                }
             }
-            C.TableViewColumn {
-                role: "receiveralias"
-                title: qsTr("Receiver")
-                width: parent.width * 0.28
-            }
-            C.TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "value"
-                title: qsTr("Value (Ether)")
-                width:  parent.width * 0.2
-            }
-            C.TableViewColumn {
-                role: "depth"
-                title: qsTr("Depth")
-                width:  parent.width * 0.1
-            }
+
+//            C.TableViewColumn {
+//                horizontalAlignment: Text.AlignRight
+//                role: "blocknumber"
+//                title: qsTr("Block#")
+//                width: parent.width * 0.1
+//            }
+//            C.TableViewColumn {
+//                role: "senderalias"
+//                title: qsTr("Sender")
+//                width: parent.width * 0.28
+//            }
+//            C.TableViewColumn {
+//                role: "receiveralias"
+//                title: qsTr("Receiver")
+//                width: parent.width * 0.28
+//            }
+//            C.TableViewColumn {
+//                horizontalAlignment: Text.AlignRight
+//                role: "value"
+//                title: qsTr("Value (Ether)")
+//                width:  parent.width * 0.2
+//            }
+//            C.TableViewColumn {
+//                role: "depth"
+//                title: qsTr("Depth")
+//                width:  parent.width * 0.1
+//            }
             model: transactionModel
 
             Menu {
@@ -121,12 +163,6 @@ Loader {
                     onTriggered: {
                         clipboard.setText(transactionModel.getReceiver(transactionView.currentRow))
                     }
-                }
-            }
-
-            onDoubleClicked: {
-                if ( transactionView.currentRow >= 0 ) {
-                    details.display(transactionModel.getJson(transactionView.currentRow, true))
                 }
             }
 

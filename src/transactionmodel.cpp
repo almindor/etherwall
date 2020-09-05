@@ -47,7 +47,7 @@ namespace Etherwall {
     }
 
     TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
-        QAbstractListModel(nullptr), fIpc(ipc), fAccountModel(accountModel),
+        QAbstractTableModel(nullptr), fIpc(ipc), fAccountModel(accountModel),
         fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("0"), fGasEstimate("0"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
@@ -94,6 +94,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> TransactionModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole] = "display";
         roles[THashRole] = "hash";
         roles[NonceRole] = "nonce";
         roles[SenderRole] = "sender";
@@ -116,8 +117,26 @@ namespace Etherwall {
         return fTransactionList.size();
     }
 
+    int TransactionModel::columnCount(const QModelIndex &parent) const
+    {
+        Q_UNUSED(parent);
+        return 4;
+    }
+
     QVariant TransactionModel::data(const QModelIndex & index, int role) const {
         const int row = index.row();
+
+        if ( role == Qt::DisplayRole ) {
+            switch (index.column()) {
+                case 0: return fTransactionList.at(row).getBlockNumber();
+                case 1: return fTransactionList.at(row).value(SenderAliasRole);
+                case 2: return fTransactionList.at(row).value(ReceiverAliasRole);
+                case 3: return fTransactionList.at(row).getValueFixed(2);
+                // case 4: return fTransactionList.at(row).value(DepthRole);
+            }
+
+            return "?";
+        }
 
         // calculate distance from current block
         if ( role == DepthRole ) {
@@ -150,7 +169,8 @@ namespace Etherwall {
         fIpc.getGasPrice();
     }
 
-    void TransactionModel::getAccountsDone(const QStringList& list __attribute__((unused))) {
+    void TransactionModel::getAccountsDone(const QStringList& list) {
+        Q_UNUSED(list);
         refresh();
         loadHistory();
     }
@@ -168,8 +188,8 @@ namespace Etherwall {
         emit blockNumberChanged(num);
 
         if ( !fTransactionList.isEmpty() ) { // depth changed for all
-            const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 5);
-            const QModelIndex& rightIndex = QAbstractListModel::createIndex(fTransactionList.length() - 1, 5);
+            const QModelIndex& leftIndex = QAbstractTableModel::createIndex(0, 5);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(fTransactionList.length() - 1, 5);
             emit dataChanged(leftIndex, rightIndex, QVector<int>(1, DepthRole));
         }
     }
@@ -237,8 +257,8 @@ namespace Etherwall {
             const int n = containsTransaction(info.value(THashRole).toString());
             if ( n >= 0 ) { // ours
                 fTransactionList[n] = info;
-                const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 14);
+                const QModelIndex& leftIndex = QAbstractTableModel::createIndex(n, 0);
+                const QModelIndex& rightIndex = QAbstractTableModel::createIndex(n, 14);
                 emit dataChanged(leftIndex, rightIndex);
                 storeTransaction(fTransactionList.at(n));
             } else { // external from someone to us
@@ -270,8 +290,8 @@ namespace Etherwall {
             const int n = containsTransaction(thash);
             if ( n >= 0 ) {
                 fTransactionList[n].init(to);
-                const QModelIndex& leftIndex = QAbstractListModel::createIndex(n, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(n, 14);
+                const QModelIndex& leftIndex = QAbstractTableModel::createIndex(n, 0);
+                const QModelIndex& rightIndex = QAbstractTableModel::createIndex(n, 14);
                 QVector<int> roles(2);
                 roles[0] = BlockNumberRole;
                 roles[1] = DepthRole;
@@ -426,7 +446,7 @@ namespace Etherwall {
         if ( row < 0 || row >= fAccountModel.size() ) {
             return "0";
         }
-        const QModelIndex index = QAbstractListModel::createIndex(row, 2);
+        const QModelIndex index = QAbstractTableModel::createIndex(row, 2);
 
         BigInt::Rossi balanceWeiRossi = Helpers::etherStrToRossi( fAccountModel.data(index, BalanceRole).toString() );
         const BigInt::Rossi gasRossi = Helpers::decStrToRossi(gas);
@@ -455,8 +475,8 @@ namespace Etherwall {
         QVector<int> roles(2);
         roles[0] = SenderRole;
         roles[1] = ReceiverRole;
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(fTransactionList.size(), 0);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(0, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(fTransactionList.size(), 0);
 
         emit dataChanged(leftIndex, rightIndex, roles);
     }

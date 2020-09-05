@@ -86,7 +86,7 @@ namespace Etherwall {
                 case 1: return fAccountList.at(row).value(DeviceTypeRole);
                 case 2: return fAccountList.at(row).alias();
                 case 3: return fAccountList.at(row).hash();
-                case 4: return fAccountList.at(row).value(BalanceRole);
+                case 4: return fAccountList.at(row).getBalanceFixed(2);
             }
 
             return "?";
@@ -318,6 +318,15 @@ namespace Etherwall {
         }
 
         return fAccountList.at(fSelectedAccountRow).alias();
+    }
+
+    const QString AccountModel::getSelectedAccountBalance() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return QString();
+        }
+
+        return fAccountList.at(fSelectedAccountRow).value(BalanceRole).toString();
     }
 
     quint64 AccountModel::getSelectedAccountSentTrans() const

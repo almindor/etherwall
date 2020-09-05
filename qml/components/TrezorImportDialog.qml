@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
     // modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug

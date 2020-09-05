@@ -19,7 +19,7 @@
  */
 
 import QtQuick 2.12
-import QtQuick.Controls 2.12
+import QtQuick.Controls 2.15
 
 Dialog { // keep as window, since keys are needed
     id: pinMatrixDialog

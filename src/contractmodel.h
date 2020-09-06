@@ -22,7 +22,7 @@
 #define CONTRACTMODEL_H
 
 #include <QObject>
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include <QNetworkAccessManager>
 #include <QVariantList>
 #include <QVariantMap>
@@ -42,7 +42,7 @@ namespace Etherwall {
 
     typedef QMap<QString, PendingContract> PendingContracts;
 
-    class ContractModel : public QAbstractListModel
+    class ContractModel : public QAbstractTableModel
     {
         Q_OBJECT
         Q_PROPERTY(bool busy MEMBER fBusy NOTIFY busyChanged)
@@ -51,6 +51,7 @@ namespace Etherwall {
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        Q_INVOKABLE virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         Q_INVOKABLE bool addContract(const QString& name, const QString& address, const QString& abi);
         Q_INVOKABLE bool addPendingContract(const QString& name, const QString& abi, const QString& hash);

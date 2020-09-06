@@ -1,13 +1,12 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.15
-import QtQuick.Controls 1.4 as C
+import QtQuick.Controls.Universal 2.12
 
-Item {
+Loader {
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         ContractDetails {
             id: details
@@ -59,32 +58,58 @@ Item {
             }
         }
 
-        C.TableView {
+        HorizontalHeaderView {
+            syncView: contractView
+            model: ["Name", "Token (ERC20)", "Address"]
+        }
+
+        TableView {
             id: contractView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - controlsRow.height
+            onWidthChanged: forceLayout()
+            columnWidthProvider: function (column) {
+                switch (column) {
+                    case 0: return width - 9 * dpi
+                    case 1: return 4 * dpi
+                    case 2: return 5 * dpi
+                }
 
-            C.TableViewColumn {
-                role: "name"
-                title: qsTr("Name")
-                width: 0.33 * parent.width
+                return 0
             }
-            C.TableViewColumn {
-                role: "token"
-                title: qsTr("Token (ERC20)")
-                width: 0.2 * parent.width
-            }
-            C.TableViewColumn {
-                role: "address"
-                title: qsTr("Address")
-                width: 0.45 * parent.width
+
+            property int currentRow: -1
+
+            delegate: Rectangle {
+                implicitWidth: cellText.width + 0.2 * dpi
+                implicitHeight: 0.5 * dpi
+                color: row === contractView.currentRow ? Universal.baseLowColor : Universal.altLowColor
+                border {
+                    color: Universal.chromeBlackLowColor
+                    width: 1
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: contractView.currentRow = row
+                    onDoubleClicked: if ( contractView.currentRow >= 0 ) {
+                        calls.display(contractView.currentRow)
+                    }
+                }
+
+                Text {
+                    id: cellText
+                    anchors.centerIn: parent
+                    text: display
+                }
             }
 
             model: contractModel
 
             Menu {
                 id: rowMenu
+                enabled: contractView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Invoke")
@@ -115,22 +140,12 @@ Item {
                 }
             }
 
-            onDoubleClicked: {
-                if ( contractView.currentRow >= 0 ) {
-                    calls.display(contractView.currentRow)
-                }
-            }
-
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( contractView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
     }

@@ -1,13 +1,12 @@
 import QtQuick 2.12
 import QtQuick.Controls 2.15
-import QtQuick.Controls 1.4 as C
+import QtQuick.Controls.Universal 2.12
 
-Item {
+Loader {
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         FilterDetails {
             id: details
@@ -22,32 +21,58 @@ Item {
             onClicked: details.display()
         }
 
-        C.TableView {
+        HorizontalHeaderView {
+            syncView: filterView
+            model: ["Name", "Contract", "Active"]
+        }
+
+        TableView {
             id: filterView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing - addButton.height
+            height: parent.height - parent.spacing - addButton.height // *
+            onWidthChanged: forceLayout()
+            columnWidthProvider: function (column) { // *
+                switch (column) {
+                    case 0: return width - 5.5 * dpi
+                    case 1: return 4.5 * dpi
+                    case 2: return 1 * dpi
+                }
 
-            C.TableViewColumn {
-                role: "name"
-                title: qsTr("Name")
-                width: 0.3 * parent.width
-            }
-            C.TableViewColumn {
-                role: "contract"
-                title: qsTr("Contract")
-                width: 0.5 * parent.width
-            }
-            C.TableViewColumn {
-                role: "active"
-                title: qsTr("Active")
-                width: 0.18 * parent.width
+                return 0
             }
 
-            model: filterModel
+            property int currentRow: -1
 
-            Menu {
+            delegate: Rectangle {
+                implicitWidth: cellText.width + 0.2 * dpi
+                implicitHeight: 0.5 * dpi
+                color: row === filterView.currentRow ? Universal.baseLowColor : Universal.altLowColor
+                border {
+                    color: Universal.chromeBlackLowColor
+                    width: 1
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: filterView.currentRow = row
+                    onDoubleClicked: if ( filterView.currentRow >= 0 ) { // *
+                        details.display(filterView.currentRow)
+                    }
+                }
+
+                Text {
+                    id: cellText
+                    anchors.centerIn: parent
+                    text: display
+                }
+            }
+
+            model: filterModel // *
+
+            Menu { // *
                 id: rowMenu
+                enabled: filterView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Activate/Deactivate")
@@ -71,22 +96,12 @@ Item {
                 }
             }
 
-            onDoubleClicked: {
-                if ( filterView.currentRow >= 0 ) {
-                    details.display(filterView.currentRow)
-                }
-            }
-
-            MouseArea {
+            MouseArea { // *
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( filterView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
     }

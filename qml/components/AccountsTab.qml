@@ -179,9 +179,9 @@ Loader {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
-            implicitHeight: parent.height - newAccountButton.height - parent.spacing
+            implicitHeight: parent.height - newAccountButton.height - parent.spacing // *
             onWidthChanged: forceLayout()
-            columnWidthProvider: function (column) {
+            columnWidthProvider: function (column) { // *
                 switch (column) {
                     case 0: return 0.2 * dpi
                     case 1: return 0.2 * dpi
@@ -197,7 +197,7 @@ Loader {
 
             delegate: Rectangle {
                 implicitWidth: cellText.width + 0.2 * dpi
-                implicitHeight: 0.75 * dpi
+                implicitHeight: 0.5 * dpi
                 color: row === accountView.currentRow ? Universal.baseLowColor : Universal.altLowColor
                 border {
                     color: Universal.chromeBlackLowColor
@@ -207,7 +207,7 @@ Loader {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: accountView.currentRow = row
-                    onDoubleClicked: if ( accountView.currentRow >= 0 ) {
+                    onDoubleClicked: if ( accountView.currentRow >= 0 ) { // *
                         accountModel.selectedAccountRow = accountView.currentRow
                         accountDetails.open(accountView.currentRow)
                     }
@@ -234,10 +234,11 @@ Loader {
                    filterSyntax: AccountProxyModel.Wildcard
                    filterCaseSensitivity: Qt.CaseInsensitive
                }*/
-            model: accountModel
+            model: accountModel // *
 
-            Menu {
+            Menu { // *
                 id: rowMenu
+                enabled: accountView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Details", "account")
@@ -289,16 +290,14 @@ Loader {
                 }
             }
 
-            MouseArea {
+            MouseArea { // *
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
                 onReleased: {
-                    if ( accountView.currentRow >= 0 ) {
-                        accountModel.selectedAccountRow = accountView.currentRow
-                        rowMenu.popup()
-                    }
+                    accountModel.selectedAccountRow = accountView.currentRow
+                    rowMenu.popup()
                 }
             }
         }

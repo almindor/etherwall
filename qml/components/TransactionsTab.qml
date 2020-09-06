@@ -30,7 +30,6 @@ Loader {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         TransactionDialog {
             id: sendDialog
@@ -97,37 +96,11 @@ Loader {
                 }
             }
 
-//            C.TableViewColumn {
-//                horizontalAlignment: Text.AlignRight
-//                role: "blocknumber"
-//                title: qsTr("Block#")
-//                width: parent.width * 0.1
-//            }
-//            C.TableViewColumn {
-//                role: "senderalias"
-//                title: qsTr("Sender")
-//                width: parent.width * 0.28
-//            }
-//            C.TableViewColumn {
-//                role: "receiveralias"
-//                title: qsTr("Receiver")
-//                width: parent.width * 0.28
-//            }
-//            C.TableViewColumn {
-//                horizontalAlignment: Text.AlignRight
-//                role: "value"
-//                title: qsTr("Value (Ether)")
-//                width:  parent.width * 0.2
-//            }
-//            C.TableViewColumn {
-//                role: "depth"
-//                title: qsTr("Depth")
-//                width:  parent.width * 0.1
-//            }
             model: transactionModel
 
             Menu {
                 id: rowMenu
+                enabled: transactionView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Details")
@@ -171,11 +144,7 @@ Loader {
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( transactionView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
 

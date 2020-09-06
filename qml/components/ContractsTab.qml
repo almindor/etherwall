@@ -25,36 +25,32 @@ import QtQuick.Layouts 1.12
 Loader {
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
-    Item {
-        anchors.fill: parent
+    TabBar {
+        id: conTab
+        anchors.left: parent.left
+        anchors.right: parent.right
 
-        TabBar {
-            id: conTab
-            anchors.left: parent.left
-            anchors.right: parent.right
-
-            TabButton {
-                text: qsTr("Contracts")
-            }
-            TabButton {
-                text: qsTr("Watches")
-            }
-            TabButton {
-                text: qsTr("Events")
-            }
+        TabButton {
+            text: qsTr("Contracts")
         }
-
-        StackLayout {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: conTab.bottom
-            anchors.bottom: parent.bottom
-
-            currentIndex: conTab.currentIndex
-
-            ContractContent {}
-            FiltersContent {}
-            EventContent {}
+        TabButton {
+            text: qsTr("Watches")
         }
+        TabButton {
+            text: qsTr("Events")
+        }
+    }
+
+    StackLayout {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: conTab.bottom
+        anchors.bottom: parent.bottom
+
+        currentIndex: conTab.currentIndex
+
+        ContractContent {}
+        FiltersContent {}
+        EventContent {}
     }
 }

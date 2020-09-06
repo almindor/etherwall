@@ -39,7 +39,7 @@ namespace Etherwall {
 
     // contract model
 
-    ContractModel::ContractModel(NodeIPC& ipc, AccountModel& accountModel) : QAbstractListModel(nullptr),
+    ContractModel::ContractModel(NodeIPC& ipc, AccountModel& accountModel) : QAbstractTableModel(nullptr),
         fList(), fIpc(ipc), fNetManager(), fBusy(false), fPendingContracts(), fAccountModel(accountModel), fTokenBalanceTabs()
     {
         connect(&accountModel, &AccountModel::accountsReady, this, &ContractModel::reload);
@@ -52,6 +52,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> ContractModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole] = "display";
         roles[ContractNameRole] = "name";
         roles[AddressRole] = "address";
         roles[TokenRole] = "token";
@@ -65,8 +66,25 @@ namespace Etherwall {
         return fList.size();
     }
 
+    int ContractModel::columnCount(const QModelIndex &parent) const
+    {
+        Q_UNUSED(parent);
+        return 3;
+    }
+
     QVariant ContractModel::data(const QModelIndex & index, int role) const {
-        return fList.at(index.row()).value(role);
+        int row = index.row();
+
+        if ( role == Qt::DisplayRole ) {
+            switch ( index.column() ) {
+                case 0: return fList.at(row).name();
+                case 1: return fList.at(row).token();
+                case 2: return fList.at(row).address();
+            }
+
+            return "?";
+        }
+        return fList.at(row).value(role);
     }
 
     bool ContractModel::addContract(const QString& name, const QString& address, const QString& abi) {
@@ -104,8 +122,8 @@ namespace Etherwall {
                 roles[0] = ContractNameRole;
                 roles[1] = AddressRole;
                 roles[2] = ABIRole;
-                const QModelIndex& leftIndex = QAbstractListModel::createIndex(at, 0);
-                const QModelIndex& rightIndex = QAbstractListModel::createIndex(at, 0);
+                const QModelIndex& leftIndex = QAbstractTableModel::createIndex(at, 0);
+                const QModelIndex& rightIndex = QAbstractTableModel::createIndex(at, 0);
 
                 emit dataChanged(leftIndex, rightIndex, roles);
                 return true;
@@ -599,7 +617,7 @@ namespace Etherwall {
         settings.setValue(lowerAddr, info.toJsonString());
         settings.endGroup();
 
-        emit dataChanged(QAbstractListModel::createIndex(index, 0), QAbstractListModel::createIndex(index, 0));
+        emit dataChanged(QAbstractTableModel::createIndex(index, 0), QAbstractTableModel::createIndex(index, 0));
     }
 
     void ContractModel::onSelectedTokenContract(int index, bool forwardToAccounts)

@@ -2,41 +2,44 @@ import QtQuick 2.12
 import QtQuick.Controls 2.15
 import QtQuick.Controls.Universal 2.12
 
-Column {
-    property var onItemDoubleClicked : function() {}
-    property var columnSizes : []
-    property var columnNames : []
+Item {
+    property var columns: []
+    property var model : nil
+    property int currentRow: -1
+    property real itemImplicitHeight: 0.5 * dpi
 
-    anchors.left: parent.left
-    anchors.right: parent.right
+    property var onItemDoubleClicked: function() {}
 
     HorizontalHeaderView {
+        id: headerView
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
+
         syncView: tableView
-        model: columnNames
+        model: parent.columns.map(c => c[0])
     }
 
     TableView {
         id: tableView
+        anchors.top: headerView.bottom
         anchors.left: parent.left
         anchors.right: parent.right
+        implicitHeight: parent.height
         onWidthChanged: forceLayout()
         columnWidthProvider: function (column) {
-            if ( columnNames.length === 0 ) {
+            if ( parent.columns.length === 0 ) {
                 return 1 * dpi
             }
 
-            if ( columnSizes.length === 0 ) {
-                return width / columnNames.length
-            }
-
-            return columnSizes[column] || 0
+            return parent.columns[column][1]
         }
 
-        property int currentRow: -1
+        model: parent.model
 
         delegate: Rectangle {
             implicitWidth: cellText.width + 0.2 * dpi
-            implicitHeight: 0.5 * dpi
+            implicitHeight: itemImplicitHeight
             color: row === currentRow ? Universal.baseLowColor : Universal.altLowColor
             border {
                 color: Universal.chromeBlackLowColor
@@ -44,6 +47,7 @@ Column {
             }
 
             MouseArea {
+                id: itemArea
                 anchors.fill: parent
                 onClicked: currentRow = row
                 onDoubleClicked: onItemDoubleClicked()

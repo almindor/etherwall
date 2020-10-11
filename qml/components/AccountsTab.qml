@@ -21,7 +21,6 @@
 import QtQuick 2.12
 import Qt.labs.platform 1.0
 import QtQuick.Controls 2.15
-import QtQuick.Controls.Universal 2.12
 import QtQuick.Layouts 1.12
 import AccountProxyModel 0.1
 
@@ -170,75 +169,24 @@ Loader {
             id: accountDetails
         }
 
-        HorizontalHeaderView {
-            syncView: accountView
-            model: ["D", "T", "Alias", "Hash", "Balance"]
-        }
-
-        TableView {
+        TableViewBase {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
-            implicitHeight: parent.height - newAccountButton.height - parent.spacing // *
-            onWidthChanged: forceLayout()
-            columnWidthProvider: function (column) { // *
-                switch (column) {
-                    case 0: return 0.2 * dpi
-                    case 1: return 0.2 * dpi
-                    case 2: return width - 7.4 * dpi
-                    case 3: return 4.5 * dpi
-                    case 4: return 2.5 * dpi
-                }
-
-                return 0
-            }
-
-            property int currentRow: -1
-
-            delegate: Rectangle {
-                implicitWidth: cellText.width + 0.2 * dpi
-                implicitHeight: 0.5 * dpi
-                color: row === accountView.currentRow ? Universal.baseLowColor : Universal.altLowColor
-                border {
-                    color: Universal.chromeBlackLowColor
-                    width: 1
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: accountView.currentRow = row
-                    onDoubleClicked: if ( accountView.currentRow >= 0 ) { // *
-                        accountModel.selectedAccountRow = accountView.currentRow
-                        accountDetails.open(accountView.currentRow)
-                    }
-                }
-
-                Text {
-                    id: cellText
-                    anchors.centerIn: parent
-                    text: display
+            height: parent.height - newAccountButton.height - parent.spacing
+            itemImplicitHeight: 0.5 * dpi
+            model: accountModel
+            columns: [["D", 0.2 * dpi], ["T", 0.2 * dpi], ["Alias", width - 7.4 * dpi], ["Hash", 4.5 * dpi], ["Balance", 2.5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    accountModel.selectedAccountRow = currentRow
+                    accountDetails.open(currentRow)
                 }
             }
 
-            // TODO: fix selection for active row first
-            /*sortIndicatorVisible: true
-            model: AccountProxyModel {
-                   id: proxyModel
-                   source: accountModel
-
-                   sortOrder: accountView.sortIndicatorOrder
-                   sortCaseSensitivity: Qt.CaseInsensitive
-                   sortRole: accountView.getColumn(accountView.sortIndicatorColumn).role
-
-                   filterString: "*"
-                   filterSyntax: AccountProxyModel.Wildcard
-                   filterCaseSensitivity: Qt.CaseInsensitive
-               }*/
-            model: accountModel // *
-
-            Menu { // *
+            Menu {
                 id: rowMenu
-                enabled: accountView.currentRow >= 0
+                enabled: parent.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Details", "account")
@@ -290,13 +238,13 @@ Loader {
                 }
             }
 
-            MouseArea { // *
+            MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
                 onReleased: {
-                    accountModel.selectedAccountRow = accountView.currentRow
+                    accountModel.selectedAccountRow = parent.currentRow
                     rowMenu.popup()
                 }
             }

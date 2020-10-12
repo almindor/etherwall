@@ -10,6 +10,12 @@ Item {
 
     property var onItemDoubleClicked: function() {}
 
+    onWidthChanged: tableView.forceLayout()
+
+    function refresh() {
+        tableView.forceLayout()
+    }
+
     HorizontalHeaderView {
         id: headerView
         anchors.top: parent.top

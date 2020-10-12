@@ -21,56 +21,21 @@ Loader {
             onClicked: details.display()
         }
 
-        HorizontalHeaderView {
-            syncView: filterView
-            model: ["Name", "Contract", "Active"]
-        }
-
-        TableView {
+        TableViewBase {
             id: filterView
             anchors.left: parent.left
             anchors.right: parent.right
-            height: parent.height - parent.spacing - addButton.height // *
-            onWidthChanged: forceLayout()
-            columnWidthProvider: function (column) { // *
-                switch (column) {
-                    case 0: return width - 5.5 * dpi
-                    case 1: return 4.5 * dpi
-                    case 2: return 1 * dpi
-                }
+            height: parent.height - parent.spacing - addButton.height
+            columns: [["Name", width - 5.5 * dpi], ["Contract", 4.5 * dpi], ["Active", 1 * dpi]]
+            model: filterModel
 
-                return 0
-            }
-
-            property int currentRow: -1
-
-            delegate: Rectangle {
-                implicitWidth: cellText.width + 0.2 * dpi
-                implicitHeight: 0.5 * dpi
-                color: row === filterView.currentRow ? Universal.baseLowColor : Universal.altLowColor
-                border {
-                    color: Universal.chromeBlackLowColor
-                    width: 1
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: filterView.currentRow = row
-                    onDoubleClicked: if ( filterView.currentRow >= 0 ) { // *
-                        details.display(filterView.currentRow)
-                    }
-                }
-
-                Text {
-                    id: cellText
-                    anchors.centerIn: parent
-                    text: display
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    details.display(filterView.currentRow)
                 }
             }
 
-            model: filterModel // *
-
-            Menu { // *
+            Menu {
                 id: rowMenu
                 enabled: filterView.currentRow >= 0
 
@@ -96,7 +61,7 @@ Loader {
                 }
             }
 
-            MouseArea { // *
+            MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton

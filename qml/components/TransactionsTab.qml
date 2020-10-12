@@ -48,55 +48,19 @@ Loader {
             onClicked: sendDialog.display()
         }
 
-        HorizontalHeaderView {
-            syncView: transactionView
-            model: ["Block#", "Sender", "Receiver", "Value"]
-        }
-
-        TableView {
+        TableViewBase {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - sendButton.height
-            onWidthChanged: forceLayout()
-            columnWidthProvider: function (column) {
-                switch (column) {
-                    case 0: return 1 * dpi
-                    case 1: return 4.5 * dpi
-                    case 2: return 4.5 * dpi
-                    case 3: return width - 10 * dpi
-                }
-
-                return 0
-            }
-
-            property int currentRow: -1
-
-            delegate: Rectangle {
-                implicitWidth: cellText.width + 0.2 * dpi
-                implicitHeight: 0.5 * dpi
-                color: row === transactionView.currentRow ? Universal.baseLowColor : Universal.altLowColor
-                border {
-                    color: Universal.chromeBlackLowColor
-                    width: 1
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: transactionView.currentRow = row
-                    onDoubleClicked: if ( transactionView.currentRow >= 0 ) {
-                        details.display(transactionModel.getJson(transactionView.currentRow, true))
-                    }
-                }
-
-                Text {
-                    id: cellText
-                    anchors.centerIn: parent
-                    text: display
-                }
-            }
-
+            itemImplicitHeight: 0.5 * dpi
             model: transactionModel
+            columns: [["Block#", 1 * dpi], ["Sender", width / 2 - 1.25 * dpi], ["Receiver", width / 2 - 1.25 * dpi], ["Value", 1.5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    details.display(transactionModel.getJson(transactionView.currentRow, true))
+                }
+            }
 
             Menu {
                 id: rowMenu

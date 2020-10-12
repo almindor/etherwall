@@ -58,54 +58,18 @@ Loader {
             }
         }
 
-        HorizontalHeaderView {
-            syncView: contractView
-            model: ["Name", "Token (ERC20)", "Address"]
-        }
-
-        TableView {
+        TableViewBase {
             id: contractView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - controlsRow.height
-            onWidthChanged: forceLayout()
-            columnWidthProvider: function (column) {
-                switch (column) {
-                    case 0: return width - 9 * dpi
-                    case 1: return 4 * dpi
-                    case 2: return 5 * dpi
-                }
-
-                return 0
-            }
-
-            property int currentRow: -1
-
-            delegate: Rectangle {
-                implicitWidth: cellText.width + 0.2 * dpi
-                implicitHeight: 0.5 * dpi
-                color: row === contractView.currentRow ? Universal.baseLowColor : Universal.altLowColor
-                border {
-                    color: Universal.chromeBlackLowColor
-                    width: 1
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: contractView.currentRow = row
-                    onDoubleClicked: if ( contractView.currentRow >= 0 ) {
-                        calls.display(contractView.currentRow)
-                    }
-                }
-
-                Text {
-                    id: cellText
-                    anchors.centerIn: parent
-                    text: display
-                }
-            }
-
             model: contractModel
+            columns: [["Name", width - 9 * dpi], ["Token (ERC20)", 4 * dpi], ["Address", 5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    calls.display(contractView.currentRow)
+                }
+            }
 
             Menu {
                 id: rowMenu

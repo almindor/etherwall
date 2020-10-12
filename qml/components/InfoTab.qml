@@ -24,6 +24,7 @@ import QtQuick.Layouts 1.12
 
 Loader {
     id: infoTab
+    anchors.fill: parent
 
     Item {
         anchors.fill: parent

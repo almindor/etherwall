@@ -26,6 +26,7 @@ import AccountProxyModel 0.1
 
 Loader {
     id: accountsTab
+    anchors.fill: parent
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
     // property bool show_hashes: false
 

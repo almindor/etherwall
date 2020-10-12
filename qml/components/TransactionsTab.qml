@@ -24,6 +24,7 @@ import QtQuick.Controls.Universal 2.12
 
 Loader {
     id: transactionsTab
+    anchors.fill: parent
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {

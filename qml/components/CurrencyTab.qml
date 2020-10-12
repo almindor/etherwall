@@ -24,6 +24,7 @@ import QtQuick.Layouts 1.12
 
 Loader {
     id: logTab
+    anchors.fill: parent
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {

@@ -5,6 +5,8 @@ import QtQuick.Layouts 1.12
 import QtQuick.Extras 1.4
 
 Loader {
+    anchors.fill: parent
+
     property bool hideTrezor: false
     property bool thinClient: ipc.thinClient
     property bool customNode: settings.valueBool("geth/custom", false)

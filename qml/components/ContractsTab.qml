@@ -23,6 +23,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.12
 
 Loader {
+    anchors.fill: parent
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     TabBar {

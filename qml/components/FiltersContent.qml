@@ -3,7 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Universal 2.12
 
 Loader {
-    anchors.fill: parent
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
     Column {
         anchors.fill: parent

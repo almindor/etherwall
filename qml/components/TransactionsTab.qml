@@ -24,7 +24,7 @@ import QtQuick.Controls.Universal 2.12
 
 Loader {
     id: transactionsTab
-    anchors.fill: parent
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {

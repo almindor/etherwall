@@ -23,7 +23,7 @@ import QtQuick.Controls 2.15
 
 Loader {
     id: settingsTab
-    anchors.fill: parent
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
     SettingsContent {
         id: settingsContent

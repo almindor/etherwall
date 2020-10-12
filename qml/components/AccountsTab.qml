@@ -26,7 +26,7 @@ import AccountProxyModel 0.1
 
 Loader {
     id: accountsTab
-    anchors.fill: parent
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
     // property bool show_hashes: false
 

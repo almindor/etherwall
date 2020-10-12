@@ -39,6 +39,7 @@
         <file>components/TrezorImportDialog.qml</file>
         <file>components/FunctionResultsContent.qml</file>
         <file>components/TableViewBase.qml</file>
+        <file>components/BusyIndicatorFixed.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

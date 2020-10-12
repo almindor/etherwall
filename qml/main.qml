@@ -382,10 +382,10 @@ ApplicationWindow {
         z: 999
     }
 
-    BusyIndicator {
+    BusyIndicatorFixed {
         anchors.centerIn: parent
         z: 10
-        visible: false  // TODO
+        visible: true  // TODO bugged in wayland it seems
         running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy || trezor.busy
     }
 

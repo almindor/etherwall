@@ -18,8 +18,7 @@ BusyIndicator {
 
             RotationAnimator {
                 target: item
-                running: false // bugged in wayland, causes everything else to slow to a crawl
-                // control.visible && control.running
+                running: helpers.xdgSessionType() !== "wayland" // bugged in wayland, causes slowdowns
                 from: 0
                 to: 360
                 loops: Animation.Infinite

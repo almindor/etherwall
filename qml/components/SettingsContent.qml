@@ -184,7 +184,6 @@ Loader {
                     onClicked: {
                         customNode = customNodeCheck.checked
 
-                        console.error("geth/custom to: ", customNode)
                         settings.setValue("geth/custom", customNode)
 
                         if ( !customNode ) {

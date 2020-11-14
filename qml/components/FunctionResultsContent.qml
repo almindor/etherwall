@@ -18,10 +18,9 @@
  * Function results content
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.2
-import QtQuick.Controls.Styles 1.2
-import QtQuick.Window 2.0
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls 1.4 as C
 
 Item {
     id: itemID
@@ -33,7 +32,7 @@ Item {
     Connections {
         target: ipc
 
-        onCallDone: {
+        function onCallDone(result, index, userData) {
             if ( userData["type"] === "functionCall" ) {
                 responseField.model = contractModel.parseResponse(index, result, userData)
             }
@@ -46,23 +45,24 @@ Item {
         running: ipc.starting || ipc.busy || ipc.syncing
     }
 
-    TableView {
+    C.TableView {
         id: responseField
-        anchors.fill: parent
+        anchors.fill: itemID
+        // headerVisible: true
 
-        TableViewColumn {
+        C.TableViewColumn {
             role: "number"
             title: "#"
             width: 0.5 * dpi
         }
 
-        TableViewColumn {
+        C.TableViewColumn {
             role: "type"
             title: qsTr("Type")
             width: 1 * dpi
         }
 
-        TableViewColumn {
+        C.TableViewColumn {
             role: "value"
             title: qsTr("Value")
             width: responseField.width - 2.6 * dpi

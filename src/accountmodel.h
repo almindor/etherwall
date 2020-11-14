@@ -21,7 +21,7 @@
 #ifndef ACCOUNTMODEL_H
 #define ACCOUNTMODEL_H
 
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -36,13 +36,14 @@
 
 namespace Etherwall {
 
-    class AccountModel : public QAbstractListModel
+    class AccountModel : public QAbstractTableModel
     {
         Q_OBJECT
         Q_PROPERTY(int selectedAccountRow READ getSelectedAccountRow WRITE setSelectedAccountRow NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccount READ getSelectedAccount NOTIFY accountSelectionChanged)
         Q_PROPERTY(bool selectedAccountDefault READ getSelectedAccountDefault NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountAlias READ getSelectedAccountAlias NOTIFY accountSelectionChanged)
+        Q_PROPERTY(QString selectedAccountBalance READ getSelectedAccountBalance NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountDeviceID READ getSelectedAccountDeviceID NOTIFY accountSelectionChanged)
         Q_PROPERTY(QString selectedAccountHDPath READ getSelectedAccountHDPath NOTIFY accountSelectionChanged)
         Q_PROPERTY(quint64 selectedAccountSentTrans READ getSelectedAccountSentTrans NOTIFY accountSelectionChanged)
@@ -55,6 +56,7 @@ namespace Etherwall {
         QString getError() const;
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
         bool containsAccount(const QString& from, const QString& to, int& i1, int& i2) const;
         const QJsonArray getAccountsJsonArray() const;
@@ -63,6 +65,7 @@ namespace Etherwall {
         int size() const;
         void refreshAccounts();
         const QString getSelectedAccountAlias() const;
+        const QString getSelectedAccountBalance() const;
         quint64 getSelectedAccountSentTrans() const;
         const QString getSelectedAccountDeviceID() const;
         const QString getSelectedAccountHDPath() const;

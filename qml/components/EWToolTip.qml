@@ -1,5 +1,5 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 import QtGraphicalEffects 1.0
 
 Item {
@@ -32,7 +32,7 @@ Item {
     Component.onCompleted: {
         var itemParent = toolTipRoot.target;
 
-        var newObject = Qt.createQmlObject('import QtQuick 2.0; MouseArea {signal mouserHover(int x, int y); signal showChanged(bool flag); anchors.fill:parent; hoverEnabled: true; onPositionChanged: {mouserHover(mouseX, mouseY)} onEntered: {showChanged(true)} onExited:{showChanged(false)} onClicked:{parent.focus = true}}',
+        var newObject = Qt.createQmlObject('import QtQuick 2.12; MouseArea {signal mouserHover(int x, int y); signal showChanged(bool flag); anchors.fill:parent; hoverEnabled: true; onPositionChanged: {mouserHover(mouseX, mouseY)} onEntered: {showChanged(true)} onExited:{showChanged(false)} onClicked:{parent.focus = true}}',
                                            itemParent, "mouseItem");
         newObject.mouserHover.connect(onMouseHover);
         newObject.showChanged.connect(onVisibleStatus);

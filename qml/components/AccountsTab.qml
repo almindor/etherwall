@@ -18,18 +18,17 @@
  * Accounts tab
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.2
-import QtQuick.Layouts 1.0
+import QtQuick 2.12
+import Qt.labs.platform 1.0
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 import AccountProxyModel 0.1
-import QtQuick.Dialogs 1.2
 
-Tab {
+Loader {
     id: accountsTab
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    title: qsTr("Accounts")
-    property bool show_hashes: false
+    // property bool show_hashes: false
 
     Column {
         id: col
@@ -41,7 +40,7 @@ Tab {
             id: rowHeader
             anchors.left: parent.left
             anchors.right: parent.right
-            height: newAccountButton.height
+            height: newAccountButton.height + 0.1 * dpi
             Button {
                 id: newAccountButton
                 anchors.verticalCenter: parent.verticalCenter
@@ -50,17 +49,6 @@ Tab {
                 text: qsTr("New account")
                 onClicked: {
                     accountNewDialog.open()
-                }
-            }
-
-            CheckBox {
-                id: showHashButton
-                anchors.left: newAccountButton.right
-                anchors.leftMargin: 0.01 * dpi
-                anchors.verticalCenter: parent.verticalCenter
-                text: qsTr("Show Hashes")
-                onClicked: {
-                    show_hashes = !show_hashes
                 }
             }
 
@@ -150,28 +138,28 @@ Tab {
             }
         }
 
-        MessageDialog {
+        Dialog {
             id: accountRemoveDialog
+            property string text : ""
             title: qsTr("Confirm removal of account")
-            icon: StandardIcon.Question
-            standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
-            onYes: accountModel.removeAccount(accountModel.selectedAccount)
-            onHelp: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+            Text {
+                text: accountRemoveDialog.text
+            }
+
+            standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+            onAccepted: accountModel.removeAccount(accountModel.selectedAccount)
+            onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
         }
 
         QRExportDialog {
             id: qrExportDialog
         }
 
-        FileDialog {
+        FolderDialog {
             id: fileExportDialog
-            selectFolder: true
-            selectExisting: true
-            selectMultiple: false
-            folder: shortcuts.documents
             onAccepted: {
-                if ( accountModel.exportAccount(fileUrl, accountView.currentRow) ) {
-                    appWindow.showBadge(qsTr("Account ") + accountModel.selectedAccount + qsTr(" saved to ") + helpers.localURLToString(fileUrl))
+                if ( accountModel.exportAccount(folder, accountView.currentRow) ) {
+                    appWindow.showBadge(qsTr("Account ") + accountModel.selectedAccount + qsTr(" saved to ") + helpers.localURLToString(folder))
                 } else {
                     appWindow.showBadge(qsTr("Error exporting account ") + accountModel.selectedAccount)
                 }
@@ -182,59 +170,24 @@ Tab {
             id: accountDetails
         }
 
-        TableView {
+        TableViewBase {
             id: accountView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - newAccountButton.height - parent.spacing
-
-            TableViewColumn {
-                role: "default"
-                title: "☑"
-                width: 0.3 * dpi
-                resizable: false
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            TableViewColumn {
-                role: "deviceType"
-                title: " ⊡"
-                width: 0.3 * dpi
-                resizable: false
-                horizontalAlignment: Text.AlignLeft
-            }
-
-            TableViewColumn {
-                role: show_hashes ? "hash" : "alias"
-                title: qsTr("Account")
-                width: parent.width * 0.6
-            }
-
-            TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "balance"
-                title: qsTr("Balance ") + "(" + (accountModel.currentToken === "ETH" ? currencyModel.currencyName : accountModel.currentToken) + ")"
-                width: parent.width * 0.31
-            }
-
-            // TODO: fix selection for active row first
-            /*sortIndicatorVisible: true
-            model: AccountProxyModel {
-                   id: proxyModel
-                   source: accountModel
-
-                   sortOrder: accountView.sortIndicatorOrder
-                   sortCaseSensitivity: Qt.CaseInsensitive
-                   sortRole: accountView.getColumn(accountView.sortIndicatorColumn).role
-
-                   filterString: "*"
-                   filterSyntax: AccountProxyModel.Wildcard
-                   filterCaseSensitivity: Qt.CaseInsensitive
-               }*/
+            itemImplicitHeight: 0.5 * dpi
             model: accountModel
+            columns: [["D", 0.2 * dpi], ["T", 0.2 * dpi], ["Alias", width - 7.4 * dpi], ["Hash", 4.5 * dpi], ["Balance", 2.5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    accountModel.selectedAccountRow = currentRow
+                    accountDetails.open(currentRow)
+                }
+            }
 
             Menu {
                 id: rowMenu
+                enabled: parent.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Details", "account")
@@ -266,7 +219,7 @@ Tab {
 
                 MenuItem {
                     text: qsTr("Remove", "account")
-                    visible: accountModel.selectedAccountHDPath
+                    enabled: accountModel.selectedAccountHDPath
                     onTriggered: {
                         accountRemoveDialog.text = qsTr("Remove", "account") + " " + accountModel.selectedAccount + '?'
                         accountRemoveDialog.open()
@@ -274,22 +227,15 @@ Tab {
                 }
 
                 MenuItem {
-                    visible: !accountModel.selectedAccountHDPath
+                    enabled: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to directory")
                     onTriggered: fileExportDialog.open(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet))
                 }
 
                 MenuItem {
-                    visible: !accountModel.selectedAccountHDPath
+                    enabled: !accountModel.selectedAccountHDPath
                     text: qsTr("Export geth account to QR Code")
                     onTriggered: qrExportDialog.display(helpers.exportAddress(accountModel.selectedAccount, ipc.testnet), accountModel.selectedAccount)
-                }
-            }
-
-            onDoubleClicked: {
-                if ( accountView.currentRow >= 0 ) {
-                    accountModel.selectedAccountRow = accountView.currentRow
-                    accountDetails.open(accountView.currentRow)
                 }
             }
 
@@ -299,10 +245,8 @@ Tab {
                 acceptedButtons: Qt.RightButton
 
                 onReleased: {
-                    if ( accountView.currentRow >= 0 ) {
-                        accountModel.selectedAccountRow = accountView.currentRow
-                        rowMenu.popup()
-                    }
+                    accountModel.selectedAccountRow = parent.currentRow
+                    rowMenu.popup()
                 }
             }
         }

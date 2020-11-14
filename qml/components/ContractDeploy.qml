@@ -18,33 +18,30 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 
 Dialog {
     id: contractDeploy
     title: qsTr("Deploy Contract")
-    standardButtons: StandardButton.Cancel
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Cancel
+    // modality: Qt.WindowModal
     visible: false
     width: 7 * dpi
-    height: 5.5 * dpi
+    height: 7 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display() {
-        stcTab.active = true
         stcTab.children[0].toAddress = ""
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
         stcTab.children[0].tokenAddress = ""
         stcTab.children[0].functionIsConstant = false
-        stcTab.enabled = false
         stcTab.children[0].prepare()
 
-        cccTab.active = true
-        //cccTab.children[0].contractIndex = index
         tabs.currentIndex = 0
         open()
     }
@@ -55,7 +52,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && contractDeploy.visible ) {
                     cdBadge.show(cdBadge.button_msg(code))
                 }
@@ -63,13 +60,31 @@ Dialog {
         }
     }
 
-    TabView {
+    TabBar {
         id: tabs
-        anchors.fill: parent
+        anchors.top: parent.top
+        anchors.left: parent.left
+        anchors.right: parent.right
 
-        Tab {
+        TabButton {
+            text: qsTr("Contract")
+        }
+
+        TabButton {
+            text: qsTr("Transaction")
+        }
+    }
+
+    StackLayout {
+        anchors.top: tabs.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        currentIndex: tabs.currentIndex
+
+        Item {
             id: cccTab
-            title: qsTr("Contract")
             DeployContractContent {
                 onDone: {
                     contractDeploy.close()
@@ -93,9 +108,8 @@ Dialog {
             }
         }
 
-        Tab {
+        Item {
             id: stcTab
-            title: qsTr("Transaction")
             SendTransactionContent {
                 onDone: {
                     contractDeploy.close()

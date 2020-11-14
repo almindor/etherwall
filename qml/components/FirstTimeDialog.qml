@@ -18,62 +18,51 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
     title: qsTr("First time setup wizard")
-    standardButtons: StandardButton.Save | StandardButton.Close
-    modality: Qt.ApplicationModal
+    standardButtons: Dialog.Save | Dialog.Close
+    // modality: Qt.ApplicationModal
     visible: false
-    width: 7 * dpi
-    height: 5 * dpi
+    width: 9 * dpi
+    height: appWindow.height - 0.5 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     onAccepted: {
         settings.setValue("program/v2firstrun", new Date())
         initializer.start();
     }
 
-    Column {
-        anchors.margins: 0.1 * dpi
+    ScrollView {
         anchors.fill: parent
-        spacing: 0.1 * dpi
+        contentWidth: 8.7 * dpi
+        contentHeight: 7.5 * dpi
 
-        Text {
-            id: info0
+        Column {
+            id: infoCol
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.margins: 0.1 * dpi
-            font.pixelSize: 0.16 * dpi
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            text: qsTr("Please review settings before first run.")
-        }
+            spacing: 0.1 * dpi
 
-        Text {
-            id: info1
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 0.1 * dpi
-            font.pixelSize: 0.16 * dpi
-            font.bold: true
-            textFormat: Text.RichText
-            wrapMode: Text.WrapAtWordBoundaryOrAnywhere
-            onLinkActivated: Qt.openUrlExternally(link)
-            text: qsTr("Accounts are stored in the geth datadir folder! <a href=\"https://www.etherwall.com/faq/#accounts\">Click here for more info</a>.")
-            MouseArea {
-                anchors.fill: parent
-                acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
-                cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
-            }
-        }
-
-        Item {
-            id: info2
-            height: 0.5 * dpi
-            anchors {
-                left: parent.left
-                right: parent.right
+            Text {
+                id: info1
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 0.1 * dpi
+                font.pixelSize: 0.16 * dpi
+                font.bold: true
+                textFormat: Text.RichText
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                onLinkActivated: Qt.openUrlExternally(link)
+                text: qsTr("Accounts are stored in the geth datadir folder! <a href=\"https://www.etherwall.com/faq/#accounts\">Click here for more info</a>.")
+                MouseArea {
+                    anchors.fill: parent
+                    acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
+                    cursorShape: parent.hoveredLink ? Qt.PointingHandCursor : Qt.ArrowCursor
+                }
             }
 
             Text {
@@ -86,7 +75,7 @@ Dialog {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Thin client is recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Full node mode is not recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
@@ -104,7 +93,7 @@ Dialog {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Ethereum blockchain requires at least 40GB of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Ethereum blockchain requires a ludicrous amount of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
@@ -115,9 +104,10 @@ Dialog {
 
         SettingsContent {
             id: content
+            anchors.top: infoCol.bottom
+            anchors.topMargin: 0.2 * dpi
             anchors.left: parent.left
             anchors.right: parent.right
-            height: 3 * dpi
             hideTrezor: true
         }
     }

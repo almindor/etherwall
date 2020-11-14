@@ -18,19 +18,19 @@
  * Transactions tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Universal 2.12
 
-Tab {
+Loader {
     id: transactionsTab
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
-    title: qsTr("Transactions")
 
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         TransactionDialog {
             id: sendDialog
@@ -49,43 +49,23 @@ Tab {
             onClicked: sendDialog.display()
         }
 
-        TableView {
+        TableViewBase {
             id: transactionView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - sendButton.height
-
-            TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "blocknumber"
-                title: qsTr("Block#")
-                width: parent.width * 0.1
-            }
-            TableViewColumn {
-                role: "senderalias"
-                title: qsTr("Sender")
-                width: parent.width * 0.28
-            }
-            TableViewColumn {
-                role: "receiveralias"
-                title: qsTr("Receiver")
-                width: parent.width * 0.28
-            }
-            TableViewColumn {
-                horizontalAlignment: Text.AlignRight
-                role: "value"
-                title: qsTr("Value (Ether)")
-                width:  parent.width * 0.2
-            }
-            TableViewColumn {
-                role: "depth"
-                title: qsTr("Depth")
-                width:  parent.width * 0.1
-            }
+            itemImplicitHeight: 0.5 * dpi
             model: transactionModel
+            columns: [["Block#", 1 * dpi], ["Sender", width / 2 - 1.25 * dpi], ["Receiver", width / 2 - 1.25 * dpi], ["Value", 1.5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    details.display(transactionModel.getJson(transactionView.currentRow, true))
+                }
+            }
 
             Menu {
                 id: rowMenu
+                enabled: transactionView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Details")
@@ -124,22 +104,12 @@ Tab {
                 }
             }
 
-            onDoubleClicked: {
-                if ( transactionView.currentRow >= 0 ) {
-                    details.display(transactionModel.getJson(transactionView.currentRow, true))
-                }
-            }
-
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( transactionView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
 

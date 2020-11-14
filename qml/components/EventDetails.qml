@@ -18,19 +18,21 @@
  * Filter Details dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.2
-import QtQuick.Controls.Styles 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls 1.4 as C
+import QtQuick.Controls.Styles 1.4
 
 Dialog {
     id: eventDetails
     title: qsTr("Event Details")
-    standardButtons: StandardButton.Close
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Close
+    // modality: Qt.WindowModal
     visible: false
     width: 7 * dpi
-    height: 5 * dpi
+    height: 7 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display( index ) {
         if ( index >= 0 ) {
@@ -67,25 +69,25 @@ Dialog {
             horizontalAlignment: Text.AlignHCenter
         }
 
-        TableView {
+        C.TableView {
             id: argsField
             anchors.left: parent.left
             anchors.right: parent.right
             height: 1 * dpi
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "name"
                 title: qsTr("Name")
                 width: 1 * dpi
             }
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "type"
                 title: qsTr("Type")
                 width: 1 * dpi
             }
 
-            TableViewColumn {
+            C.TableViewColumn {
                 role: "value"
                 title: qsTr("Value")
                 width: argsField.width - 2.1 * dpi

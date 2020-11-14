@@ -18,18 +18,19 @@
  * Settings tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
-Tab {
+Loader {
     id: settingsTab
-    title: qsTr("Settings")
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
     SettingsContent {
         id: settingsContent
+        anchors.topMargin: 0.2 * dpi
+        anchors.top: parent.top
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: 0.05 * dpi
-        anchors.topMargin: 0.1 * dpi
     }
 }

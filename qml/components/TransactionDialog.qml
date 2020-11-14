@@ -18,17 +18,19 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
     id: sendDialog
     title: qsTr("Send Ether")
-    standardButtons: StandardButton.Cancel
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Cancel
+    // modality: Qt.WindowModal
     visible: false
-    width: 7 * dpi
-    height: 5.1 * dpi
+    width: 8 * dpi
+    height: 7 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display() {
         stc.toAddress = ""
@@ -55,7 +57,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && sendDialog.visible ) {
                     sdBadge.show(sdBadge.button_msg(code))
                 }

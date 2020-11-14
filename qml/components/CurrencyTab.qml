@@ -18,13 +18,13 @@
  * Currency tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Layouts 1.0
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 
-Tab {
+Loader {
     id: logTab
-    title: qsTr("Currencies")
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
     enabled: !ipc.busy && !ipc.starting && (ipc.connectionState > 0)
 
     Column {

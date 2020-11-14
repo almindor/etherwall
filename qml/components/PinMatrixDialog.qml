@@ -18,29 +18,26 @@
  * PinMatrixDialog dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Window 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
-Window { // keep as window, since keys are needed
+Dialog { // keep as window, since keys are needed
     id: pinMatrixDialog
     title: qsTr("Enter your TREZOR pin")
+    anchors.centerIn: parent
+    focus: true
+    width: 4 * dpi
+    height: 6 * dpi
 
     property string pin : ""
     property bool accepted : false
 
-    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
-    visible: false
-    minimumWidth: 3 * dpi
-    minimumHeight: 3 * dpi
-    maximumWidth: 8 * dpi
-    maximumHeight: 8 * dpi
-    width: 4 * dpi
-    height: 5 * dpi
-    Component.onCompleted: {
-        setX(Screen.width / 2.0 - width / 2.0)
-        setY(Screen.height / 2.0 - height / 2.0)
-    }
+    // modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
+
+//    Component.onCompleted: {
+//        setX(Screen.width / 2.0 - width / 2.0)
+//        setY(Screen.height / 2.0 - height / 2.0)
+//    }
 
     onVisibleChanged: {
         if ( !visible && !accepted ) {
@@ -53,7 +50,7 @@ Window { // keep as window, since keys are needed
     function display() {
         pin = ""
         pinEdit.text = ""
-        show()
+        open()
     }
 
     ListModel {
@@ -117,6 +114,7 @@ Window { // keep as window, since keys are needed
             }
         }
 
+
         anchors {
             left: parent.left
             right: parent.right
@@ -160,7 +158,7 @@ Window { // keep as window, since keys are needed
                 left: parent.left
                 right: parent.right
             }
-            height: pinMatrixDialog.height - pinEdit.height - submitButton.height
+            height: 4 * dpi
 
             cellWidth: width / 3.0
             cellHeight: height / 3.0

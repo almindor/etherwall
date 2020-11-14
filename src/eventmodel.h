@@ -2,14 +2,14 @@
 #define EVENTMODEL_H
 
 #include <QObject>
-#include <QAbstractListModel>
+#include <QAbstractTableModel>
 #include "contractinfo.h"
 #include "contractmodel.h"
 #include "filtermodel.h"
 
 namespace Etherwall {
 
-    class EventModel : public QAbstractListModel
+    class EventModel : public QAbstractTableModel
     {
         Q_OBJECT
     public:
@@ -17,6 +17,7 @@ namespace Etherwall {
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent __attribute__ ((unused))) const;
+        Q_INVOKABLE virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role) const;
         Q_INVOKABLE const QString getName(int index) const;
         Q_INVOKABLE const QString getContract(int index) const;

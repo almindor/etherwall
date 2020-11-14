@@ -1,4 +1,4 @@
-import QtQuick 2.0
+import QtQuick 2.12
 
 Item {
     property string currency
@@ -8,7 +8,7 @@ Item {
     width: itemRow.width
     height: itemRow.height
 
-    ToolTip {
+    EWToolTip {
         id: toolTipCurrency
         width: 1 * dpi
         target: parent

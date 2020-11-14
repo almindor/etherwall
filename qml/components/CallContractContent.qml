@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Styles 1.4
 
 Item {
     id: contentOwner
@@ -17,7 +17,7 @@ Item {
 
     function open(conIndex) {
         contractIndex = conIndex
-        functionField.refresh()
+        functionField.refresh(functionField.currentIndex)
     }
 
     function encodeCall(contractIndex, funcName, args) {
@@ -75,8 +75,10 @@ Item {
                 width: mainColumn.width - 1 * dpi
                 model: contractModel.getFunctions(contractIndex)
 
-                function refresh() {
-                    if ( functionField.currentIndex < 0 || contractIndex < 0 || functionField.currentText.length < 1) {
+                function refresh(index) {
+                    index = index || functionField.currentIndex
+                    if ( index < 0 || contractIndex < 0 || functionField.currentText.length < 1) {
+                        console.error("IGNORING");
                         return;
                     }
 
@@ -86,7 +88,7 @@ Item {
                     contentOwner.refresh()
                 }
 
-                onCurrentIndexChanged: refresh()
+                onActivated: refresh(index)
             }
         }
 
@@ -108,14 +110,14 @@ Item {
                 readOnly: true
                 visible: false
 
-                style: TextFieldStyle {
-                    textColor: "black"
-                    background: Rectangle {
-                        radius: 2
-                        border.color: "red"
-                        border.width: 1
-                    }
-                }
+//                style: TextFieldStyle {
+//                    textColor: "black"
+//                    background: Rectangle {
+//                        radius: 2
+//                        border.color: "red"
+//                        border.width: 1
+//                    }
+//                }
             }
         }
 
@@ -144,7 +146,9 @@ Item {
 
                     Connections {
                         target: contentOwner
-                        onRefresh: boolField.currentIndex = 0
+                        function onRefresh() {
+                            boolField.currentIndex = 0
+                        }
                     }
 
                     onCurrentIndexChanged: {
@@ -162,7 +166,9 @@ Item {
 
                     Connections {
                         target: contentOwner
-                        onRefresh: valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                        function onRefresh() {
+                            valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                        }
                     }
 
                     onTextChanged: {
@@ -180,7 +186,7 @@ Item {
 
         Connections {
             target: contractModel
-            onCallError: {
+            function onCallError(err) {
                 errorText.text = err
                 errorText.visible = true
                 encodedText.visible = false
@@ -196,6 +202,7 @@ Item {
             id: callButton
             width: parent.width
             height: 0.6 * dpi
+            z: 10
             text: errorText.text.length ? qsTr("Invalid Input") : qsTr("Setup Transaction")
 
             Image {
@@ -208,15 +215,15 @@ Item {
                 source: errorText.text.length ? "/images/warning" : "/images/ok"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: callButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: callButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check() {
                 var result = {

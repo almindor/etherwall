@@ -33,7 +33,7 @@
 namespace Etherwall {
 
     AccountModel::AccountModel(NodeIPC& ipc, const CurrencyModel& currencyModel, Trezor::TrezorDevice& trezor) :
-        QAbstractListModel(0),
+        QAbstractTableModel(0),
         fIpc(ipc), fAccountList(), fAliasMap(), fTrezor(trezor),
         fSelectedAccountRow(-1), fCurrencyModel(currencyModel), fBusy(false),
         fCurrentToken("ETH")
@@ -54,6 +54,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> AccountModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole] = "display";
         roles[HashRole] = "hash";
         roles[DefaultRole] = "default";
         roles[BalanceRole] = "balance";
@@ -70,15 +71,33 @@ namespace Etherwall {
         return fAccountList.size();
     }
 
+    int AccountModel::columnCount(const QModelIndex &parent) const
+    {
+        Q_UNUSED(parent);
+        return 5;
+    }
+
     QVariant AccountModel::data(const QModelIndex & index, int role) const {
         const int row = index.row();
 
-        QVariant result = fAccountList.at(row).value(role);
-        if ( role == BalanceRole ) {
-            return fCurrencyModel.recalculate(result);
-        }
+        if ( role == Qt::DisplayRole ) {
+            switch ( index.column() ) {
+                case 0: return fAccountList.at(row).value(DefaultRole);
+                case 1: return fAccountList.at(row).value(DeviceTypeRole);
+                case 2: return fAccountList.at(row).alias();
+                case 3: return fAccountList.at(row).hash();
+                case 4: return fAccountList.at(row).getBalanceFixed(2);
+            }
 
-        return result;
+            return "?";
+        } else {
+            QVariant result = fAccountList.at(row).value(role);
+            if ( role == BalanceRole ) {
+                return fCurrencyModel.recalculate(result);
+            }
+
+            return result;
+        }
     }
 
     // TODO: optimize with hashmap
@@ -133,7 +152,7 @@ namespace Etherwall {
             QVector<int> roles(2);
             roles[0] = AliasRole;
             roles[1] = SummaryRole;
-            const QModelIndex& modelIndex = QAbstractListModel::createIndex(index, 0);
+            const QModelIndex& modelIndex = QAbstractTableModel::createIndex(index, 0);
 
             storeAccountList();
             emit dataChanged(modelIndex, modelIndex, roles);
@@ -240,7 +259,7 @@ namespace Etherwall {
     {
         beginResetModel();
         QSettings settings;
-        const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix(); // settings.value("geth/testnet", false).toBool() ? "testnetDefault" : "default";
+        const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts");
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();
@@ -285,8 +304,8 @@ namespace Etherwall {
         if ( fAccountList.at(accountIndex).getCurrentTokenAddress() == tokenAddress ) {
             QVector<int> roles(1);
             roles[0] = BalanceRole;
-            const QModelIndex& leftIndex = QAbstractListModel::createIndex(accountIndex, 0);
-            const QModelIndex& rightIndex = QAbstractListModel::createIndex(accountIndex, 0);
+            const QModelIndex& leftIndex = QAbstractTableModel::createIndex(accountIndex, 0);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(accountIndex, 0);
             emit dataChanged(leftIndex, rightIndex, roles);
             emit totalChanged();
         }
@@ -299,6 +318,15 @@ namespace Etherwall {
         }
 
         return fAccountList.at(fSelectedAccountRow).alias();
+    }
+
+    const QString AccountModel::getSelectedAccountBalance() const
+    {
+        if ( fSelectedAccountRow < 0 || fSelectedAccountRow >= fAccountList.size() ) {
+            return QString();
+        }
+
+        return fAccountList.at(fSelectedAccountRow).value(BalanceRole).toString();
     }
 
     quint64 AccountModel::getSelectedAccountSentTrans() const
@@ -476,8 +504,8 @@ namespace Etherwall {
 
             QVector<int> roles(1);
             roles[0] = DeviceRole;
-            const QModelIndex& leftIndex = QAbstractListModel::createIndex(i1, i1);
-            const QModelIndex& rightIndex = QAbstractListModel::createIndex(i1, i1);
+            const QModelIndex& leftIndex = QAbstractTableModel::createIndex(i1, i1);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(i1, i1);
             emit dataChanged(leftIndex, rightIndex, roles);
         }
     }
@@ -507,8 +535,8 @@ namespace Etherwall {
         QVector<int> roles(1);
         roles[0] = BalanceRole;
 
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(0, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(fAccountList.size() - 1, 4);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(0, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(fAccountList.size() - 1, 4);
         emit dataChanged(leftIndex, rightIndex, roles);
         emit totalChanged();
     }
@@ -568,8 +596,8 @@ namespace Etherwall {
         }
 
         fAccountList[index].setBalance(balanceStr);
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(index, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(index, 4);
         emit dataChanged(leftIndex, rightIndex);
         emit totalChanged();
     }
@@ -581,8 +609,8 @@ namespace Etherwall {
         }
 
         fAccountList[index].setTransactionCount(count);
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 4);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(index, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(index, 4);
         emit dataChanged(leftIndex, rightIndex);
     }
 

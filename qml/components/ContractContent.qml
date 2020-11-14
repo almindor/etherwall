@@ -1,14 +1,14 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Universal 2.12
 
-Item {
-    anchors.fill: parent
+Loader {
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         ContractDetails {
             id: details
@@ -31,59 +31,51 @@ Item {
                 id: addButton
                 text: qsTr("Add Existing Contract")
                 width: parent.width / 2.0
-                height: parent.height / 2.0
+                height: parent.height / 2.0 - 0.025 * dpi
 
                 onClicked: details.display(-1)
             }
 
             Button {
                 id: deployButton
+                anchors.topMargin: 0.05 * dpi
                 text: qsTr("Deploy New Contract")
                 anchors.top: addButton.bottom
                 width: parent.width / 2.0
-                height: parent.height / 2.0
+                height: parent.height / 2.0 - 0.025 * dpi
 
                 onClicked: deploy.display()
             }
 
             Button {
                 id: invokeButton
+                anchors.leftMargin: 0.05 * dpi
                 anchors.left: addButton.right
                 text: qsTr("Invoke ") + contractModel.getName(contractView.currentRow)
                 visible: contractView.currentRow >= 0
-                width: parent.width / 2.0
+                width: parent.width / 2.0 - 0.05 * dpi
                 height: parent.height
 
                 onClicked: calls.display(contractView.currentRow)
             }
         }
 
-        TableView {
+        TableViewBase {
             id: contractView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - controlsRow.height
-
-            TableViewColumn {
-                role: "name"
-                title: qsTr("Name")
-                width: 0.33 * parent.width
-            }
-            TableViewColumn {
-                role: "token"
-                title: qsTr("Token (ERC20)")
-                width: 0.2 * parent.width
-            }
-            TableViewColumn {
-                role: "address"
-                title: qsTr("Address")
-                width: 0.45 * parent.width
-            }
-
             model: contractModel
+            columns: [["Name", width - 9 * dpi], ["Token (ERC20)", 4 * dpi], ["Address", 5 * dpi]]
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    calls.display(contractView.currentRow)
+                }
+            }
 
             Menu {
                 id: rowMenu
+                enabled: contractView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Invoke")
@@ -114,22 +106,12 @@ Item {
                 }
             }
 
-            onDoubleClicked: {
-                if ( contractView.currentRow >= 0 ) {
-                    calls.display(contractView.currentRow)
-                }
-            }
-
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( contractView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
     }

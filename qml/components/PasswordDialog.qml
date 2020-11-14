@@ -18,16 +18,18 @@
  * Password dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
     id: theDialog
     title: qsTr("Confirm operation", "generic dialog")
     width: dpi * 7
-    standardButtons: StandardButton.Yes | StandardButton.No
-    modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
+    standardButtons: Dialog.Yes | Dialog.No
+    focus: true
+    anchors.centerIn: parent
+
+    // modality: Qt.platform.os === "osx" ? Qt.ApplicationModal : Qt.WindowModal // mac overlap bug
     property string text : ""
     signal passwordSubmitted(string password)
     signal passwordRejected
@@ -38,23 +40,23 @@ Dialog {
         accountPW.focus = true
     }
 
-    onYes: {
+    onAccepted: {
         passwordSubmitted(accountPW.text)
         accountPW.text = ""
     }
 
-    onNo: {
+    onRejected: {
         passwordRejected()
         accountPW.text = ""
     }
 
     function doYes() {
-        yes()
+        accept()
         close()
     }
 
     function doNo() {
-        no()
+        reject()
         close()
     }
 

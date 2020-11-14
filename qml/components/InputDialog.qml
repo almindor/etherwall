@@ -18,24 +18,26 @@
  * Text input dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
-    modality: Qt.WindowModal
+    // modality: Qt.WindowModal
     width: 5 * dpi
-    standardButtons: StandardButton.Apply | StandardButton.Cancel
+    standardButtons: Dialog.Apply | Dialog.Cancel
+    anchors.centerIn: parent
+
+    focus: true
     signal acceptedInput(string value)
     property string query: qsTr("Value: ", "Generic query question")
 
     function openFocused(m) {
         title = m || "Confirm operation"
-        open()
         inputField.focus = true
+        open()
     }
 
-    onApply: {
+    onAccepted: {
         if ( inputField.text.length === 0 ) {
             return;
         }
@@ -45,6 +47,8 @@ Dialog {
         inputField.text = ""
     }
 
+    onApplied: accept()
+
     Row {
         anchors.centerIn: parent
         Keys.onEscapePressed: {
@@ -52,8 +56,8 @@ Dialog {
             inputField.text = ""
         }
 
-        Keys.onEnterPressed: apply()
-        Keys.onReturnPressed: apply()
+        Keys.onEnterPressed: accept()
+        Keys.onReturnPressed: accept()
 
         Label {
             text: qsTr(query)

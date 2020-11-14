@@ -8,7 +8,7 @@
 
 namespace Etherwall {
 
-    class FilterModel : public QAbstractListModel
+    class FilterModel : public QAbstractTableModel
     {
         Q_OBJECT
     public:
@@ -16,6 +16,7 @@ namespace Etherwall {
 
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
+        Q_INVOKABLE virtual int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
 
         Q_INVOKABLE const QString getName(int index) const;

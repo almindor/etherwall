@@ -4,12 +4,13 @@
 
 namespace Etherwall {
 
-    FilterModel::FilterModel(NodeIPC& ipc) : QAbstractListModel(0), fIpc(ipc), fList()
+    FilterModel::FilterModel(NodeIPC& ipc) : QAbstractTableModel(0), fIpc(ipc), fList()
     {
     }
 
     QHash<int, QByteArray> FilterModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole] = "display";
         roles[FilterNameRole] = "name";
         roles[FilterAddressRole] = "address";
         roles[FilterContractRole] = "contract";
@@ -23,8 +24,26 @@ namespace Etherwall {
         return fList.size();
     }
 
+    int FilterModel::columnCount(const QModelIndex &parent) const
+    {
+        Q_UNUSED(parent);
+        return 3;
+    }
+
     QVariant FilterModel::data(const QModelIndex & index, int role) const {
-        return fList.at(index.row()).value(role);
+        int row = index.row();
+
+        if ( role == Qt::DisplayRole ) {
+            switch ( index.column() ) {
+                case 0: return fList.at(row).value(FilterNameRole);
+                case 1: return fList.at(row).value(FilterContractRole);
+                case 2: return fList.at(row).value(FilterActiveRole);
+            }
+
+            return "?";
+        }
+
+        return fList.at(row).value(role);
     }
 
     const QString FilterModel::getName(int index) const {
@@ -129,8 +148,8 @@ namespace Etherwall {
     }
 
     void FilterModel::update(int index) {
-        const QModelIndex& leftIndex = QAbstractListModel::createIndex(index, 0);
-        const QModelIndex& rightIndex = QAbstractListModel::createIndex(index, 3);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(index, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(index, 3);
         QVector<int> roles(4);
         roles[0] = FilterNameRole;
         roles[1] = FilterContractRole;
@@ -196,6 +215,7 @@ namespace Etherwall {
     }
 
     void FilterModel::reload() {
+        beginResetModel();
         QSettings settings;
         settings.beginGroup("filters" + fIpc.chainManager().networkPostfix());
 
@@ -218,6 +238,7 @@ namespace Etherwall {
 
         registerFilters();
         loadLogs();
+        endResetModel();
     }
 
 }

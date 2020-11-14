@@ -48,4 +48,9 @@ namespace Etherwall {
         QSettings::setValue(key, value);
     }
 
+    void Settings::remove(const QString &key)
+    {
+        QSettings::remove(key);
+    }
+
 }

@@ -1,14 +1,14 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Controls.Universal 2.12
 
-Item {
-    anchors.fill: parent
+Loader {
+    anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
     Column {
         anchors.fill: parent
         anchors.margins: 0.05 * dpi
         anchors.topMargin: 0.1 * dpi
-        spacing: 0.1 * dpi
 
         FilterDetails {
             id: details
@@ -23,31 +23,23 @@ Item {
             onClicked: details.display()
         }
 
-        TableView {
+        TableViewBase {
             id: filterView
             anchors.left: parent.left
             anchors.right: parent.right
             height: parent.height - parent.spacing - addButton.height
-
-            TableViewColumn {
-                role: "name"
-                title: qsTr("Name")
-                width: 0.3 * parent.width
-            }
-            TableViewColumn {
-                role: "contract"
-                title: qsTr("Contract")
-                width: 0.5 * parent.width
-            }
-            TableViewColumn {
-                role: "active"
-                title: qsTr("Active")
-                width: 0.18 * parent.width
-            }
+            columns: [["Name", width - 5.5 * dpi], ["Contract", 4.5 * dpi], ["Active", 1 * dpi]]
             model: filterModel
+
+            onItemDoubleClicked: function() {
+                if ( currentRow >= 0 ) {
+                    details.display(filterView.currentRow)
+                }
+            }
 
             Menu {
                 id: rowMenu
+                enabled: filterView.currentRow >= 0
 
                 MenuItem {
                     text: qsTr("Activate/Deactivate")
@@ -71,22 +63,12 @@ Item {
                 }
             }
 
-            onDoubleClicked: {
-                if ( filterView.currentRow >= 0 ) {
-                    details.display(filterView.currentRow)
-                }
-            }
-
             MouseArea {
                 anchors.fill: parent
                 propagateComposedEvents: true
                 acceptedButtons: Qt.RightButton
 
-                onReleased: {
-                    if ( filterView.currentRow >= 0 ) {
-                        rowMenu.popup()
-                    }
-                }
+                onReleased: rowMenu.popup()
             }
         }
     }

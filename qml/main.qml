@@ -18,10 +18,11 @@
  * Main app window
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.4
-import QtQuick.Dialogs 1.2
-import QtQuick.Window 2.0
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
+import QtQuick.Dialogs 1.3 as D
+import QtQuick.Window 2.12
 import "components"
 
 ApplicationWindow {
@@ -85,7 +86,7 @@ ApplicationWindow {
     Connections {
         target: initializer
 
-        onWarning: {
+        function onWarning(version, endpoint, warning) {
             if (warning && warning.length) {
                 warningDialog.text = warning
                 warningDialog.open()
@@ -95,7 +96,7 @@ ApplicationWindow {
 
     Connections {
         target: ipc
-        onError: {
+        function onError() {
             errorDialog.text = ipc.error
             errorDialog.open()
         }
@@ -104,7 +105,7 @@ ApplicationWindow {
     Connections {
         target: nodeManager
         // onNewNodeVersionAvailable: badge.show("New " + nodeName + " version available. Current: " + curVersion + " Latest: " + newVersion)
-        onError: {
+        function onError(error) {
             errorDialog.text = error
             errorDialog.open(error)
         }
@@ -113,26 +114,30 @@ ApplicationWindow {
     // Trezor main connections
     Connections {
         target: trezor
-        onMatrixRequest: pinMatrixDialog.display()
-        onButtonRequest: {
-            if ( code != 8 ) { // tx signing handled in signing windows
+        function onMatrixRequest(type) { pinMatrixDialog.display() }
+        function onButtonRequest(code) {
+            if ( code !== 8 ) { // tx signing handled in signing windows
                 badge.show(badge.button_msg(code))
             }
         }
-        onDeviceOutdated: {
+        function onDeviceOutdated(minVersion, curVersion) {
             errorDialog.text = qsTr("TREZOR firmware outdated")
             errorDialog.text += "\n" + qsTr("Required version", "of firmware") + " " + minVersion
             errorDialog.text += "\n" + qsTr("Current version", "of firmware") + " " + curVersion
             errorDialog.text += "\n" + qsTr("Update firmware at", "url follows") + " https://wallet.trezor.io"
             errorDialog.open()
         }
-        onPassphraseRequest: onDevice ? badge.show(qsTr("Input your password on the TREZOR device")) : trezorPasswordDialog.openFocused()
-        onFailure: {
-            errorDialog.text = "TREZOR: " + error
-            errorDialog.open()
+        function onPassphraseRequest(onDevice) {
+            if (onDevice) {
+                badge.show(qsTr("Input your password on the TREZOR device"))
+            } else {
+                trezorPasswordDialog.openFocused()
+            }
         }
-        onError: {
-            log.log(error, 3)
+        function onFailure(error) {
+            badge.show("TREZOR: " + error)
+        }
+        function onError(error) {
             errorDialog.text = "TREZOR critical error: " + error
             errorDialog.open()
         }
@@ -141,7 +146,7 @@ ApplicationWindow {
     Connections {
         target: transactionModel
 
-        onLatestVersionChanged: {
+        function onLatestVersionChanged(version, manualVersionCheck) {
             if ( !manualVersionCheck ) {
                 var now = new Date()
                 var bumpTime = settings.value("program/versionbump", now.valueOf())
@@ -156,7 +161,7 @@ ApplicationWindow {
             versionDialog.text = qsTr("New version of Etherwall available: ") + transactionModel.latestVersion
             versionDialog.open()
         }
-        onLatestVersionSame: {
+        function onLatestVersionSame(version, manualVersionCheck) {
             if ( !manualVersionCheck ) {
                 return
             }
@@ -168,8 +173,8 @@ ApplicationWindow {
             versionDialog.open()
         }
 
-        onReceivedTransaction: badge.show(qsTr("Received a new transaction to: ") + toAddress)
-        onConfirmedTransaction: {
+        function onReceivedTransaction(toAddress) { badge.show(qsTr("Received a new transaction to: ") + toAddress) }
+        function onConfirmedTransaction(fromAddress, toAddress, hash) {
             if ( toAddress.length ) {
                 badge.show(qsTr("Confirmed transaction to: ") + toAddress)
             } else { // contract creation
@@ -181,29 +186,33 @@ ApplicationWindow {
     Connections {
         target: eventModel
 
-        onReceivedEvent: badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        function onReceivedEvent(contract, signature) {
+            badge.show(qsTr("Received event from contract " + contract + ": ") + signature)
+        }
     }
 
     Connections {
         target: contractModel
 
-        onReceivedTokens: badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)
+        function onReceivedTokens(value, token, sender) {
+            badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)
+        }
     }
 
     Connections {
         target: accountModel
 
-        onWalletExportedEvent: badge.show(qsTr("Wallet successfully exported"))
-        onWalletImportedEvent: badge.show(qsTr("Wallet succesfully imported"))
-        onWalletErrorEvent: badge.show(qsTr("Error on wallet import/export: " + error))
-        onPromptForTrezorImport: trezorImportDialog.display(qsTr("Detected TREZOR device with unimported accounts. Import addresses from TREZOR?"), "https://www.etherwall.com/faq/#importaccount")
-        onAccountsRemoved: badge.show(qsTr("TREZOR accounts removed"))
+        function onWalletExportedEvent() { badge.show(qsTr("Wallet successfully exported")) }
+        function onWalletImportedEvent() { badge.show(qsTr("Wallet succesfully imported")) }
+        function onWalletErrorEvent() { badge.show(qsTr("Error on wallet import/export: " + error)) }
+        function onPromptForTrezorImport() { trezorImportDialog.display(qsTr("Detected TREZOR device with unimported accounts. Import addresses from TREZOR?"), "https://www.etherwall.com/faq/#importaccount") }
+        function onAccountsRemoved() { badge.show(qsTr("TREZOR accounts removed")) }
     }
 
     Connections {
         target: ipc
 
-        onGetTransactionReceiptDone: {
+        function onGetTransactionReceiptDone(receipt) {
             var cname = contractModel.contractDeployed(receipt)
             if ( cname.length ) {
                 badge.show(qsTr("Contract ") + cname + qsTr(" succesfully deployed: " + receipt.contractAddress))
@@ -211,7 +220,7 @@ ApplicationWindow {
         }
     }
 
-    FileDialog {
+    D.FileDialog {
         id: exportFileDialog
         title: qsTr("Export wallet backup")
         selectFolder: false
@@ -223,7 +232,7 @@ ApplicationWindow {
         onAccepted: accountModel.exportWallet(exportFileDialog.fileUrl)
     }
 
-    FileDialog {
+    D.FileDialog {
         id: importFileDialog
         title: qsTr("Import wallet from backup")
         selectFolder: false
@@ -266,40 +275,100 @@ ApplicationWindow {
         }
     }
 
-    MessageDialog {
+    Dialog {
         id: aboutDialog
-        icon: StandardIcon.Information
-        width: 5 * dpi
+        anchors.centerIn: parent
+
+        // icon: D.StandardIcon.Information
+        width: 7 * dpi
         title: qsTr("About Etherwall")
-        standardButtons: StandardButton.Ok | StandardButton.Help
-        text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
-        detailedText: qsTr("Etherwall version: ", "about details") + Qt.application.version + "\nGeth version: " + ipc.clientVersion + "\n" + (ipc.testnet ? "Running on testnet (rinkeby)" : "")
-        onHelp: Qt.openUrlExternally("https://www.etherwall.com")
+        standardButtons: Dialog.Ok | Dialog.Help
+
+        Column {
+            Text {
+                text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
+            }
+
+            Text {
+                text: qsTr("Etherwall version: ", "about details") + Qt.application.version
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            Text {
+                text: "Geth version: " + ipc.clientVersion
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            Text {
+                text: "Chain: " + (ipc.testnet ? "Rinkeby" : "Homestead")
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+
+            Text {
+                text: "Node Endpoint: " + ipc.endpoint
+                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+            }
+        }
+
+        onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com")
     }
 
     TrezorImportDialog {
         id: trezorImportDialog
     }
 
-    MessageDialog {
+    Dialog {
         id: errorDialog
-        modality: Qt.ApplicationModal
-        icon: StandardIcon.Critical
+        anchors.centerIn: parent
+        property string text : qsTr("Unknown Error")
+
+        standardButtons: Dialog.Ok
+        // modality: Qt.ApplicationModal
+        // icon: D.StandardIcon.Critical
         width: 5 * dpi
+
+
+        Text {
+            text: errorDialog.text
+        }
     }
 
-    MessageDialog {
+    Dialog {
         id: warningDialog
-        icon: StandardIcon.Warning
+        anchors.centerIn: parent
+
+        property string text : ""
+        // icon: D.StandardIcon.Warning
         width: 5 * dpi
         title: qsTr("Warning")
+        Text {
+            text: warningDialog.text
+        }
+        standardButtons: Dialog.Ok
 
         onAccepted: initializer.proceed()
     }
 
-    MessageDialog {
+    Dialog {
         id: versionDialog
-        icon: StandardIcon.Information
+        anchors.centerIn: parent
+
+        property string text : ""
+        property string detailedText : ""
+
+        standardButtons: Dialog.Ok
+
+        Column {
+            Text {
+                text: versionDialog.text
+            }
+
+            Text {
+                text: versionDialog.detailedText
+            }
+        }
+
+        // icon: D.StandardIcon.Information
         width: 5 * dpi
         title: qsTr("New version available")
     }
@@ -313,9 +382,10 @@ ApplicationWindow {
         z: 999
     }
 
-    BusyIndicator {
+    BusyIndicatorFixed {
         anchors.centerIn: parent
         z: 10
+        visible: true  // TODO bugged in wayland it seems
         running: ipc.starting || ipc.busy || ipc.syncing || accountModel.busy || trezor.busy
     }
 
@@ -324,44 +394,69 @@ ApplicationWindow {
         onRejected: closeTimer.start()
     }
 
-    TabView {
-        id: tabView
+    Item {
         anchors.fill: parent
 
-        AccountsTab {}
+        TabBar {
+            id: tabView
+            anchors.left: parent.left
+            anchors.right: parent.right
 
-        TransactionsTab {}
+            TabButton {
+                text: qsTr("Accounts")
+            }
+            TabButton {
+                text: qsTr("Transactions")
+            }
+            TabButton {
+                text: qsTr("Contracts")
+            }
+            TabButton {
+                text: qsTr("Currencies")
+            }
+            TabButton {
+                text: qsTr("Settings")
+            }
+            TabButton {
+                text: qsTr("Logs")
+            }
+        }
 
-        ContractsTab {}
+        StackLayout {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: tabView.bottom
+            anchors.bottom: parent.bottom
 
-        CurrencyTab {}
+            currentIndex: tabView.currentIndex
 
-        SettingsTab {}
-
-        InfoTab {}
+            AccountsTab {}
+            TransactionsTab {}
+            ContractsTab {}
+            CurrencyTab {}
+            SettingsTab {}
+            InfoTab {}
+        }
     }
 
-    MessageDialog {
-        id: trezorDialog
-        title: "TREZOR v" + trezor.version
-        text: "TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID
-        icon: StandardIcon.Information
-        standardButtons: StandardButton.Ok
-    }
-
-    statusBar: StatusBar {
+    footer: ToolBar {
         height: 38
         enabled: !ipc.busy
 
         Row {
             id: leftButtonsRow
+
             ToolButton {
                 id: blockButton
                 height: 32
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
-                iconSource: "/images/block"
-                tooltip: qsTr("Block number: ") + transactionModel.blockNumber
+                icon.source: "/images/block"
+                icon.color: "transparent"
+                hoverEnabled: true
+                ToolTip.text: qsTr("Block number: ") + transactionModel.blockNumber
+                ToolTip.visible: hovered
+
                 onClicked: {
                     blockField.visible = !blockField.visible
 
@@ -385,8 +480,10 @@ ApplicationWindow {
                 height: 32
                 width: 32
                 enabled: parent.enabled && (ipc.connectionState > 0)
-                iconSource: "/images/gas"
-                tooltip: qsTr("Gas price: ") + transactionModel.gasPrice
+                icon.source: "/images/gas"
+                icon.color: "transparent"
+                ToolTip.text: qsTr("Gas price: ") + transactionModel.gasPrice
+                ToolTip.visible: hovered
                 onClicked: {
                     gasField.visible = !gasField.visible
 
@@ -446,14 +543,14 @@ ApplicationWindow {
             anchors.right: parent.right
 
             ToolButton {
-                iconSource: "/images/trezor"
+                icon.source: "/images/trezor"
+                // icon.color: trezor.ini ? "gray" : "transparent"
+                enabled: trezor.initialized
                 height: 32
                 width: 32
-                enabled: trezor.initialized
-                tooltip: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
-                onClicked: {
-                    trezorDialog.open()
-                }
+                ToolTip.text: "TREZOR: " + (trezor.initialized ? qsTr("initialized") : (trezor.present ? qsTr("present") : qsTr("disconnected")))
+                ToolTip.visible: hovered
+                onClicked: badge.show("TREZOR " + qsTr("device id: ", "trezor") + trezor.deviceID)
             }
 
             ToolButton {
@@ -487,11 +584,13 @@ ApplicationWindow {
                     return qsTr("connected with ", "connection state connected with X peers") + ipc.peerCount + qsTr(" peers", "connection status, peercount")
                 }
 
-                iconSource: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                icon.source: "/images/connected" + getQuality(ipc.connectionState, ipc.peerCount)
+                icon.color: "transparent"
                 height: 32
                 width: 32
                 enabled: !ipc.starting
-                tooltip: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
+                ToolTip.text: qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount)
+                ToolTip.visible: hovered
                 onClicked: {
                     badge.show(qsTr("Connection state: ") + connectionState(ipc.connectionState, ipc.peerCount))
                 }

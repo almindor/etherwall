@@ -18,34 +18,30 @@
  * FirstTime dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Layouts 1.12
 
 Dialog {
     id: contractCalls
     title: qsTr("Call Contract")
-    standardButtons: StandardButton.Close
-    modality: Qt.WindowModal
+    standardButtons: Dialog.Close
+    // modality: Qt.WindowModal
     visible: false
     width: 7 * dpi
-    height: 5.5 * dpi
+    height: 7 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display( index ) {
-        rsTab.active = true
-
-        stcTab.active = true
         stcTab.children[0].toAddress = contractModel.getAddress(index)
         stcTab.children[0].contractData = "0x"
         stcTab.children[0].contractName = ""
         stcTab.children[0].contractAbi = ""
         stcTab.children[0].tokenAddress = ""
 
-        cccTab.active = true
         cccTab.children[0].open(index) // ensure first function is selected ok
 
-        tabs.currentIndex = 0
         open()
     }
 
@@ -55,7 +51,7 @@ Dialog {
 
         Connections {
             target: trezor
-            onButtonRequest: {
+            function onButtonRequest(code) {
                 if ( code === 8 && contractCalls.visible ) {
                     ccBadge.show(ccBadge.button_msg(code))
                 }
@@ -65,7 +61,7 @@ Dialog {
         Connections {
             target: ipc
 
-            onCallDone: {
+            function onCallDone(result, index, userData) {
                 if ( userData["type"] === "functionCall" ) {
                     tabs.currentIndex = 2
                 }
@@ -73,13 +69,35 @@ Dialog {
         }
     }
 
-    TabView {
+    TabBar {
         id: tabs
-        anchors.fill: parent
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.right: parent.right
 
-        Tab {
+        TabButton {
+            text: qsTr("Function")
+        }
+        TabButton {
+            text: qsTr("Transaction")
+            enabled: false
+        }
+        TabButton {
+            text: qsTr("Results")
+        }
+    }
+
+    StackLayout {
+        id: cccStack
+        anchors.top: tabs.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+
+        currentIndex: tabs.currentIndex
+
+        Item {
             id: cccTab
-            title: qsTr("Function")
             CallContractContent {
                 onDone: {
                     contractCalls.close()
@@ -107,18 +125,16 @@ Dialog {
             }
         }
 
-        Tab {
+        Item {
             id: stcTab
-            title: qsTr("Transaction")
             enabled: false
             SendTransactionContent {
                 onDone: contractCalls.close()
             }
         }
 
-        Tab {
+        Item {
             id: rsTab
-            title: qsTr("Results")
             FunctionResultsContent {
                 onDone: contractCalls.close()
             }

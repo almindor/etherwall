@@ -10,7 +10,7 @@
         <file>components/InputDialog.qml</file>
         <file>components/CurrencyTab.qml</file>
         <file>components/CurrencyRow.qml</file>
-        <file>components/ToolTip.qml</file>
+        <file>components/EWToolTip.qml</file>
         <file>components/GethTab.qml</file>
         <file>components/FirstTimeDialog.qml</file>
         <file>components/SettingsContent.qml</file>
@@ -38,6 +38,8 @@
         <file>components/AccountDetails.qml</file>
         <file>components/TrezorImportDialog.qml</file>
         <file>components/FunctionResultsContent.qml</file>
+        <file>components/TableViewBase.qml</file>
+        <file>components/BusyIndicatorFixed.qml</file>
     </qresource>
     <qresource prefix="/images">
         <file alias="icon">images/icon.png</file>

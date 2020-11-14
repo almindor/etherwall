@@ -18,16 +18,15 @@
  * Log tab
  */
 
-import QtQuick 2.0
-import QtQuick.Controls 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
-Tab {
-    title: qsTr("Geth")
-
+Loader {
     Column {
         id: col
         anchors.margins: 0.2 * dpi
         anchors.fill: parent
+        spacing: 0.1 * dpi
 
         Row {
             id: gethLogControlRow
@@ -41,20 +40,25 @@ Tab {
             }
         }
 
-        ScrollView {
+        GroupBox {
             anchors.left: parent.left
             anchors.right: parent.right
+            anchors.margins: 0.1 * dpi
             height: parent.height - gethLogControlRow.height
 
-            ListView {
+            ScrollView {
                 anchors.fill: parent
-                model: geth
 
-                delegate: Text {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    text: msg
-                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                ListView {
+                    anchors.fill: parent
+                    model: geth
+
+                    delegate: Text {
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        text: msg
+                        wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    }
                 }
             }
         }

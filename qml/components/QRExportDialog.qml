@@ -1,12 +1,14 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.2
-import QtQuick.Dialogs 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+import QtQuick.Dialogs 1.3 as D
 
 Dialog {
     id: exportWindow
-    standardButtons: StandardButton.Close | StandardButton.Save
+    standardButtons: Dialog.Close | Dialog.Save
     width: 6 * dpi
     height: 6 * dpi
+    focus: true
+    anchors.centerIn: parent
     title: qsTr("QR code for: ") + address
     property string address
 
@@ -23,7 +25,7 @@ Dialog {
         anchors.fill: parent
     }
 
-    FileDialog {
+    D.FileDialog {
         id: saveDialog
         selectFolder: false
         selectExisting: false

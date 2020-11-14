@@ -1,6 +1,6 @@
-import QtQuick 2.0
-import QtQuick.Controls 1.1
-import QtQuick.Controls.Styles 1.1
+import QtQuick 2.12
+import QtQuick.Controls 2.15
+// import QtQuick.Controls.Styles 1.4
 
 Item {
     id: transactionContent
@@ -45,6 +45,7 @@ Item {
         onTriggered: {
             var result = sendButton.refresh()
             if ( !result.error ) {
+                contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, toField.text, valueField.text)
                 ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
             }
         }
@@ -56,17 +57,18 @@ Item {
         property string deployedAbi
         property string txTo
         target: ipc
-        onError: {
+
+        function onError() {
             sendButton.enabled = true
         }
 
-        onEstimateGasDone: {
+        function onEstimateGasDone(price) {
             if ( !gasField.manual ) {
                 gasField.text = price
             }
         }
 
-        onSendTransactionDone: {
+        function onSendTransactionDone(hash) {
             if ( ipcConnection.deployedName.length ) {
                 contractModel.addPendingContract(ipcConnection.deployedName, ipcConnection.deployedAbi, hash)
                 badge.show(qsTr("New pending contract deployment: ") + ipcConnection.deployedName)
@@ -83,7 +85,9 @@ Item {
 
     Connections {
         target: trezor
-        onPresenceChanged: sendButton.refresh()
+        function onPresenceChanged() {
+            sendButton.refresh()
+        }
     }
 
     BusyIndicator {
@@ -101,6 +105,7 @@ Item {
         Row {
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("From: ")
             }
 
@@ -111,10 +116,7 @@ Item {
                 textRole: "summary"
                 currentIndex: accountModel.defaultIndex
                 onActivated: {
-                    var result = sendButton.refresh(index)
-                    if ( !result.error ) {
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-                    }
+                    valueChangedTimer.restart()
                 }
             }
         }
@@ -123,12 +125,14 @@ Item {
             visible: contractName.length === 0
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("To: ")
             }
 
             TextField {
                 id: toField
                 width: mainColumn.width - 1 * dpi
+                selectByMouse: true
                 validator: RegExpValidator {
                     regExp: /0x[a-f,A-F,0-9]{40}/
                 }
@@ -142,11 +146,7 @@ Item {
                         return
                     }
 
-                    var result = sendButton.refresh()
-                    if ( !result.error ) {
-                        contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, text, valueField.text)
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-                    }
+                    valueChangedTimer.restart()
                 }
             }
         }
@@ -154,6 +154,7 @@ Item {
         Row {
             Label {
                 text: qsTr("Gas: ")
+                anchors.verticalCenter: parent.verticalCenter
                 width: 1 * dpi
             }
 
@@ -170,6 +171,7 @@ Item {
                 text: "3141592" // max, will go lower on estimates
 
                 onEditingFinished: manual = true
+                selectByMouse: true
             }
 
             Button {
@@ -177,15 +179,13 @@ Item {
                 text: "Estimate"
                 onClicked: {
                     gasField.manual = false // allow overrides
-                    var result = sendButton.refresh()
-                    if ( !result.error ) {
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-                    }
+                    valueChangedTimer.restart()
                 }
             }
 
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: " " + qsTr("Gas Price: ")
             }
 
@@ -193,6 +193,7 @@ Item {
                 id: gasPriceField
                 width: mainColumn.width - gasField.width - estimateButton.width - 2 * dpi - gasButton.width
                 text: transactionModel.gasPrice
+                selectByMouse: true
                 validator: RegExpValidator {
                     regExp: /^[0-9]+([.][0-9]{1,18})?$/
                 }
@@ -201,26 +202,22 @@ Item {
                     // prevent updates from now on until they press gasPrice refresh if value is new
                     if ( text !== transactionModel.gasPrice ) {
                         text = String(text)
-                        var result = sendButton.refresh()
-                        if ( !result.error ) {
-                            ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-                        }
+                        valueChangedTimer.restart()
                     }
                 }
             }
 
             ToolButton {
                 id: gasButton
-                height: 32
-                width: 32
-                iconSource: "/images/gas"
-                tooltip: qsTr("Apply current gas price")
+                height: gasPriceField.height
+                width: gasPriceField.height
+                icon.source: "/images/gas"
+                icon.color: "transparent"
+                ToolTip.text: qsTr("Apply current gas price")
+                ToolTip.visible: hovered
                 onClicked: {
                     gasPriceField.text = Qt.binding(function() { return transactionModel.gasPrice })
-                    var result = sendButton.refresh()
-                    if ( !result.error ) {
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
-                    }
+                    valueChangedTimer.restart()
                 }
             }
         }
@@ -228,27 +225,26 @@ Item {
         Row {
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Value: ")
             }
 
             TextField {
                 id: valueField
                 width: mainColumn.width - 1 * dpi - sendAllButton.width - tokenCombo.width
+                persistentSelection: true
+                selectByMouse: true
                 validator: RegExpValidator {
                     id: valueValidator
                     regExp: /^[0-9]{1,40}([.][0-9]{1,18})?$/
                 }
 
                 maximumLength: 50
-                onTextChanged: {
+                onEditingFinished: {
                     if ( sendButton && transactionContent.enabled ) {
                         txValue = text
                         if ( tokenCombo.currentIndex > 0 ) {
                             txValue = "0" // enforce 0 ETH on token sends
-                        }
-                        var result = sendButton.refresh()
-                        contractData = tokenModel.getTokenTransferData(tokenCombo.currentIndex, toField.text, text)
-                        if ( !result.error && tokenCombo.currentIndex > 0 ) { // only redo estimates on value changes for tokens (due to data changing)
                             valueChangedTimer.restart()
                         }
                     }
@@ -271,9 +267,7 @@ Item {
                     if ( valueField.text !== "0" ) {
                         valueField.text = 0
                     } else {
-                        var result = sendButton.refresh()
-                        contractData = tokenModel.getTokenTransferData(index, toField.text, "0")
-                        ipc.estimateGas(result.from, result.to, result.txtVal, "3141592", result.txtGasPrice, contractData)
+                        valueChangedTimer.restart()
                     }
                     var regstr = "^[0-9]{1,40}([.][0-9]{1," + decimals + "})?$"
                     valueValidator.regExp = new RegExp(regstr)
@@ -282,11 +276,13 @@ Item {
 
             ToolButton {
                 id: sendAllButton
-                iconSource: "/images/all"
-                width: 32
-                height: 32
+                icon.source: "/images/all"
+                icon.color: "transparent"
+                width: valueField.height
+                height: valueField.height
 
-                tooltip: qsTr("Send all", "send all ether from account")
+                ToolTip.text: qsTr("Send all", "send all ether from account")
+                ToolTip.visible: hovered
                 onClicked: {
                     if ( tokenCombo.currentIndex > 0 ) {
                         valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
@@ -301,6 +297,7 @@ Item {
             id: lastRow
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: qsTr("Total: ")
             }
 
@@ -323,6 +320,7 @@ Item {
 
             Label {
                 width: 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 text: sendButton.status < -1 ? qsTr("Error: ") : qsTr("Warning: ")
                 enabled: sendButton.status < 0
             }
@@ -333,17 +331,18 @@ Item {
                 readOnly: true
                 height: 0.5 * dpi
                 width: mainColumn.width - 1 * dpi
+                anchors.verticalCenter: parent.verticalCenter
                 onLinkActivated: Qt.openUrlExternally(link)
 
-                ColorAnimation on textColor {
-                    id: errorAnimation
-                    from: "black"
-                    to: "red"
-                    duration: 250
-                    running: false
-                    loops: 5
-                    onStopped: warningField.textColor = "black"
-                }
+//                ColorAnimation on textColor {
+//                    id: errorAnimation
+//                    from: "black"
+//                    to: "red"
+//                    duration: 250
+//                    running: false
+//                    loops: 5
+//                    onStopped: warningField.textColor = "black"
+//                }
             }
         }
 
@@ -368,8 +367,10 @@ Item {
             enabled: !ipc.syncing && !ipc.closing && !ipc.starting && !ipc.busy
             width: parent.width
             height: 1.3 * dpi
+            z: 10
             text: status > -2 ? qsTr("Send") : qsTr("Input errors")
             property int status : -2
+            ToolTip.visible: hovered
 
             Image {
                 id: sendIcon
@@ -381,15 +382,15 @@ Item {
                 source: "/images/warning"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: sendButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: sendButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check(accountIndex) {
                 var result = {
@@ -476,7 +477,7 @@ Item {
                 var result = check(accountIndex)
 
                 if ( result.error !== null ) {
-                    tooltip = result.error
+                    ToolTip.text = result.error
                     sendIcon.source = "/images/error"
                     status = -2
                     warningField.text = result.error
@@ -484,16 +485,16 @@ Item {
                 }
 
                 if ( result.warning !== null ) {
-                    toField.textColor = "brown"
+                    toField.color = "brown"
                     warningField.text = result.warning
-                    tooltip = result.warning
+                    ToolTip.text = result.warning
                     sendIcon.source = "/images/warning"
                     status = -1
                 } else {
                     status = 0
                     warningField.text = ""
                     setHelperText(valueTotalField.text, getGasTotal())
-                    toField.textColor = "black"
+                    toField.color = "black"
                     sendIcon.source = "/images/ok"
                 }
 
@@ -503,7 +504,7 @@ Item {
             onClicked: {
                 var result = refresh()
                 if ( result.error !== null ) {
-                    errorAnimation.start()
+                    // errorAnimation.start()
                     return
                 }
 

@@ -3,7 +3,7 @@
 namespace Etherwall {
 
     EventModel::EventModel(const ContractModel& contractModel, const FilterModel& filterModel) :
-        QAbstractListModel(0), fContractModel(contractModel), fList()
+        QAbstractTableModel(0), fContractModel(contractModel), fList()
     {
         connect(&contractModel, &ContractModel::newEvent, this, &EventModel::onNewEvent);
         connect(&filterModel, &FilterModel::beforeLoadLogs, this, &EventModel::onBeforeLoadLogs);
@@ -11,6 +11,7 @@ namespace Etherwall {
 
     QHash<int, QByteArray> EventModel::roleNames() const {
         QHash<int, QByteArray> roles;
+        roles[Qt::DisplayRole] = "display";
         roles[EventNameRole] = "name";
         roles[EventContractRole] = "contract";
         roles[EventAddressRole] = "address";
@@ -27,8 +28,27 @@ namespace Etherwall {
         return fList.size();
     }
 
+    int EventModel::columnCount(const QModelIndex &parent) const
+    {
+        Q_UNUSED(parent);
+
+        return 3;
+    }
+
     QVariant EventModel::data(const QModelIndex & index, int role) const {
-        return fList.at(index.row()).value(role);
+        int row = index.row();
+
+        if ( role == Qt::DisplayRole ) {
+            switch ( index.column() ) {
+                case 0: return fList.at(row).value(EventNameRole);
+                case 1: return fList.at(row).contract();
+                case 2: return fList.at(row).blockNumber();
+            }
+
+            return "?";
+        }
+
+        return fList.at(row).value(role);
     }
 
     const QString EventModel::getName(int index) const {

@@ -18,19 +18,19 @@
  * Filter Details dialog
  */
 
-import QtQuick 2.0
-import QtQuick.Dialogs 1.2
-import QtQuick.Controls 1.2
-import QtQuick.Controls.Styles 1.2
+import QtQuick 2.12
+import QtQuick.Controls 2.15
 
 Dialog {
     id: filterDetails
     title: qsTr("Watch Details")
     signal refresh()
-    standardButtons: StandardButton.Close
+    standardButtons: Dialog.Close
     visible: false
     width: 7 * dpi
-    height: 7 * dpi
+    height: 8 * dpi
+    focus: true
+    anchors.centerIn: parent
 
     function display( index ) {
         if ( index >= 0 ) {
@@ -166,7 +166,9 @@ Dialog {
 
                     Connections {
                         target: filterDetails
-                        onRefresh: boolField.currentIndex = 0
+                        function onRefresh() {
+                            boolField.currentIndex = 0
+                        }
                     }
 
                     onCurrentIndexChanged: {
@@ -184,7 +186,9 @@ Dialog {
 
                     Connections {
                         target: filterDetails
-                        onRefresh: valField.text = "" // ensure we wipe old values on window re-open and func reselect
+                        function onRefresh() {
+                            valField.text = "" // ensure we wipe old values on window re-open and func reselec
+                        }
                     }
 
                     onTextChanged: {
@@ -231,15 +235,15 @@ Dialog {
                 source: "/images/warning"
             }
 
-            style: ButtonStyle {
-              label: Text {
-                renderType: Text.NativeRendering
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: saveButton.height / 2.0
-                text: control.text
-              }
-            }
+//            style: ButtonStyle {
+//              label: Text {
+//                renderType: Text.NativeRendering
+//                verticalAlignment: Text.AlignVCenter
+//                horizontalAlignment: Text.AlignHCenter
+//                font.pixelSize: saveButton.height / 2.0
+//                text: control.text
+//              }
+//            }
 
             function check() {
                 var result = {
@@ -281,7 +285,8 @@ Dialog {
             function refresh() {
                 var result = check()
                 if ( result.error !== null ) {
-                    tooltip = result.error
+                    ToolTip.text = result.error
+                    ToolTip.visible = hovered
                     saveIcon.source = "/images/warning"
                     return result
                 }

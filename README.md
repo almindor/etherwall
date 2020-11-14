@@ -39,7 +39,7 @@ Etherwall is licensed under the GPLv3 license. See LICENSE for more info.
 
 [Latest Geth](https://github.com/ethereum/go-ethereum/releases)
 
-[Qt5.6+ with qmake](https://www.qt.io/developers/)
+[Qt5.15+ with qmake](https://www.qt.io/developers/)
 
 Qt5 modules:
 * qt5-declarative
@@ -86,12 +86,9 @@ qmake -config release && make
 
 ### Roadmap
 
-#### TODO
-
-- 2.1 improve UX
-
 #### DONE
 
+- 3.0 update UX
 - 2.0 add "remote IPC" node support
 - 1.6 add TREZOR support
 - 1.4 add contract deployment

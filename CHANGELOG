@@ -1,3 +1,5 @@
+* 3.0.0 - redo UI in new qtquick2
+----
 * 2.2.2 - fix macOS X specific modal dialog issues
 * 2.2.1 - fix eth_estimateGas errors
 * 2.1.1 - fix eth_getLogs missing internalFilterID

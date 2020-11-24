@@ -25,12 +25,19 @@ Loader {
     id: settingsTab
     anchors.fill: parent // bugged see https://bugreports.qt.io/browse/QTBUG-59711
 
-    SettingsContent {
-        id: settingsContent
-        anchors.topMargin: 0.2 * dpi
-        anchors.top: parent.top
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.margins: 0.05 * dpi
+    ScrollView {
+        clip: true
+        contentWidth: parent.width
+        contentHeight: 7.5 * dpi
+        anchors.fill: parent
+
+        SettingsContent {
+            id: settingsContent
+            anchors.topMargin: 0.2 * dpi
+            anchors.top: parent.top
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 0.05 * dpi
+        }
     }
 }

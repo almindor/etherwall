@@ -20,10 +20,10 @@ win32 {
 }
 
 macx {
-    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9
+    QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.15
     INCLUDEPATH += /usr/local/include
-    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk/System/Library/Frameworks/IOKit.framework/Headers
-    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.13.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers
+    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/IOKit.framework/Headers
+    INCLUDEPATH += /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/System/Library/Frameworks/CoreFoundation.framework/Headers
     QMAKE_LFLAGS += -F/System/Library/Frameworks/CoreFoundation.framework -F/System/Library/Frameworks/IOKit.framework
     LIBS += -framework CoreFoundation
     LIBS += -framework IOKit

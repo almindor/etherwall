@@ -39,7 +39,7 @@ Dialog {
     ScrollView {
         anchors.fill: parent
         contentWidth: 8.7 * dpi
-        contentHeight: 7.5 * dpi
+        contentHeight: 5.5 * dpi
 
         Column {
             id: infoCol
@@ -75,7 +75,7 @@ Dialog {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Full node mode is not recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Running local geth is not recommended due to chaindata size. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
@@ -93,7 +93,7 @@ Dialog {
                 textFormat: Text.RichText
                 wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                 onLinkActivated: Qt.openUrlExternally(link)
-                text: qsTr("Ethereum blockchain requires a ludicrous amount of space and takes a long time to synchronize. Use of thin client is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
+                text: qsTr("Ethereum blockchain requires a ludicrous amount of space and takes a long time to synchronize. Use of remote node is preferred. <a href=\"https://www.etherwall.com/faq/#thinclient\">Click here for more info</a>.")
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.NoButton // we don't want to eat clicks on the Text
@@ -105,7 +105,7 @@ Dialog {
         SettingsContent {
             id: content
             anchors.top: infoCol.bottom
-            anchors.topMargin: 0.2 * dpi
+            anchors.topMargin: 1 * dpi
             anchors.left: parent.left
             anchors.right: parent.right
             hideTrezor: true

@@ -13,7 +13,7 @@ linux {
 }
 
 win32 {
-    INCLUDEPATH += C:\MinGW\msys\1.0\local\include
+    INCLUDEPATH += C:\msys64\mingw64\include
     # PKGCONFIG += hidapi libusb-1.0 protobuf libudev
     LIBS += -lprotobuf -lusb-1.0 -lhidapi -lsetupapi -lws2_32
     RC_ICONS = icon.ico

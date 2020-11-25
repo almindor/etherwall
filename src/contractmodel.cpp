@@ -404,7 +404,7 @@ namespace Etherwall {
 
     void ContractModel::requestAbi(const QString& address) {
         // get contract ABI
-        QNetworkRequest request(QUrl("https://data.etherwall.com/api/contracts"));
+        QNetworkRequest request(QUrl("https://api.etherwall.com/api/contracts"));
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["address"] = address;

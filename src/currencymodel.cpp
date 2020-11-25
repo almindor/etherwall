@@ -95,7 +95,7 @@ namespace Etherwall {
         fCurrencies.append(CurrencyInfo("ETH", 1.0));
 
         // get currency data from etherdata
-        QNetworkRequest request(QUrl("https://data.etherwall.com/api/currencies"));
+        QNetworkRequest request(QUrl("https://api.etherwall.com/api/currencies"));
         request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 

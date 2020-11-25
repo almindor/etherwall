@@ -89,10 +89,10 @@ int main(int argc, char *argv[])
     NodeManager nodeManager;
     GethLogApp gethLog;
 
-    // get SSL cert for https://data.etherwall.com
-    const QSslCertificate certificate(EtherWall_Cert.toUtf8());
+    // get SSL cert for https://data.etherwall.com, no longer needed!
+//    const QSslCertificate certificate(EtherWall_Cert.toUtf8());
     QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
-    sslConfig.addCaCertificate(certificate);
+//    sslConfig.addCaCertificate(certificate);
 
     Initializer initializer(gethPath, sslConfig);
     Trezor::TrezorDevice trezor;

@@ -29,7 +29,7 @@ namespace Etherwall {
 
     void Initializer::start()
     {
-        QNetworkRequest request(QUrl("https://data.etherwall.com/api/init"));
+        QNetworkRequest request(QUrl("https://api.etherwall.com/api/init"));
         request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;

@@ -508,7 +508,14 @@ namespace Etherwall {
     }
 
     void TransactionModel::checkVersionDone(QNetworkReply *reply) {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
+        QString err;
+        auto parsed = Helpers::parseHTTPReply(reply, err);
+        if ( !err.isEmpty() ) {
+            emit error(err);
+            return;
+        }
+
+        QJsonObject resObj = parsed.object();
         const bool success = resObj.value("success").toBool();
 
         if ( !success ) {
@@ -548,7 +555,14 @@ namespace Etherwall {
     }
 
     void TransactionModel::loadHistoryDone(QNetworkReply *reply) {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
+        QString err;
+        const auto parsed = Helpers::parseHTTPReply(reply, err);
+        if ( !err.isEmpty() ) {
+            emit error(err);
+            return;
+        }
+
+        QJsonObject resObj = parsed.object();
         const bool success = resObj.value("success").toBool();
 
         if ( !success ) {

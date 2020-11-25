@@ -17,6 +17,7 @@ namespace Etherwall {
     signals:
         void initDone(const QString& gethPath, const QString& version, const QString& endpoint, const QString& warning) const;
         void warning(const QString& version, const QString& endpoint, const QString& warning) const;
+        void error(const QString& error) const;
     private slots:
         void httpRequestDone(QNetworkReply *reply);
     private:

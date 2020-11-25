@@ -78,11 +78,18 @@ namespace Etherwall {
     void NodeManager::onHttpRequestDone(QNetworkReply* reply)
     {
         const QString uri = reply->url().fileName();
+        QString err;
+        const auto parsed = Helpers::parseHTTPReply(reply, err);
+
+        if ( !err.isEmpty() ) {
+            emit error(err);
+            return;
+        }
 
         if ( uri == "latest" ) { // both geth and parity
-            return handleRelease(Helpers::parseHTTPReply(reply));
+            return handleRelease(parsed);
         } else if ( fNodeType == NodeTypes::Geth && uri == "tags" ) { // just geth
-            return handleTags(Helpers::parseHTTPReply(reply));
+            return handleTags(parsed);
         }
 
         EtherLog::logMsg("Unknown uri from reply: " + uri, LS_Error);

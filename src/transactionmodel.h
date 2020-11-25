@@ -95,6 +95,7 @@ namespace Etherwall {
         void checkVersionDone(QNetworkReply *reply);
         void httpRequestDone(QNetworkReply *reply);
     signals:
+        void error(const QString& error) const;
         void blockNumberChanged(quint64 num) const;
         void gasPriceChanged(const QString& price) const;
         void gasEstimateChanged(const QString& price) const;

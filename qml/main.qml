@@ -86,6 +86,11 @@ ApplicationWindow {
     Connections {
         target: initializer
 
+        function onError(error) {
+            errorDialog.text = error
+            errorDialog.open()
+        }
+
         function onWarning(version, endpoint, warning) {
             if (warning && warning.length) {
                 warningDialog.text = warning
@@ -146,6 +151,11 @@ ApplicationWindow {
     Connections {
         target: transactionModel
 
+        function onError(error) {
+            errorDialog.text = error
+            errorDialog.open(error)
+        }
+
         function onLatestVersionChanged(version, manualVersionCheck) {
             if ( !manualVersionCheck ) {
                 var now = new Date()
@@ -193,6 +203,11 @@ ApplicationWindow {
 
     Connections {
         target: contractModel
+
+        function onError(error) {
+            errorDialog.text = error
+            errorDialog.open(error)
+        }
 
         function onReceivedTokens(value, token, sender) {
             badge.show(qsTr("Received") + " " + value + " " + token + " " + qsTr("from") + " " + sender)

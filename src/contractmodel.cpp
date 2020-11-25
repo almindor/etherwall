@@ -547,7 +547,14 @@ namespace Etherwall {
     }
 
     void ContractModel::httpRequestDone(QNetworkReply *reply) {
-        QJsonObject resObj = Helpers::parseHTTPReply(reply).object();
+        QString err;
+        const auto parsed = Helpers::parseHTTPReply(reply, err);
+        if ( !err.isEmpty() ) {
+            emit error(err);
+            return;
+        }
+
+        QJsonObject resObj = parsed.object();
         const bool success = resObj.value("success").toBool();
 
         fBusy = false;

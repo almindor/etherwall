@@ -75,6 +75,7 @@ namespace Etherwall {
         Q_INVOKABLE void requestAbi(const QString& address);
         Q_INVOKABLE bool callName(const QString& address, const QString& jsonAbi) const;
     signals:
+        void error(const QString& error) const; // internal error
         void callError(const QString& err) const;
         void newEvent(const EventInfo& info, bool isNew) const;
         void abiResult(const QString& abi) const;

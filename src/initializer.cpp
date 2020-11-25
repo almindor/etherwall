@@ -21,8 +21,8 @@ namespace Etherwall {
     #endif
     }
 
-    Initializer::Initializer(const QString& gethPath) :
-        QObject(0), fGethPath(gethPath)
+    Initializer::Initializer(const QString& gethPath, const QSslConfiguration& sslConfig) :
+        QObject(0), fSSLConfig(sslConfig), fGethPath(gethPath)
     {
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
     }
@@ -30,6 +30,7 @@ namespace Etherwall {
     void Initializer::start()
     {
         QNetworkRequest request(QUrl("https://data.etherwall.com/api/init"));
+        request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         const QByteArray data = QJsonDocument(objectJson).toJson();

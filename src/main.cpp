@@ -91,15 +91,16 @@ int main(int argc, char *argv[])
 
     // get SSL cert for https://data.etherwall.com
     const QSslCertificate certificate(EtherWall_Cert.toUtf8());
-    QSslSocket::addDefaultCaCertificate(certificate);
+    QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
+    sslConfig.addCaCertificate(certificate);
 
-    Initializer initializer(gethPath);
+    Initializer initializer(gethPath, sslConfig);
     Trezor::TrezorDevice trezor;
     DeviceManager deviceManager(app);
     NodeWS ipc(gethLog);
-    CurrencyModel currencyModel;
+    CurrencyModel currencyModel(sslConfig);
     AccountModel accountModel(ipc, currencyModel, trezor);
-    TransactionModel transactionModel(ipc, accountModel);
+    TransactionModel transactionModel(ipc, accountModel, sslConfig);
     ContractModel contractModel(ipc, accountModel);
     FilterModel filterModel(ipc);
     EventModel eventModel(contractModel, filterModel);

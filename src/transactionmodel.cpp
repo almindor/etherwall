@@ -46,8 +46,8 @@ namespace Etherwall {
         return false; // otherwise leave as error
     }
 
-    TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel) :
-        QAbstractTableModel(nullptr), fIpc(ipc), fAccountModel(accountModel),
+    TransactionModel::TransactionModel(NodeIPC& ipc, const AccountModel& accountModel, const QSslConfiguration& sslConfig) :
+        QAbstractTableModel(nullptr), fSSLConfig(sslConfig), fIpc(ipc), fAccountModel(accountModel),
         fBlockNumber(0), fLastBlock(0), fFirstBlock(0), fGasPrice("0"), fGasEstimate("0"), fNetManager(this),
         fLatestVersion(QCoreApplication::applicationVersion())
     {
@@ -496,6 +496,7 @@ namespace Etherwall {
     void TransactionModel::checkVersion(bool manual) {
         // get latest app version
         QNetworkRequest request(QUrl("https://data.etherwall.com/api/version"));
+        request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         request.setRawHeader("x-internal-manual", manual ? "t" : "f");
         QJsonObject objectJson;
@@ -535,6 +536,7 @@ namespace Etherwall {
 
         // get historical transactions from etherdata
         QNetworkRequest request(QUrl("https://data.etherwall.com/api/transactions"));
+        request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
         QJsonObject objectJson;
         objectJson["accounts"] = fAccountModel.getAccountsJsonArray();

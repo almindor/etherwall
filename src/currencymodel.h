@@ -40,7 +40,7 @@ namespace Etherwall {
         Q_PROPERTY(int helperIndex READ getHelperIndex NOTIFY helperIndexChanged)
         Q_PROPERTY(QString helperName READ getHelperName NOTIFY helperIndexChanged)
     public:
-        CurrencyModel();
+        CurrencyModel(const QSslConfiguration& sslConfig);
         QHash<int, QByteArray> roleNames() const;
         int rowCount(const QModelIndex & parent = QModelIndex()) const;
         QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
@@ -59,6 +59,7 @@ namespace Etherwall {
         void currencyChanged();
         void helperIndexChanged(int index);
     private:
+        const QSslConfiguration& fSSLConfig;
         CurrencyInfos fCurrencies;
         QNetworkAccessManager fNetManager;
         int fIndex;

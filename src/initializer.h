@@ -10,7 +10,7 @@ namespace Etherwall {
     {
         Q_OBJECT
     public:
-        explicit Initializer(const QString& gethPath);
+        explicit Initializer(const QString& gethPath, const QSslConfiguration& sslConfig);
         Q_INVOKABLE void start();
         Q_INVOKABLE void proceed();
         static const QString defaultGethPath();
@@ -20,6 +20,7 @@ namespace Etherwall {
     private slots:
         void httpRequestDone(QNetworkReply *reply);
     private:
+        const QSslConfiguration& fSSLConfig;
         QNetworkAccessManager fNetManager;
         QString fGethPath;
         QString fVersion;

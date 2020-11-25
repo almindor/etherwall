@@ -44,7 +44,7 @@ namespace Etherwall {
         Q_PROPERTY(QString gasEstimate READ getGasEstimate NOTIFY gasEstimateChanged FINAL)
         Q_PROPERTY(QString latestVersion READ getLatestVersion NOTIFY latestVersionChanged FINAL)
     public:
-        TransactionModel(NodeIPC& ipc, const AccountModel& accountModel);
+        TransactionModel(NodeIPC& ipc, const AccountModel& accountModel, const QSslConfiguration& sslConfig);
         quint64 getBlockNumber() const;
         const QString& getGasPrice() const;
         const QString& getLatestVersion() const;
@@ -104,6 +104,7 @@ namespace Etherwall {
         void receivedTransaction(const QString& toAddress) const;
         void confirmedTransaction(const QString& fromAddress, const QString& toAddress, const QString& hash) const;
     private:
+        const QSslConfiguration fSSLConfig;
         NodeIPC& fIpc;
         const AccountModel& fAccountModel;
         TransactionList fTransactionList;

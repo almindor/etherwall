@@ -28,7 +28,7 @@
 
 namespace Etherwall {
 
-    CurrencyModel::CurrencyModel() : QAbstractListModel(0), fIndex(0), fTimer()
+    CurrencyModel::CurrencyModel(const QSslConfiguration& sslConfig) : QAbstractListModel(0), fSSLConfig(sslConfig), fIndex(0), fTimer()
     {
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(loadCurrenciesDone(QNetworkReply*)));
         loadCurrencies();
@@ -96,6 +96,7 @@ namespace Etherwall {
 
         // get currency data from etherdata
         QNetworkRequest request(QUrl("https://data.etherwall.com/api/currencies"));
+        request.setSslConfiguration(fSSLConfig);
         request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
         QJsonObject objectJson;
@@ -139,11 +140,12 @@ namespace Etherwall {
         }
 
         const QJsonObject c = resObj.value("currencies").toObject();
-        const QJsonArray d = c.value("Data").toArray();
 
-        foreach ( const QJsonValue p, d ) {
-            const QString key = p.toObject().value("Symbol").toString("bogus");
-            const float value = p.toObject().value("Price").toVariant().toFloat(0);
+        foreach ( const QString& key, c.keys() ) {
+            if ( key == "date")  {
+                continue;
+            }
+            const float value = c.value(key).toDouble(0);
             fCurrencies.append(CurrencyInfo(key, value));
         }
 

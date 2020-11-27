@@ -71,7 +71,7 @@ For Qt5 runtime/deployment see: [Qt5 for windows](http://doc.qt.io/qt-5/windows-
 
 The project is set to use static (.a) files on Mac OS X with absolute paths.
 You need to update the paths in the `Etherwall.pro` file to point to your compiled libraries.
-You need protobuf compiled with `CXXFLAGS=-mmacosx-version-min=10.9` to support older Mac versions (for releases)
+You need protobuf compiled with `CXXFLAGS=-mmacosx-version-min=10.15` to support older Mac versions (for releases)
 
 For Qt5 runtime/deployment see: [Qt5 for macos](http://doc.qt.io/qt-5/osx.html#deploying-applications-on-macos)
 

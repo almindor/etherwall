@@ -149,13 +149,15 @@ namespace Etherwall {
             fAccountList[index].setAlias(name);
             setAccountAlias(fAccountList.at(index).hash(), name);
 
-            QVector<int> roles(2);
+            QVector<int> roles(3);
             roles[0] = AliasRole;
             roles[1] = SummaryRole;
-            const QModelIndex& modelIndex = QAbstractTableModel::createIndex(index, 0);
+            roles[2] = Qt::DisplayRole;
+            const QModelIndex& leftIndex = QAbstractTableModel::createIndex(index, 0);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(index, 5);
 
             storeAccountList();
-            emit dataChanged(modelIndex, modelIndex, roles);
+            emit dataChanged(leftIndex, rightIndex, roles);
         } else {
             EtherLog::logMsg("Invalid account selection for rename", LS_Error);
         }
@@ -264,7 +266,7 @@ namespace Etherwall {
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();
 
-        defaultIndexChanged(getDefaultIndex());
+        emit defaultIndexChanged(getDefaultIndex());
         endResetModel();
     }
 
@@ -302,10 +304,11 @@ namespace Etherwall {
         fAccountList[accountIndex].setTokenBalance(tokenAddress, balance);
 
         if ( fAccountList.at(accountIndex).getCurrentTokenAddress() == tokenAddress ) {
-            QVector<int> roles(1);
-            roles[0] = BalanceRole;
+            QVector<int> roles(2);
+            roles[0] = TokenBalanceRole;
+            roles[1] = Qt::DisplayRole;
             const QModelIndex& leftIndex = QAbstractTableModel::createIndex(accountIndex, 0);
-            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(accountIndex, 0);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(accountIndex, 5);
             emit dataChanged(leftIndex, rightIndex, roles);
             emit totalChanged();
         }
@@ -502,8 +505,9 @@ namespace Etherwall {
         } else if ( fAccountList.at(i1).deviceID() != fTrezor.getDeviceID() ) { // this shouldn't happen unless they reimported to another hd device
             fAccountList[i1].setDeviceID(fTrezor.getDeviceID());
 
-            QVector<int> roles(1);
-            roles[0] = DeviceRole;
+            QVector<int> roles(2);
+            roles[0] = TokenBalanceRole;
+            roles[1] = DeviceRole;
             const QModelIndex& leftIndex = QAbstractTableModel::createIndex(i1, i1);
             const QModelIndex& rightIndex = QAbstractTableModel::createIndex(i1, i1);
             emit dataChanged(leftIndex, rightIndex, roles);
@@ -532,8 +536,9 @@ namespace Etherwall {
     }
 
     void AccountModel::currencyChanged() {
-        QVector<int> roles(1);
+        QVector<int> roles(2);
         roles[0] = BalanceRole;
+        roles[1] = Qt::DisplayRole;
 
         const QModelIndex& leftIndex = QAbstractTableModel::createIndex(0, 0);
         const QModelIndex& rightIndex = QAbstractTableModel::createIndex(fAccountList.size() - 1, 4);

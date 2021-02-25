@@ -118,12 +118,13 @@ namespace Etherwall {
             if ( li.address() == info.address() ) {
                 fList[at] = info;
 
-                QVector<int> roles(3);
+                QVector<int> roles(4);
                 roles[0] = ContractNameRole;
                 roles[1] = AddressRole;
                 roles[2] = ABIRole;
+                roles[3] = Qt::DisplayRole;
                 const QModelIndex& leftIndex = QAbstractTableModel::createIndex(at, 0);
-                const QModelIndex& rightIndex = QAbstractTableModel::createIndex(at, 0);
+                const QModelIndex& rightIndex = QAbstractTableModel::createIndex(at, 10);
 
                 emit dataChanged(leftIndex, rightIndex, roles);
                 return true;

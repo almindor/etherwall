@@ -150,11 +150,12 @@ namespace Etherwall {
     void FilterModel::update(int index) {
         const QModelIndex& leftIndex = QAbstractTableModel::createIndex(index, 0);
         const QModelIndex& rightIndex = QAbstractTableModel::createIndex(index, 3);
-        QVector<int> roles(4);
+        QVector<int> roles(5);
         roles[0] = FilterNameRole;
         roles[1] = FilterContractRole;
         roles[2] = FilterTopicsRole;
         roles[3] = FilterActiveRole;
+        roles[4] = Qt::DisplayRole;
         emit dataChanged(leftIndex, rightIndex, roles);
 
         registerFilters();

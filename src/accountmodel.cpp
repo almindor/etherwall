@@ -259,15 +259,24 @@ namespace Etherwall {
 
     void AccountModel::setAsDefault(const QString &address)
     {
-        beginResetModel();
+        const int prevIndex = getDefaultIndex();
         QSettings settings;
         const QString defaultKey = "default/" + fIpc.chainManager().networkPostfix();
         settings.beginGroup("accounts");
         settings.setValue(defaultKey, address.toLower());
         settings.endGroup();
 
-        emit defaultIndexChanged(getDefaultIndex());
-        endResetModel();
+        const int newIndex = getDefaultIndex();
+        emit defaultIndexChanged(newIndex);
+        const QModelIndex& leftIndex = QAbstractTableModel::createIndex(prevIndex, 0);
+        const QModelIndex& rightIndex = QAbstractTableModel::createIndex(prevIndex, 0);
+        emit dataChanged(leftIndex, rightIndex);
+
+        {
+            const QModelIndex& leftIndex = QAbstractTableModel::createIndex(newIndex, 0);
+            const QModelIndex& rightIndex = QAbstractTableModel::createIndex(newIndex, 0);
+            emit dataChanged(leftIndex, rightIndex);
+        }
     }
 
     void AccountModel::trezorImport(quint32 offset, quint8 count)
@@ -582,6 +591,7 @@ namespace Etherwall {
         }
 
         emit accountsReady();
+        emit defaultIndexChanged(getDefaultIndex());
     }
 
     void AccountModel::refreshAccounts() {
@@ -655,7 +665,7 @@ namespace Etherwall {
     {
         const QSettings settings;
         const QString defaultKey = "accounts/default/" + fIpc.chainManager().networkPostfix();
-        const QString address = settings.value(defaultKey).toString();
+        const QString address = settings.value(defaultKey).toString().toLower();
 
         if ( address.isEmpty() ) {
             return 0;

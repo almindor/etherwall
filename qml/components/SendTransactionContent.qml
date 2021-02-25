@@ -286,9 +286,12 @@ Item {
                 onClicked: {
                     if ( tokenCombo.currentIndex > 0 ) {
                         valueField.text = accountModel.getMaxTokenValue(fromField.currentIndex, tokenAddress)
+                        txValue = "0"
                     } else {
                         valueField.text = transactionModel.getMaxValue(fromField.currentIndex, gasField.text, gasPriceField.text)
+                        txValue = valueField.text
                     }
+                    valueChangedTimer.restart()
                 }
             }
         }

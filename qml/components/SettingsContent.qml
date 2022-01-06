@@ -154,7 +154,7 @@ Loader {
                         id: gethArgsField
                         anchors.left: gethArgsLabel.right
                         anchors.right: parent.right
-                        text: settings.value("geth/args", "--syncmode=fast --cache 512")
+                        text: settings.value("geth/args", "--syncmode=snap --cache 512")
                         onTextChanged: {
                             settings.setValue("geth/args", gethArgsField.text)
                         }

@@ -181,7 +181,7 @@ Loader {
             onItemDoubleClicked: function() {
                 if ( currentRow >= 0 ) {
                     accountModel.selectedAccountRow = currentRow
-                    accountDetails.open(currentRow)
+                    accountDetails.display(currentRow)
                 }
             }
 

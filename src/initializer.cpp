@@ -1,6 +1,7 @@
 #include "initializer.h"
 #include "etherlog.h"
 #include "helpers.h"
+#include "nodeipc.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QApplication>
@@ -25,6 +26,22 @@ namespace Etherwall {
         QObject(0), fSSLConfig(sslConfig), fGethPath(gethPath)
     {
         connect(&fNetManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(httpRequestDone(QNetworkReply*)));
+
+        replaceDeprecatedSettings();
+    }
+
+    void Initializer::replaceDeprecatedSettings() const {
+        QSettings settings;
+        QString argStr = settings.value("geth/args", NodeIPC::sDefaultGethArgs).toString();
+
+        // check deprecated options and replace them
+        if ( argStr.contains("--syncmode=fast") || argStr.contains("--light") || argStr.contains("--fast") ) {
+            argStr = argStr.replace("--light", "--syncmode=light");
+            argStr = argStr.replace("--fast", "--syncmode=snap");
+            argStr = argStr.replace("--syncmode=fast", "--syncmode=snap");
+            settings.setValue("geth/args", argStr);
+            qDebug() << "replaced args\n";
+        }
     }
 
     void Initializer::start()

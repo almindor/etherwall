@@ -11,6 +11,7 @@ namespace Etherwall {
         Q_OBJECT
     public:
         explicit Initializer(const QString& gethPath, const QSslConfiguration& sslConfig);
+        void replaceDeprecatedSettings() const;
         Q_INVOKABLE void start();
         Q_INVOKABLE void proceed();
         static const QString defaultGethPath();

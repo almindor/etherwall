@@ -142,13 +142,20 @@ Loader {
             id: accountRemoveDialog
             property string text : ""
             title: qsTr("Confirm removal of account")
-            Text {
-                text: accountRemoveDialog.text
+
+            Column {
+                Text {
+                    text: accountRemoveDialog.text
+                }
             }
 
-            standardButtons: Dialog.Yes | Dialog.No | Dialog.Help
+            width: 7 * dpi
+
+            focus: true
+            anchors.centerIn: parent
+            standardButtons: StandardButton.Yes | StandardButton.No | StandardButton.Help
             onAccepted: accountModel.removeAccount(accountModel.selectedAccount)
-            onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#removeaccount")
+            onHelpRequested: Qt.openUrlExternally("https://www.etherwall.com/faq/#trezor")
         }
 
         QRExportDialog {

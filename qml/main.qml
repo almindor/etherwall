@@ -301,7 +301,7 @@ ApplicationWindow {
 
         Column {
             Text {
-                text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2020 by Aleš Katona.'
+                text: 'Etherwall ' + Qt.application.version + ' copyright 2015-2023 by Aleš Katona.'
             }
 
             Text {

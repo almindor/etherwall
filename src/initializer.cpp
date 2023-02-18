@@ -42,6 +42,13 @@ namespace Etherwall {
             settings.setValue("geth/args", argStr);
             qDebug() << "replaced args\n";
         }
+
+        // enable old personal API until we use clef
+        if ( !argStr.contains("--rpc.enabledeprecatedpersonal") ) {
+            argStr.append(" --rpc.enabledeprecatedpersonal");
+            qDebug() << "enabled personal API\n";
+            settings.setValue("geth/args", argStr);
+        }
     }
 
     void Initializer::start()

@@ -1,6 +1,6 @@
 # etherwall
 
-Ethereum QT5 Wallet
+Ethereum Qt5 Wallet
 
 Etherwall is a free software wallet/front-end for Ethereum.
 

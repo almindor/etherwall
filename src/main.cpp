@@ -51,7 +51,7 @@
 using namespace Etherwall;
 
 // ew-node version check
-#if EW_NODE_VERSION != 1000008
+#if EW_NODE_VERSION != 1000009
 #error "ew-node version mismatch, update git submodules"
 #endif
 
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("Etherdyne");
     QCoreApplication::setOrganizationDomain("etherwall.com");
     QCoreApplication::setApplicationName("Etherwall");
-    QCoreApplication::setApplicationVersion("3.0.5");
+    QCoreApplication::setApplicationVersion("3.0.6");
     app.setWindowIcon(QIcon(QPixmap(":/images/icon")));
 
     QTranslator translator;
